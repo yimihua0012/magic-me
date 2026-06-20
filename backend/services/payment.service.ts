@@ -78,8 +78,8 @@ export class PaymentService {
 
     return {
       id: customer.id,
-      email: customer.email,
-      name: customer.name || undefined,
+      email: customer.email ?? undefined,
+      name: customer.name ?? undefined,
     }
   }
 
@@ -90,8 +90,8 @@ export class PaymentService {
 
       return {
         id: customer.id,
-        email: customer.email || '',
-        name: customer.name || undefined,
+        email: customer.email ?? undefined,
+        name: customer.name ?? undefined,
       }
     } catch {
       return null
