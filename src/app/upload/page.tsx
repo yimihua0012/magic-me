@@ -17,6 +17,7 @@ import {
   Lightbulb,
   Loader2
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 interface PhotoValidation {
   file: File
@@ -47,8 +48,8 @@ export default function UploadPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/auth/me')
-        if (res.ok) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
           setIsAuthenticated(true)
         } else {
           setShowAuthModal(true)
