@@ -1,7 +1,7 @@
-import { stripe, PLANS, PlanType } from '../config/stripe'
-import { config } from '../config'
-import { userRepository } from '../db/repositories'
-import { CheckoutSession, StripeCustomer } from '../types'
+import { stripe, PLANS, PlanType } from '@backend/config/stripe'
+import { config } from '@backend/config'
+import { userRepository } from '@backend/db/repositories'
+import { CheckoutSession, StripeCustomer } from '@backend/types'
 
 export class PaymentService {
   async createCheckoutSession(

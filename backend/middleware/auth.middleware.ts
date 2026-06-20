@@ -1,8 +1,7 @@
 // Auth Middleware
 import { NextRequest } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@supabase/ssr'
-import { AuthenticationError, AuthorizationError } from '../utils/errors'
+import { createServerClient } from '@supabase/ssr'
+import { AuthenticationError, AuthorizationError } from '@backend/utils/errors'
 
 export async function getUser(req: NextRequest) {
   const supabase = createServerClient(

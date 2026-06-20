@@ -1,5 +1,5 @@
-import { supabaseAdmin } from '../../config/supabase'
-import { User, Profile, CreateProfileInput, UpdateProfileInput } from '../types'
+import { supabaseAdmin } from '@backend/config/supabase'
+import { User, Profile, CreateProfileInput, UpdateProfileInput } from '@backend/types'
 
 export class UserRepository {
   async findById(id: string): Promise<User | null> {

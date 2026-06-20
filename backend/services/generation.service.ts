@@ -1,6 +1,5 @@
-import { generationRepository } from '../db/repositories'
-import { Generation, CreateGenerationInput, GenerationStatus, GENERATION_STEPS } from '../types'
-import { generationService } from './generation.service'
+import { generationRepository } from '@backend/db/repositories'
+import { Generation, CreateGenerationInput, GenerationStatus, GENERATION_STEPS } from '@backend/types'
 
 export class GenerationService {
   async createGeneration(userId: string, planType: 'basic' | 'pro', inputPhotos: string[]): Promise<Generation> {

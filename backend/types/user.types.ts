@@ -13,6 +13,8 @@ export interface User {
   updated_at: string
 }
 
+export type Profile = User
+
 export interface CreateProfileInput {
   id: string
   email: string

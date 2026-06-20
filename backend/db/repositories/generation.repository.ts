@@ -1,5 +1,5 @@
-import { supabaseAdmin } from '../../config/supabase'
-import { Generation, GenerationStatus, CreateGenerationInput, UpdateGenerationInput } from '../types'
+import { supabaseAdmin } from '@backend/config/supabase'
+import { Generation, GenerationStatus, CreateGenerationInput, UpdateGenerationInput } from '@backend/types'
 
 export class GenerationRepository {
   async findById(id: string): Promise<Generation | null> {

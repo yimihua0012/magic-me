@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { RateLimitError } from '../utils/errors'
-import { logger } from '../utils/logger'
+import { RateLimitError } from '@backend/utils/errors'
+import { logger } from '@backend/utils/logger'
 
 interface RateLimitConfig {
   windowMs: number
@@ -37,7 +37,8 @@ export function rateLimit(config: RateLimitConfig) {
 
     // Cleanup old entries
     if (rateLimits.size > 10000) {
-      for (const [k, v] of rateLimits.entries()) {
+      const entries = Array.from(rateLimits.entries())
+      for (const [k, v] of entries) {
         if (now > v.resetTime) {
           rateLimits.delete(k)
         }

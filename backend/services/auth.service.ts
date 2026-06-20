@@ -1,7 +1,7 @@
-import { supabaseAdmin } from '../config/supabase'
-import { config } from '../config'
-import { userRepository } from '../db/repositories'
-import { User } from '../types'
+import { supabaseAdmin } from '@backend/config/supabase'
+import { config } from '@backend/config'
+import { userRepository } from '@backend/db/repositories'
+import { User } from '@backend/types'
 
 export class AuthService {
   async signUp(email: string, password: string, metadata?: { full_name?: string }): Promise<User> {
