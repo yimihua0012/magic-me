@@ -1,15 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import AuthModal from '@/components/auth/auth-modal'
 import { Check, X, Sparkles, Zap, Crown, Building } from 'lucide-react'
-import { useEffect } from 'react'
 
 const plans = [
   {
@@ -79,13 +77,19 @@ const plans = [
 ]
 
 export default function PricingPage() {
-  const searchParams = useSearchParams()
-  const planParam = searchParams.get('plan')
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [selectedPlan, setSelectedPlan] = useState<string>(planParam || 'basic')
+  const [selectedPlan, setSelectedPlan] = useState<string>('basic')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const planParam = urlParams.get('plan')
+    if (planParam) {
+      setSelectedPlan(planParam)
+    }
+  }, [])
 
   useEffect(() => {
     const checkAuth = async () => {
