@@ -8,6 +8,7 @@ import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import AuthModal from '@/components/auth/auth-modal'
 import { Check, X, Sparkles, Zap, Crown, Building } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 const plans = [
   {
@@ -94,8 +95,8 @@ export default function PricingPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/auth/me')
-        if (res.ok) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
           setIsAuthenticated(true)
         }
       } catch {

@@ -17,6 +17,7 @@ import {
   Lightbulb,
   Loader2
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 interface PhotoValidation {
   file: File
@@ -47,8 +48,8 @@ export default function UploadPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/auth/me')
-        if (res.ok) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
           setIsAuthenticated(true)
         } else {
           setShowAuthModal(true)
@@ -179,7 +180,14 @@ export default function UploadPage() {
 
   const handleProceed = () => {
     if (canProceed) {
-      router.push('/pricing')
+      // Skip payment, go directly to generation
+      const generationId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+      
+      // Store photos in localStorage for the generation page
+      localStorage.setItem('pending_generation_photos', JSON.stringify(validPhotos.map(p => p.file)))
+      localStorage.setItem('pending_generation_id', generationId)
+      
+      router.push(`/generate/${generationId}`)
     }
   }
 
@@ -351,7 +359,7 @@ export default function UploadPage() {
               onClick={handleProceed}
             >
               <Camera className="w-4 h-4 mr-2" />
-              Continue to Pricing
+              Generate Headshots
             </Button>
           </div>
 

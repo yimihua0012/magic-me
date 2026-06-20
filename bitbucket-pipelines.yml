@@ -1,0 +1,61 @@
+# Bitbucket Pipelines Configuration for AI Headshot Generator
+
+image: node:20
+
+pipelines:
+  default:
+    - step:
+        name: Build and Test
+        caches:
+          - node
+        script:
+          - npm install
+          - npm run build
+          - npm test -- --passWithNoTests
+
+  branches:
+    main:
+      - step:
+          name: Build and Test
+          caches:
+            - node
+          script:
+            - npm install
+            - npm run build
+            - npm test -- --passWithNoTests
+      - step:
+          name: Deploy to Production
+          deployment: production
+          script:
+            - npm install -g vercel
+            - vercel --prod --token $VERCEL_TOKEN
+
+    staging:
+      - step:
+          name: Build and Test
+          caches:
+            - node
+          script:
+            - npm install
+            - npm run build
+            - npm test -- --passWithNoTests
+      - step:
+          name: Deploy to Staging
+          deployment: staging
+          script:
+            - npm install -g vercel
+            - vercel --token $VERCEL_TOKEN
+
+    develop:
+      - step:
+          name: Build and Test
+          caches:
+            - node
+          script:
+            - npm install
+            - npm run build
+            - npm test -- --passWithNoTests
+
+definitions:
+  caches:
+    node: node_modules
