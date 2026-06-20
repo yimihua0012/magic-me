@@ -183,11 +183,22 @@ export default function UploadPage() {
       // Skip payment, go directly to generation
       const generationId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
       
-      // Store photos in localStorage for the generation page
-      localStorage.setItem('pending_generation_photos', JSON.stringify(validPhotos.map(p => p.file)))
-      localStorage.setItem('pending_generation_id', generationId)
+      // Convert files to base64 for localStorage
+      const convertToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.onerror = reject
+          reader.readAsDataURL(file)
+        })
+      }
       
-      router.push(`/generate/${generationId}`)
+      // Store photos as base64 in localStorage for the generation page
+      Promise.all(validPhotos.map(p => convertToBase64(p.file))).then(base64Photos => {
+        localStorage.setItem('pending_generation_photos', JSON.stringify(base64Photos))
+        localStorage.setItem('pending_generation_id', generationId)
+        router.push(`/generate/${generationId}`)
+      })
     }
   }
 
