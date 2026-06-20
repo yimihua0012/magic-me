@@ -3,6 +3,9 @@ import { stripe } from '@/lib/stripe'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   const body = await request.text()
   const headersList = await headers()

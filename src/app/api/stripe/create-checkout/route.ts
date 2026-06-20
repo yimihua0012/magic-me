@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { stripe, PLANS } from '@/lib/stripe'
 import { PlanType } from '@/lib/stripe'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
