@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/navbar'
 import Button from '@/components/ui/button'
 import { Camera, Mail, Lock, User, Chrome } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,21 +23,31 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup'
-      const body = isLogin 
-        ? { email, password }
-        : { email, password, name }
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Authentication failed')
+      let data
       
-      router.push('/dashboard')
+      if (isLogin) {
+        const result = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        data = result.data
+        if (result.error) throw result.error
+      } else {
+        const result = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name },
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+          },
+        })
+        data = result.data
+        if (result.error) throw result.error
+      }
+
+      if (data.user) {
+        router.push('/dashboard')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
