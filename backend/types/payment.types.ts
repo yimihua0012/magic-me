@@ -29,6 +29,6 @@ export interface WebhookEvent {
 
 export interface StripeCustomer {
   id: string
-  email: string
+  email?: string
   name?: string
 }
