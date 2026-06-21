@@ -20,14 +20,14 @@ import {
 } from 'lucide-react'
 
 const styleNames = [
-  'Corporate Professional', 'Creative Studio', 'Warm Natural', 'Bold & Modern',
-  'Classic Portrait', 'Urban Edge', 'Executive Suite', 'Artistic Expression',
-  'Casual Friday', 'Tech Startup', 'Legal Professional', 'Medical Expert',
-  'Financial Advisor', 'Marketing Guru', 'Consultant Elite', 'HR Champion',
-  'Sales Superstar', 'Engineering Lead', 'Design Director', 'Product Manager',
-  'Entrepreneur Pro', 'Freelancer Plus', 'Consultant Premium', 'Executive Presence',
-  'Modern Creative', 'Timeless Classic', 'Dynamic Professional', 'Confident Leader',
-  'Approachable Expert', 'Trusted Authority'
+  'LinkedIn Professional', 'Corporate Office', 'Business Casual', 'Executive Portrait',
+  'Doctor Whitecoat', 'Modern Tech', 'Creative Agency', 'Oil Painting',
+  'Watercolor Art', 'Anime Illustration', 'Cyberpunk Neon', 'Pixel Art Retro',
+  'Pop Art Comic', 'Coffee Shop', 'Beach Golden Hour', 'Autumn Park',
+  'City Street', 'Library Study', 'Garden Spring', 'Spring Blossom',
+  'Summer Sunshine', 'Autumn Foliage', 'Winter Snow', 'Black & White Classic',
+  'Vintage Film', 'Rembrandt Lighting', 'Soft Glamour', 'Superhero',
+  'Royal Portrait', 'Astronaut Space'
 ]
 
 type GenerationStatus = 'pending' | 'processing' | 'completed' | 'failed'
@@ -46,7 +46,7 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
     id: resolvedParams.id,
     status: 'processing',
     progress: 0,
-    currentStep: 'Analyzing your photos...',
+    currentStep: 'Initializing...',
     outputPhotos: [],
   })
   const [selectedPhotos, setSelectedPhotos] = useState<Set<number>>(new Set())
@@ -54,7 +54,93 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
   const [lightboxPhoto, setLightboxPhoto] = useState<number | null>(null)
 
   useEffect(() => {
-    const simulateProgress = () => {
+    const startGeneration = async () => {
+      const photosBase64 = localStorage.getItem('pending_generation_photos')
+      if (!photosBase64) {
+        setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'No photos found' }))
+        return
+      }
+
+      try {
+        const photos = JSON.parse(photosBase64)
+        if (!photos.length) {
+          setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'No photos uploaded' }))
+          return
+        }
+
+        setGeneration(prev => ({ ...prev, currentStep: 'Uploading your photo...' }))
+        
+        const response = await fetch('/api/generate-headshots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            faceImageUrl: photos[0],
+            styleIds: [
+              'linkedin_professional', 'corporate_office', 'business_casual', 'executive_portrait',
+              'doctor_whitecoat', 'modern_tech', 'creative_agency', 'oil_painting',
+              'watercolor_art', 'anime_illustration', 'cyberpunk_neon', 'pixel_art_retro',
+              'pop_art_comic', 'coffee_shop', 'beach_golden_hour', 'autumn_park',
+              'city_street', 'library_study', 'garden_spring', 'spring_blossom',
+              'summer_sunshine', 'autumn_foliage', 'winter_snow', 'black_white_classic',
+              'vintage_film', 'rembrandt_lighting', 'soft_glamour', 'superhero_style',
+              'royal_portrait', 'astronaut_space'
+            ]
+          })
+        })
+
+        const data = await response.json()
+        
+        if (data.taskId) {
+          localStorage.removeItem('pending_generation_photos')
+          localStorage.removeItem('pending_generation_id')
+          
+          await pollGenerationStatus(data.taskId)
+        } else {
+          setGeneration(prev => ({ ...prev, status: 'failed', currentStep: data.error || 'Failed to start generation' }))
+        }
+      } catch (error) {
+        console.error('Generation error:', error)
+        simulateMockGeneration()
+      }
+    }
+
+    const pollGenerationStatus = async (taskId: string) => {
+      const pollInterval = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/generate-headshots?taskId=${taskId}`)
+          const data = await response.json()
+
+          if (data.status === 'completed') {
+            clearInterval(pollInterval)
+            setGeneration(prev => ({
+              ...prev,
+              status: 'completed',
+              progress: data.progress,
+              currentStep: 'Your headshots are ready!',
+              outputPhotos: data.outputUrls,
+            }))
+          } else if (data.status === 'failed') {
+            clearInterval(pollInterval)
+            setGeneration(prev => ({
+              ...prev,
+              status: 'failed',
+              currentStep: 'Generation failed. Please try again.',
+            }))
+          } else {
+            setGeneration(prev => ({
+              ...prev,
+              progress: data.progress,
+            }))
+          }
+        } catch (error) {
+          console.error('Poll error:', error)
+        }
+      }, 3000)
+
+      return () => clearInterval(pollInterval)
+    }
+
+    const simulateMockGeneration = () => {
       const steps = [
         { progress: 10, message: 'Analyzing your photos...' },
         { progress: 25, message: 'Detecting facial features...' },
@@ -67,7 +153,6 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
       ]
 
       let currentStepIndex = 0
-
       const interval = setInterval(() => {
         if (currentStepIndex >= steps.length) {
           clearInterval(interval)
@@ -93,7 +178,7 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
       return () => clearInterval(interval)
     }
 
-    simulateProgress()
+    startGeneration()
   }, [resolvedParams.id])
 
   const togglePhotoSelection = (index: number) => {
@@ -133,7 +218,6 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
 
       <main className="pt-24 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
               {generation.status === 'completed' ? 'Your Headshots Are Ready!' : 'Generating Your Headshots'}
@@ -145,7 +229,6 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
             </p>
           </div>
 
-          {/* Progress Section */}
           {generation.status !== 'completed' && (
             <Card className="p-8 mb-8 max-w-2xl mx-auto">
               <div className="flex items-center justify-center mb-4">
@@ -178,10 +261,8 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
             </Card>
           )}
 
-          {/* Completed Section */}
           {generation.status === 'completed' && (
             <>
-              {/* Selection Actions */}
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-4">
                   <Button 
@@ -216,7 +297,6 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
                 </div>
               </div>
 
-              {/* Style Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {generation.outputPhotos.map((photo, index) => (
                   <div 
@@ -225,7 +305,6 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
                     onClick={() => openLightbox(index)}
                   >
                     <div className="aspect-square rounded-xl overflow-hidden bg-slate-200">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
                         src={photo}
                         alt={styleNames[index]}
@@ -266,7 +345,6 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
                 ))}
               </div>
 
-              {/* CTA */}
               <div className="mt-12 text-center">
                 <Card className="p-6 max-w-lg mx-auto">
                   <h3 className="font-semibold text-slate-900 mb-2">Love your headshots?</h3>
@@ -295,7 +373,6 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
         </div>
       </main>
 
-      {/* Lightbox Modal */}
       <Modal 
         isOpen={showLightbox} 
         onClose={() => setShowLightbox(false)}
@@ -304,7 +381,6 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
         {lightboxPhoto !== null && (
           <div>
             <div className="aspect-square rounded-xl overflow-hidden bg-slate-200 mb-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={generation.outputPhotos[lightboxPhoto]}
                 alt={styleNames[lightboxPhoto]}
