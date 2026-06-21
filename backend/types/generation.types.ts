@@ -66,3 +66,12 @@ export const GENERATION_STEPS = {
 } as const
 
 export type GenerationStep = keyof typeof GENERATION_STEPS
+
+// Style Configuration
+export interface StyleConfig {
+  id: string
+  name: string
+  category: string
+  prompt: string
+  negative: string
+}
