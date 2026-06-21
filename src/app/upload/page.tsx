@@ -43,6 +43,7 @@ export default function UploadPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [showAuthRequired, setShowAuthRequired] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -179,6 +180,11 @@ export default function UploadPage() {
   const canProceed = validPhotos.length >= 1
 
   const handleProceed = () => {
+    if (!isAuthenticated) {
+      setShowAuthRequired(true)
+      return
+    }
+    
     if (canProceed) {
       // Skip payment, go directly to generation
       const generationId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
@@ -216,10 +222,20 @@ export default function UploadPage() {
       
       <AuthModal 
         isOpen={showAuthModal} 
-        onClose={() => {
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => {
           setShowAuthModal(false)
           setIsAuthenticated(true)
-        }} 
+        }}
+      />
+
+      <AuthModal 
+        isOpen={showAuthRequired} 
+        onClose={() => setShowAuthRequired(false)}
+        onSuccess={() => {
+          setShowAuthRequired(false)
+          setIsAuthenticated(true)
+        }}
       />
 
       <main className="pt-24 pb-16">
