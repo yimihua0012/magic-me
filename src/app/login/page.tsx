@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/navbar'
@@ -16,6 +16,16 @@ export default function LoginPage() {
   const [name, setName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [returnTo, setReturnTo] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Get return URL from query params
+    const urlParams = new URLSearchParams(window.location.search)
+    const returnParam = urlParams.get('returnTo')
+    if (returnParam) {
+      setReturnTo(returnParam)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,7 +56,8 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        router.push('/dashboard')
+        // Redirect to return URL or dashboard
+        router.push(returnTo || '/dashboard')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')

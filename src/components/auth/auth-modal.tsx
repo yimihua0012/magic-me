@@ -5,6 +5,7 @@ import Modal from '@/components/ui/modal'
 import Button from '@/components/ui/button'
 import Input from '@/components/ui/input'
 import { Camera, Mail, Lock, User, Chrome } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -32,26 +33,28 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     try {
       if (mode === 'register') {
         if (password.length < 8) {
-          throw new Error('Password must be at least 8 characters with uppercase, lowercase, and numbers')
+          throw new Error('Password must be at least 8 characters')
         }
-        const res = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, name }),
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name },
+            emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+          },
         })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'Registration failed')
+        if (error) throw error
         setSuccess('Check your email for a verification link!')
       } else {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'Login failed')
-        onSuccess?.()
+        if (error) throw error
+        
+        // Client-side auth state is now updated, close modal and notify parent
         onClose()
+        onSuccess?.()
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -62,7 +65,16 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
   const handleGoogleAuth = async () => {
     setIsLoading(true)
-    window.location.href = '/api/auth/google'
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+      },
+    })
+    if (error) {
+      setError(error.message)
+      setIsLoading(false)
+    }
   }
 
   return (

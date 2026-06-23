@@ -111,7 +111,7 @@ export default function PrivacyPage() {
               <h2 className="text-xl font-semibold text-slate-900 mb-3">10. Contact Us</h2>
               <p>
                 If you have any questions about this Privacy Policy, please contact us at:<br />
-                <span className="text-primary-600">privacy@headshotai.com</span>
+                <span className="text-primary-600">postmaster@magic-headshot.com</span>
               </p>
             </Card>
 

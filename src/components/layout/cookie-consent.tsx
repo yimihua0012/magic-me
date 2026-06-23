@@ -29,7 +29,7 @@ export default function CookieConsent() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 animate-slide-up">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
+      <div className="w-[60%] max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
             <Cookie className="w-6 h-6 text-primary-600" />
@@ -41,7 +41,7 @@ export default function CookieConsent() {
             </h3>
             <p className="text-slate-600 text-sm mb-4">
               We use cookies to enhance your browsing experience, serve personalized content, 
-              and analyze our traffic. By clicking &quot;Accept&quot;, you consent to our use of cookies.
+              and analyze our traffic. By clicking "Accept", you consent to our use of cookies.
             </p>
             
             <div className="flex flex-wrap gap-3">

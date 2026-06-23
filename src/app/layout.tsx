@@ -1,21 +1,23 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import CookieConsent from '@/components/layout/cookie-consent'
+import { appConfig } from '@/lib/config'
+import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {
-  title: 'AI Headshot Generator - Professional Photos in 3 Minutes',
-  description: 'Upload a selfie and get 30 professional AI headshot styles in minutes. Perfect for LinkedIn, Instagram, dating apps. Starting at $9.90.',
-  keywords: 'AI headshot, professional photos, LinkedIn photo, AI portrait, headshot generator',
+  title: appConfig.title,
+  description: appConfig.description,
+  keywords: appConfig.keywords,
   openGraph: {
-    title: 'AI Headshot Generator - Professional Photos in 3 Minutes',
-    description: 'Upload a selfie and get 30 professional AI headshot styles in minutes. Starting at $9.90.',
+    title: appConfig.title,
+    description: appConfig.description,
     type: 'website',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Headshot Generator',
-    description: 'Professional AI headshots in 3 minutes. $9.90 only.',
+    title: appConfig.name,
+    description: `${appConfig.description} Starting at $${PLANS.basic.price}.`,
   },
 }
 

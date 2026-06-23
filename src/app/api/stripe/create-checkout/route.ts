@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { stripe, PLANS } from '@/lib/stripe'
 import { PlanType } from '@/lib/stripe'
+import { appConfig } from '@/lib/config'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `HeadshotAI ${plan.name}`,
+              name: `${appConfig.name} ${plan.name}`,
               description: `${plan.styleCount} styles, ${plan.resolution} resolution`,
             },
             unit_amount: Math.round(plan.price * 100),

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
@@ -16,6 +17,7 @@ import {
   Image as ImageIcon,
   ExternalLink
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 interface Generation {
   id: string
@@ -24,28 +26,60 @@ interface Generation {
   style_count: number
   created_at: string
   thumbnail?: string
+  output_photos?: string[]
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [generations, setGenerations] = useState<Generation[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const fetchGenerations = async () => {
-      try {
-        const res = await fetch('/api/generations')
-        if (res.ok) {
-          const data = await res.json()
-          setGenerations(data.generations || [])
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login?returnTo=/dashboard')
+        return
+      }
+      
+      const fetchGenerations = async () => {
+        let records: Generation[] = []
+        
+        // First try API
+        try {
+          const res = await fetch('/api/generations')
+          if (res.ok) {
+            const data = await res.json()
+            records = data.generations || []
+          }
+        } catch {
+          // API failed, continue
         }
-      } catch {
-        setGenerations([])
-      } finally {
+        
+        // Then merge with localStorage records
+        const localStorageRecords = localStorage.getItem('generation_records')
+        if (localStorageRecords) {
+          try {
+            const localRecords = JSON.parse(localStorageRecords) as Generation[]
+            // Merge, prioritizing API records
+            const apiIds = new Set(records.map(r => r.id))
+            localRecords.forEach(record => {
+              if (!apiIds.has(record.id)) {
+                records.push(record)
+              }
+            })
+          } catch {
+            // JSON parse failed
+          }
+        }
+        
+        setGenerations(records)
         setIsLoading(false)
       }
+      fetchGenerations()
     }
-    fetchGenerations()
-  }, [])
+    checkAuth()
+  }, [router])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -53,6 +87,25 @@ export default function DashboardPage() {
       day: 'numeric',
       year: 'numeric',
     })
+  }
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this generation?')) {
+      // Remove from localStorage
+      const localStorageRecords = localStorage.getItem('generation_records')
+      if (localStorageRecords) {
+        try {
+          const records = JSON.parse(localStorageRecords) as Generation[]
+          const filteredRecords = records.filter(r => r.id !== id)
+          localStorage.setItem('generation_records', JSON.stringify(filteredRecords))
+        } catch {
+          // JSON parse failed
+        }
+      }
+      
+      // Update UI
+      setGenerations(prev => prev.filter(g => g.id !== id))
+    }
   }
 
   return (
@@ -163,7 +216,10 @@ export default function DashboardPage() {
                         <button className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
                           <Download className="w-4 h-4 text-slate-600" />
                         </button>
-                        <button className="p-1.5 hover:bg-red-50 rounded-lg transition-colors">
+                        <button 
+                          className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                          onClick={() => handleDelete(gen.id)}
+                        >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
                       </div>

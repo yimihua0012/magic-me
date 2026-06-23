@@ -9,73 +9,16 @@ import Card from '@/components/ui/card'
 import AuthModal from '@/components/auth/auth-modal'
 import { Check, X, Sparkles, Zap, Crown, Building } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { pricingConfig, appConfig } from '@/lib/config'
+import { PLANS } from '@backend/config/plans'
 
-const plans = [
-  {
-    id: 'basic',
-    name: 'Basic',
-    price: 9.90,
-    styleCount: 30,
-    resolution: '1024x1024',
-    resolutionLabel: 'HD',
-    icon: <Sparkles className="w-5 h-5" />,
-    highlighted: false,
-    features: [
-      '30 unique AI styles',
-      '1024x1024 HD resolution',
-      'Unlimited downloads',
-      'Commercial use rights',
-      'Email support',
-    ],
-    notIncluded: [
-      'Priority processing',
-      'Custom style training',
-      'API access',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 19.90,
-    styleCount: 100,
-    resolution: '2048x2048',
-    resolutionLabel: 'Ultra HD',
-    icon: <Zap className="w-5 h-5" />,
-    highlighted: true,
-    features: [
-      '100 unique AI styles',
-      '2048x2048 Ultra HD resolution',
-      'Unlimited downloads',
-      'Commercial use rights',
-      'Priority processing',
-      'Dedicated support',
-    ],
-    notIncluded: [
-      'Custom style training',
-      'API access',
-    ],
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 99,
-    styleCount: 999,
-    resolution: 'Custom',
-    resolutionLabel: 'Custom',
-    icon: <Crown className="w-5 h-5" />,
-    highlighted: false,
-    features: [
-      'Unlimited styles',
-      'Custom resolution',
-      'Custom style training',
-      'API access',
-      'Team management',
-      'Dedicated account manager',
-      'SLA guarantee',
-    ],
-    notIncluded: [],
-  },
-]
+const plans = Object.values(pricingConfig).map((plan) => ({
+  ...plan,
+  icon: plan.id === 'basic' ? <Sparkles className="w-5 h-5" /> : 
+        plan.id === 'pro' ? <Zap className="w-5 h-5" /> : 
+        <Crown className="w-5 h-5" />,
+  highlighted: plan.id === 'pro',
+}))
 
 export default function PricingPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -126,10 +69,11 @@ export default function PricingPage() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        window.location.href = `/generate/demo-${Date.now()}`
+        alert(data.error || 'Failed to create checkout session')
       }
-    } catch {
-      window.location.href = `/generate/demo-${Date.now()}`
+    } catch (error) {
+      console.error('Checkout error:', error)
+      alert('Failed to start checkout. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -149,11 +93,12 @@ export default function PricingPage() {
       
       <AuthModal 
         isOpen={showAuthModal} 
-        onClose={() => {
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => {
           setShowAuthModal(false)
           setIsAuthenticated(true)
           handleSelectPlan(selectedPlan)
-        }} 
+        }}
       />
 
       <main className="pt-24 pb-16">
@@ -252,15 +197,15 @@ export default function PricingPage() {
                 <tbody className="divide-y divide-slate-100">
                   <tr>
                     <td className="px-6 py-4 text-slate-600">AI Styles</td>
-                    <td className="px-6 py-4 text-center text-slate-900">30</td>
-                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">100</td>
-                    <td className="px-6 py-4 text-center text-slate-900">Unlimited</td>
+                    <td className="px-6 py-4 text-center text-slate-900">{PLANS.basic.styleCount}</td>
+                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">{PLANS.pro.styleCount}</td>
+                    <td className="px-6 py-4 text-center text-slate-900">{PLANS.enterprise.styleCount}</td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 text-slate-600">Resolution</td>
-                    <td className="px-6 py-4 text-center text-slate-900">1024x1024</td>
-                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">2048x2048</td>
-                    <td className="px-6 py-4 text-center text-slate-900">Custom</td>
+                    <td className="px-6 py-4 text-center text-slate-900">{PLANS.basic.resolution}</td>
+                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">{PLANS.pro.resolution}</td>
+                    <td className="px-6 py-4 text-center text-slate-900">{PLANS.enterprise.resolution}</td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 text-slate-600">Processing</td>
@@ -350,11 +295,11 @@ export default function PricingPage() {
               Ready to Get Your Professional Headshots?
             </h2>
             <p className="text-slate-600 mb-8">
-              Join 10,000+ professionals who trust HeadshotAI
+              Join 10,000+ professionals who trust {appConfig.name}
             </p>
             <Button size="lg" onClick={() => handleSelectPlan('basic')}>
               <Sparkles className="w-5 h-5 mr-2" />
-              Start Now - $9.90
+              Start Now - ${PLANS.basic.price}
             </Button>
           </div>
         </div>

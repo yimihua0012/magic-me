@@ -16,8 +16,8 @@ export const config = {
   },
   email: {
     resendApiKey: process.env.RESEND_API_KEY!,
-    fromEmail: 'noreply@headshotai.com',
-    fromName: 'HeadshotAI',
+    fromEmail: 'postmaster@magic-headshot.com',
+    fromName: process.env.NEXT_PUBLIC_APP_NAME || 'Magic-Headshot',
   },
 } as const
 

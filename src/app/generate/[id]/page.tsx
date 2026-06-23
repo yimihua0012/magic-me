@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Modal from '@/components/ui/modal'
+import { PLANS } from '@backend/config/plans'
 import { 
   Sparkles, 
   Download, 
@@ -16,7 +18,8 @@ import {
   Grid3X3,
   Smartphone,
   Share2,
-  Home
+  Home,
+  AlertCircle
 } from 'lucide-react'
 
 const styleNames = [
@@ -38,80 +41,144 @@ interface GenerationState {
   progress: number
   currentStep: string
   outputPhotos: string[]
+  styleCount: number
 }
 
-export default function GenerationPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params)
+export default function GenerationPage() {
+  const params = useParams()
+  const generationId = params?.id as string
+  
   const [generation, setGeneration] = useState<GenerationState>({
-    id: resolvedParams.id,
-    status: 'processing',
-    progress: 0,
-    currentStep: 'Initializing...',
+    id: generationId || '',
+    status: generationId ? 'processing' : 'failed',
+    progress: generationId ? 0 : 100,
+    currentStep: generationId ? 'Initializing...' : 'Invalid generation ID',
     outputPhotos: [],
+    styleCount: 0,
   })
   const [selectedPhotos, setSelectedPhotos] = useState<Set<number>>(new Set())
   const [showLightbox, setShowLightbox] = useState(false)
   const [lightboxPhoto, setLightboxPhoto] = useState<number | null>(null)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
+    let cleanupPolling: (() => void) | undefined
+    
     const startGeneration = async () => {
       const photosBase64 = localStorage.getItem('pending_generation_photos')
-      if (!photosBase64) {
-        setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'No photos found' }))
-        return
-      }
+      
+      if (photosBase64) {
+        console.log('[Generation] Found pending photos, starting new generation')
+        try {
+          const photos = JSON.parse(photosBase64)
+          if (!photos.length) {
+            setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'No photos uploaded' }))
+            return
+          }
 
-      try {
-        const photos = JSON.parse(photosBase64)
-        if (!photos.length) {
-          setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'No photos uploaded' }))
-          return
-        }
+          const styleIds = [
+            'linkedin_professional', 'corporate_office', 'business_casual', 'executive_portrait',
+            'doctor_whitecoat', 'modern_tech', 'creative_agency', 'oil_painting',
+            'watercolor_art', 'anime_illustration', 'cyberpunk_neon', 'pixel_art_retro',
+            'pop_art_comic', 'coffee_shop', 'beach_golden_hour', 'autumn_park',
+            'city_street', 'library_study', 'garden_spring', 'spring_blossom',
+            'summer_sunshine', 'autumn_foliage', 'winter_snow', 'black_white_classic',
+            'vintage_film', 'rembrandt_lighting', 'soft_glamour', 'superhero_style',
+            'royal_portrait', 'astronaut_space'
+          ]
 
-        setGeneration(prev => ({ ...prev, currentStep: 'Uploading your photo...' }))
-        
-        const response = await fetch('/api/generate-headshots', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            faceImageUrl: photos[0],
-            styleIds: [
-              'linkedin_professional', 'corporate_office', 'business_casual', 'executive_portrait',
-              'doctor_whitecoat', 'modern_tech', 'creative_agency', 'oil_painting',
-              'watercolor_art', 'anime_illustration', 'cyberpunk_neon', 'pixel_art_retro',
-              'pop_art_comic', 'coffee_shop', 'beach_golden_hour', 'autumn_park',
-              'city_street', 'library_study', 'garden_spring', 'spring_blossom',
-              'summer_sunshine', 'autumn_foliage', 'winter_snow', 'black_white_classic',
-              'vintage_film', 'rembrandt_lighting', 'soft_glamour', 'superhero_style',
-              'royal_portrait', 'astronaut_space'
-            ]
-          })
-        })
-
-        const data = await response.json()
-        
-        if (data.taskId) {
-          localStorage.removeItem('pending_generation_photos')
-          localStorage.removeItem('pending_generation_id')
+          setGeneration(prev => ({ ...prev, currentStep: 'Uploading your photo...', styleCount: styleIds.length }))
           
-          await pollGenerationStatus(data.taskId)
-        } else {
-          setGeneration(prev => ({ ...prev, status: 'failed', currentStep: data.error || 'Failed to start generation' }))
+          const response = await fetch('/api/generate-headshots', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              faceImageUrl: photos[0],
+              styleIds: [
+                'linkedin_professional', 'corporate_office', 'business_casual', 'executive_portrait',
+                'doctor_whitecoat', 'modern_tech', 'creative_agency', 'oil_painting',
+                'watercolor_art', 'anime_illustration', 'cyberpunk_neon', 'pixel_art_retro',
+                'pop_art_comic', 'coffee_shop', 'beach_golden_hour', 'autumn_park',
+                'city_street', 'library_study', 'garden_spring', 'spring_blossom',
+                'summer_sunshine', 'autumn_foliage', 'winter_snow', 'black_white_classic',
+                'vintage_film', 'rembrandt_lighting', 'soft_glamour', 'superhero_style',
+                'royal_portrait', 'astronaut_space'
+              ]
+            })
+          })
+
+          const data = await response.json()
+          
+          if (data.taskId) {
+            localStorage.removeItem('pending_generation_photos')
+            localStorage.removeItem('pending_generation_id')
+            
+            const configResponse = await fetch('/api/generate-headshots')
+            const config = await configResponse.json()
+            
+            if (config.generationMode === 'mock') {
+              simulateMockGeneration()
+            } else {
+              cleanupPolling = pollGenerationStatus(data.taskId)
+            }
+          } else {
+            setGeneration(prev => ({ ...prev, status: 'failed', currentStep: data.error || 'Failed to start generation' }))
+          }
+        } catch (error) {
+          console.error('[Generation] Error starting new generation:', error)
+          simulateMockGeneration()
         }
-      } catch (error) {
-        console.error('Generation error:', error)
-        simulateMockGeneration()
+      } else if (generationId) {
+        console.log('[Generation] No pending photos, checking existing task:', generationId)
+        try {
+          const response = await fetch(`/api/generate-headshots?taskId=${generationId}`)
+          const data = await response.json()
+          
+          if (data.error || !data.taskId) {
+            console.log('[Generation] Task not found on server, restarting generation')
+            setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'Task not found, please restart' }))
+            return
+          }
+          
+          if (data.status === 'completed') {
+            setGeneration(prev => ({
+              ...prev,
+              status: 'completed',
+              progress: data.progress,
+              currentStep: 'Your headshots are ready!',
+              outputPhotos: data.outputUrls,
+            }))
+          } else {
+            cleanupPolling = pollGenerationStatus(generationId)
+          }
+        } catch (error) {
+          console.error('[Generation] Error checking task status:', error)
+          setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'Failed to check task status' }))
+        }
+      } else {
+        setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'Invalid generation ID' }))
       }
     }
 
-    const pollGenerationStatus = async (taskId: string) => {
-      const pollInterval = setInterval(async () => {
+    const pollGenerationStatus = (taskId: string) => {
+      if (pollIntervalRef.current) {
+        console.log('[Polling] Clearing existing poll before starting new one')
+        clearInterval(pollIntervalRef.current)
+      }
+      
+      console.log(`[Polling] Starting poll for taskId: ${taskId}`)
+      const intervalId = setInterval(async () => {
         try {
+          console.log(`[Polling] Fetching status for taskId: ${taskId}`)
           const response = await fetch(`/api/generate-headshots?taskId=${taskId}`)
+          console.log(`[Polling] Response status: ${response.status}`)
           const data = await response.json()
+          console.log(`[Polling] Response data:`, JSON.stringify(data))
 
           if (data.status === 'completed') {
-            clearInterval(pollInterval)
+            console.log(`[Polling] Task completed! outputUrls count: ${data.outputUrls?.length || 0}`)
+            clearInterval(intervalId)
+            pollIntervalRef.current = null
             setGeneration(prev => ({
               ...prev,
               status: 'completed',
@@ -120,24 +187,33 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
               outputPhotos: data.outputUrls,
             }))
           } else if (data.status === 'failed') {
-            clearInterval(pollInterval)
+            console.log(`[Polling] Task failed`)
+            clearInterval(intervalId)
+            pollIntervalRef.current = null
             setGeneration(prev => ({
               ...prev,
               status: 'failed',
               currentStep: 'Generation failed. Please try again.',
             }))
           } else {
+            console.log(`[Polling] Task in progress - status: ${data.status}, progress: ${data.progress}`)
             setGeneration(prev => ({
               ...prev,
               progress: data.progress,
             }))
           }
         } catch (error) {
-          console.error('Poll error:', error)
+          console.error('[Polling] Error:', error)
         }
       }, 3000)
 
-      return () => clearInterval(pollInterval)
+      pollIntervalRef.current = intervalId
+
+      return () => {
+        console.log('[Polling] Cleaning up poll')
+        clearInterval(intervalId)
+        pollIntervalRef.current = null
+      }
     }
 
     const simulateMockGeneration = () => {
@@ -156,13 +232,31 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
       const interval = setInterval(() => {
         if (currentStepIndex >= steps.length) {
           clearInterval(interval)
+          const outputPhotos = Array(30).fill(null).map((_, i) => `https://picsum.photos/seed/${generationId}-${i}/1024/1024`)
           setGeneration(prev => ({
             ...prev,
             status: 'completed',
             progress: 100,
             currentStep: 'Your headshots are ready!',
-            outputPhotos: Array(30).fill(null).map((_, i) => `https://picsum.photos/seed/${resolvedParams.id}-${i}/1024/1024`),
+            outputPhotos,
           }))
+          
+          // Save to localStorage
+          const newRecord = {
+            id: generationId,
+            status: 'completed' as const,
+            plan_type: 'basic',
+            style_count: 30,
+            created_at: new Date().toISOString(),
+            thumbnail: outputPhotos[0],
+            output_photos: outputPhotos,
+          }
+          
+          const existingRecords = localStorage.getItem('generation_records')
+          const records = existingRecords ? JSON.parse(existingRecords) : []
+          records.unshift(newRecord)
+          localStorage.setItem('generation_records', JSON.stringify(records))
+          
           return
         }
 
@@ -179,7 +273,14 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
     }
 
     startGeneration()
-  }, [resolvedParams.id])
+
+    return () => {
+      if (typeof cleanupPolling === 'function') {
+        console.log('[Polling] Cleaning up polling on component unmount')
+        cleanupPolling()
+      }
+    }
+  }, [generationId])
 
   const togglePhotoSelection = (index: number) => {
     setSelectedPhotos(prev => {
@@ -229,7 +330,7 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
             </p>
           </div>
 
-          {generation.status !== 'completed' && (
+          {generation.status !== 'completed' && generation.status !== 'failed' && (
             <Card className="p-8 mb-8 max-w-2xl mx-auto">
               <div className="flex items-center justify-center mb-4">
                 <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center">
@@ -256,7 +357,25 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
 
               <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
                 <Sparkles className="w-4 h-4" />
-                <span>Creating 30 unique styles for you</span>
+                <span>Creating {generation.styleCount || PLANS.basic.styleCount} unique styles for you</span>
+              </div>
+            </Card>
+          )}
+
+          {generation.status === 'failed' && (
+            <Card className="p-8 mb-8 max-w-2xl mx-auto text-center">
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-10 h-10 text-red-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Oops! Something went wrong</h3>
+              <p className="text-slate-600 mb-6">{generation.currentStep}</p>
+              <div className="flex gap-4 justify-center">
+                <Link href="/upload">
+                  <Button>Try Again</Button>
+                </Link>
+                <Link href="/">
+                  <Button variant="secondary">Go Home</Button>
+                </Link>
               </div>
             </Card>
           )}

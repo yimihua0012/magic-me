@@ -21,6 +21,8 @@ import {
   Instagram,
   Twitter
 } from 'lucide-react'
+import { appConfig } from '@/lib/config'
+import { PLANS } from '@backend/config/plans'
 
 const features = [
   {
@@ -30,8 +32,8 @@ const features = [
   },
   {
     icon: <Sparkles className="w-6 h-6" />,
-    title: '30 Unique Styles',
-    description: 'From corporate to creative, choose from 30 different professional styles.',
+    title: '36 Unique Styles',
+    description: 'From corporate to creative, choose from 36 different professional styles.',
   },
   {
     icon: <Shield className="w-6 h-6" />,
@@ -90,11 +92,18 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar onOpenAuthModal={() => setShowAuthModal(true)} />
       
       <AuthModal 
         isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => {
+          setShowAuthModal(false)
+          // Wait for modal to close before redirecting
+          setTimeout(() => {
+            window.location.href = '/upload'
+          }, 300)
+        }}
       />
 
       {/* Hero Section */}
@@ -113,17 +122,17 @@ export default function HomePage() {
               
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-tight">
                 Upload a Selfie,{' '}
-                <span className="gradient-text">Get 30 Styles</span>
+                <span className="gradient-text">Get {PLANS.basic.styleCount} Styles</span>
               </h1>
               
               <p className="mt-6 text-xl text-slate-600 max-w-xl mx-auto lg:mx-0">
-                Skip the $500 photographer. Get professional AI headshots in 3 minutes for just $9.90. Perfect for LinkedIn, Instagram, and dating apps.
+                Skip the $500 photographer. Get professional AI headshots in 3 minutes for just ${PLANS.basic.price}. Perfect for LinkedIn, Instagram, and dating apps.
               </p>
               
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button size="lg" onClick={() => setShowAuthModal(true)}>
                   <Camera className="w-5 h-5 mr-2" />
-                  Generate Headshots - $9.90
+                  Generate Headshots - ${PLANS.basic.price}
                 </Button>
                 <Link href="#examples">
                   <Button variant="secondary" size="lg">
@@ -159,7 +168,7 @@ export default function HomePage() {
                   <div className="w-8 h-8 bg-accent-100 rounded-full flex items-center justify-center">
                     <Check className="w-4 h-4 text-accent-600" />
                   </div>
-                  <span className="text-sm font-medium text-slate-700">30 Styles Ready</span>
+                  <span className="text-sm font-medium text-slate-700">{PLANS.basic.styleCount} Styles Ready</span>
                 </div>
               </div>
             </div>
@@ -180,8 +189,8 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { step: '1', icon: <Camera className="w-8 h-8" />, title: 'Upload Your Selfie', desc: 'Take or upload 1-3 selfies with good lighting and a clear view of your face.' },
-              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'AI Magic Happens', desc: 'Our AI analyzes your photos and generates 30 professional styles in 3 minutes.' },
-              { step: '3', icon: <Download className="w-8 h-8" />, title: 'Download & Shine', desc: 'Pick your favorites and download in high resolution for any platform.' },
+              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'AI Magic Happens', desc: `Our AI analyzes your photos and generates ${PLANS.pro.styleCount} professional styles in 3 minutes.` },
+              { step: '3', icon: <Download className="w-8 h-8" />, title: 'Download & Save', desc: 'Pick your favorites and download in high resolution for any platform.' },
             ].map((item, i) => (
               <div key={i} className="relative">
                 <Card className="p-8 text-center h-full">
@@ -228,7 +237,7 @@ export default function HomePage() {
       <section id="examples" className="py-20 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold">30 Styles to Match Your Brand</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold">{PLANS.basic.styleCount} Styles to Match Your Brand</h2>
             <p className="text-slate-400 mt-4 max-w-2xl mx-auto">
               From corporate polish to creative flair, find the perfect headshot style for every platform and purpose.
             </p>
@@ -251,7 +260,7 @@ export default function HomePage() {
           <div className="text-center mt-12">
             <Button size="lg" onClick={() => setShowAuthModal(true)}>
               <Sparkles className="w-5 h-5 mr-2" />
-              Try All 30 Styles - $9.90
+              Try All {PLANS.basic.styleCount} Styles - ${PLANS.basic.price}
             </Button>
           </div>
         </div>
@@ -303,17 +312,17 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <Card className="p-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Basic</h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">{PLANS.basic.name}</h3>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold text-slate-900">$9.90</span>
+                <span className="text-4xl font-bold text-slate-900">${PLANS.basic.price}</span>
                 <span className="text-slate-500">/one-time</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500" /> 30 unique styles
+                  <Check className="w-4 h-4 text-accent-500" /> {PLANS.basic.styleCount} unique styles
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500" /> 1024x1024 resolution
+                  <Check className="w-4 h-4 text-accent-500" /> {PLANS.basic.resolution} resolution
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-accent-500" /> Unlimited downloads
@@ -331,17 +340,17 @@ export default function HomePage() {
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                 Most Popular
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Pro</h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">{PLANS.pro.name}</h3>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold text-slate-900">$19.90</span>
+                <span className="text-4xl font-bold text-slate-900">${PLANS.pro.price}</span>
                 <span className="text-slate-500">/one-time</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500" /> 100 unique styles
+                  <Check className="w-4 h-4 text-accent-500" /> {PLANS.pro.styleCount} unique styles
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500" /> 2048x2048 resolution
+                  <Check className="w-4 h-4 text-accent-500" /> {PLANS.pro.resolution} resolution
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-accent-500" /> Priority processing
@@ -356,17 +365,14 @@ export default function HomePage() {
             </Card>
 
             <Card className="p-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Enterprise</h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">{PLANS.enterprise.name}</h3>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold text-slate-900">$99</span>
+                <span className="text-4xl font-bold text-slate-900">${PLANS.enterprise.price}</span>
                 <span className="text-slate-500">/one-time</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-accent-500" /> Custom style training
-                </li>
-                <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500" /> API access
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-accent-500" /> Dedicated support
@@ -394,7 +400,7 @@ export default function HomePage() {
             Ready to Upgrade Your Professional Image?
           </h2>
           <p className="text-primary-100 text-lg mb-8 max-w-2xl mx-auto">
-            Join 10,000+ professionals who trust HeadshotAI for their personal branding needs.
+            Join 10,000+ professionals who trust {appConfig.name} for their personal branding needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -406,10 +412,10 @@ export default function HomePage() {
               Generate Headshots Now
             </Button>
             <Link href="/pricing">
-              <Button 
-                size="lg" 
-                variant="ghost" 
-                className="text-white hover:bg-white/10"
+              <Button
+                size="lg"
+                variant="ghost"
+                className="bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
               >
                 View Pricing
               </Button>

@@ -52,6 +52,8 @@ export default function UploadPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
           setIsAuthenticated(true)
+          setShowAuthModal(false)
+          setShowAuthRequired(false)
         } else {
           setShowAuthModal(true)
         }
@@ -62,6 +64,19 @@ export default function UploadPage() {
       }
     }
     checkAuth()
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setIsAuthenticated(true)
+        setShowAuthModal(false)
+        setShowAuthRequired(false)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   const validateImage = async (file: File): Promise<{ valid: boolean; error?: string }> => {

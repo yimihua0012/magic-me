@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Camera, Twitter, Instagram, Linkedin, Github } from 'lucide-react'
+import { appConfig } from '@/lib/config'
 
 export default function Footer() {
   return (
@@ -13,7 +14,7 @@ export default function Footer() {
               <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
                 <Camera className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">HeadshotAI</span>
+              <span className="text-xl font-bold">{appConfig.name}</span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed">
               Professional AI headshots in 3 minutes. Perfect for LinkedIn, social media, and personal branding.
@@ -86,7 +87,7 @@ export default function Footer() {
 
         <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-slate-400 text-sm">
-            © 2024 HeadshotAI. All rights reserved.
+            © 2024 {appConfig.name}. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <a href="#" className="text-slate-400 hover:text-white transition-colors">

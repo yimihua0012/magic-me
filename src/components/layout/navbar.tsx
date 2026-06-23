@@ -4,10 +4,17 @@ import Link from 'next/link'
 import { Menu, X, Camera, User } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Button from '@/components/ui/button'
+import { supabase } from '@/lib/supabase/client'
+import { appConfig } from '@/lib/config'
 
-export default function Navbar() {
+interface NavbarProps {
+  onOpenAuthModal?: () => void
+}
+
+export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,6 +24,27 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => {
+    // 检查用户登录状态
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    checkUser()
+
+    // 监听认证状态变化
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
@@ -28,7 +56,7 @@ export default function Navbar() {
             <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center shadow-lg shadow-primary-600/25">
               <Camera className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-slate-900">HeadshotAI</span>
+            <span className="text-xl font-bold text-slate-900">{appConfig.name}</span>
           </Link>
 
           <div className="hidden lg:flex items-center gap-8">
@@ -44,15 +72,35 @@ export default function Navbar() {
           </div>
 
           <div className="hidden lg:flex items-center gap-4">
-            <Link href="/login" className="text-slate-600 hover:text-slate-900 font-medium transition-colors">
-              Sign In
-            </Link>
-            <Link href="/upload">
-              <Button variant="primary" size="sm">
-                <Camera className="w-4 h-4 mr-2" />
-                Generate Headshots
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link href="/dashboard" className="text-slate-600 hover:text-slate-900 font-medium transition-colors flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Dashboard
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  onClick={onOpenAuthModal}
+                  className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                >
+                  Sign In
+                </button>
+                <Link href="/upload">
+                  <Button variant="primary" size="sm">
+                    <Camera className="w-4 h-4 mr-2" />
+                    Generate Headshots
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <button 
@@ -93,13 +141,15 @@ export default function Navbar() {
               Testimonials
             </Link>
             <hr className="border-slate-100" />
-            <Link 
-              href="/login" 
-              className="block text-slate-600 hover:text-slate-900 font-medium py-2"
-              onClick={() => setIsOpen(false)}
+            <button 
+              onClick={() => {
+                setIsOpen(false)
+                onOpenAuthModal?.()
+              }}
+              className="block text-slate-600 hover:text-slate-900 font-medium py-2 w-full text-left"
             >
               Sign In
-            </Link>
+            </button>
             <Link href="/upload" onClick={() => setIsOpen(false)}>
               <Button className="w-full" size="lg">
                 <Camera className="w-4 h-4 mr-2" />

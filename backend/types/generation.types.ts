@@ -17,6 +17,7 @@ export interface Generation {
   amount_paid?: number
   currency?: string
   created_at: string
+  updated_at?: string
   started_at?: string
   completed_at?: string
   metadata?: Record<string, unknown>
