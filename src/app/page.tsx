@@ -27,13 +27,13 @@ import { PLANS } from '@backend/config/plans'
 const features = [
   {
     icon: <Zap className="w-6 h-6" />,
-    title: 'Lightning Fast',
-    description: 'Get your professional headshots in just 3 minutes. No waiting days for a photographer.',
+    title: 'Professional Headshots Without a Photographer',
+    description: 'Get studio-quality headshots without hiring a photographer. Our AI headshot generator delivers professional results in just 3 minutes.',
   },
   {
     icon: <Sparkles className="w-6 h-6" />,
-    title: '36 Unique Styles',
-    description: 'From corporate to creative, choose from 36 different professional styles.',
+    title: '36 Styles with Business Attire',
+    description: 'From corporate professional to executive portraits, choose from 36 different styles with business attire perfect for LinkedIn and resume.',
   },
   {
     icon: <Shield className="w-6 h-6" />,
@@ -42,18 +42,18 @@ const features = [
   },
   {
     icon: <Download className="w-6 h-6" />,
-    title: 'HD Downloads',
-    description: 'Get high-resolution 1024x1024 images perfect for any platform.',
+    title: 'HD Downloads for Any Platform',
+    description: 'Get high-resolution 1024x1024 images perfect for LinkedIn profile, resume, CV, and business portraits.',
   },
   {
     icon: <Clock className="w-6 h-6" />,
-    title: '24/7 Available',
-    description: 'Generate headshots anytime, anywhere. No appointment needed.',
+    title: '24/7 Virtual Headshot Generator',
+    description: 'Generate virtual headshots for LinkedIn anytime, anywhere. No appointment needed with our AI business portrait generator.',
   },
   {
     icon: <Users className="w-6 h-6" />,
-    title: '10,000+ Users',
-    description: 'Trusted by professionals worldwide for their personal branding.',
+    title: 'Team Photos for Remote Teams',
+    description: 'Professional headshots for team photos online. Perfect for remote teams who need consistent, high-quality portraits.',
   },
 ]
 
@@ -61,19 +61,19 @@ const testimonials = [
   {
     name: 'Sarah Chen',
     role: 'Product Manager at Google',
-    content: 'Got my LinkedIn headshot done in 3 minutes. The quality is insane - looks like I hired a professional photographer!',
+    content: 'Best AI headshot generator for LinkedIn profile I have used! Got my professional headshot done in 3 minutes. Looks like I hired a professional photographer - perfect for my resume and CV.',
     avatar: 'SC',
   },
   {
     name: 'Marcus Johnson',
     role: 'Startup Founder',
-    content: 'Needed headshots for our team page. This saved us hundreds of dollars and so much time. Highly recommend!',
+    content: 'Needed professional headshots for team photos online. This saved us hundreds of dollars and so much time. The AI headshot with different backgrounds feature is amazing for our remote team!',
     avatar: 'MJ',
   },
   {
     name: 'Emily Rodriguez',
     role: 'Marketing Director',
-    content: 'The variety of styles is amazing. I found the perfect look for my personal brand across all platforms.',
+    content: 'How to get professional headshots without a photographer? This is the answer! The variety of styles with business attire is amazing. Perfect AI business portrait for my personal brand.',
     avatar: 'ER',
   },
 ]
@@ -121,12 +121,12 @@ export default function HomePage() {
               </div>
               
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-tight">
-                Upload a Selfie,{' '}
-                <span className="gradient-text">Get {PLANS.basic.styleCount} Styles</span>
+                Get Professional Headshots{' '}
+                <span className="gradient-text">Without a Photographer</span>
               </h1>
               
               <p className="mt-6 text-xl text-slate-600 max-w-xl mx-auto lg:mx-0">
-                Skip the $500 photographer. Get professional AI headshots in 3 minutes for just ${PLANS.basic.price}. Perfect for LinkedIn, Instagram, and dating apps.
+                The best AI headshot generator for LinkedIn profile. Upload a selfie, get 36 professional styles with business attire in 3 minutes. Perfect for resume, team photos, and virtual headshots.
               </p>
               
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">

@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Camera, Twitter, Instagram, Linkedin, Github } from 'lucide-react'
+import Image from 'next/image'
+import { Twitter, Instagram, Linkedin, Github } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 
 export default function Footer() {
@@ -11,9 +12,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
-                <Camera className="w-5 h-5 text-white" />
-              </div>
+              <Image src="/logo.svg" alt={appConfig.name} width={40} height={40} className="rounded-xl" />
               <span className="text-xl font-bold">{appConfig.name}</span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed">

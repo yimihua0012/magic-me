@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Menu, X, Camera, User } from 'lucide-react'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import Button from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
@@ -53,9 +54,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center shadow-lg shadow-primary-600/25">
-              <Camera className="w-5 h-5 text-white" />
-            </div>
+            <Image src="/logo.svg" alt={appConfig.name} width={40} height={40} className="rounded-xl" />
             <span className="text-xl font-bold text-slate-900">{appConfig.name}</span>
           </Link>
 

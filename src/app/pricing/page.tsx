@@ -11,6 +11,20 @@ import { Check, X, Sparkles, Zap, Crown, Building } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { pricingConfig, appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Pricing - Best AI Headshot Generator for LinkedIn Profile',
+  description: 'Simple pricing for professional headshots without a photographer. AI headshots with business attire for LinkedIn & resume. Starting at $12.90.',
+  keywords: [
+    'AI headshot generator pricing',
+    'professional headshots without photographer cost',
+    'LinkedIn profile photo maker pricing',
+    'AI business portrait with suit price',
+    'virtual headshot generator for LinkedIn cost',
+    'team photos online pricing',
+  ],
+}
 
 const plans = Object.values(pricingConfig).map((plan) => ({
   ...plan,
@@ -105,10 +119,10 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-slate-900 mb-4">
-              Simple, Transparent Pricing
+              Best AI Headshot Generator for LinkedIn Profile
             </h1>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              No subscriptions. No hidden fees. Pay once and get professional headshots for life.
+              Get professional headshots without a photographer. Simple, transparent pricing for AI headshots with business attire, virtual headshots for LinkedIn, and team photos online.
             </p>
           </div>
 
