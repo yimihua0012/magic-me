@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import CookieConsent from '@/components/layout/cookie-consent'
 import { appConfig } from '@/lib/config'
@@ -142,6 +145,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-1JFS76C362"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-1JFS76C362');
+          `}
+        </Script>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -149,6 +165,8 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-white">
         {children}
+        <Analytics />
+        <SpeedInsights />
         <CookieConsent />
       </body>
     </html>
