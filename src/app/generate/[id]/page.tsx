@@ -7,20 +7,21 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
-import Modal from '@/components/ui/modal'
 import { PLANS } from '@backend/config/plans'
+import dynamic from 'next/dynamic'
 import { 
   Sparkles, 
   Download, 
   CheckCircle2,
   Loader2,
-  X,
   Grid3X3,
-  Smartphone,
   Share2,
-  Home,
   AlertCircle
 } from 'lucide-react'
+
+const Modal = dynamic(() => import('@/components/ui/modal'), {
+  ssr: false,
+})
 
 const styleNames = [
   'LinkedIn Professional', 'Corporate Office', 'Business Casual', 'Executive Portrait',
@@ -428,6 +429,8 @@ export default function GenerationPage() {
                         src={photo}
                         alt={styleNames[index]}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     

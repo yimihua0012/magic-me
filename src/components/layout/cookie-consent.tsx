@@ -28,23 +28,23 @@ export default function CookieConsent() {
   if (!isVisible) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 animate-slide-up">
-      <div className="w-[60%] max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 animate-slide-up safe-bottom">
+      <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start gap-4">
+          <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0 hidden sm:flex">
             <Cookie className="w-6 h-6 text-primary-600" />
           </div>
           
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <h3 className="text-lg font-semibold text-slate-900 mb-2">
               We value your privacy
             </h3>
             <p className="text-slate-600 text-sm mb-4">
               We use cookies to enhance your browsing experience, serve personalized content, 
-              and analyze our traffic. By clicking "Accept", you consent to our use of cookies.
+              and analyze our traffic. By clicking &quot;Accept&quot;, you consent to our use of cookies.
             </p>
             
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <Button size="sm" onClick={handleAccept}>
                 Accept All
               </Button>
@@ -53,7 +53,7 @@ export default function CookieConsent() {
               </Button>
               <Link 
                 href="/privacy" 
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium px-3 py-2"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium px-3 py-2 inline-flex items-center"
               >
                 Learn More
               </Link>
@@ -62,7 +62,8 @@ export default function CookieConsent() {
 
           <button
             onClick={handleDecline}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0 -mt-1 -mr-1 sm:mt-0 sm:mr-0"
+            aria-label="Close cookie consent"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>

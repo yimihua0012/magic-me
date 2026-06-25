@@ -10,6 +10,11 @@ export const config = {
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
     publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
   },
+  lemon: {
+    apiKey: process.env.LEMONSQUEEZY_API_KEY!,
+    storeId: process.env.LEMONSQUEEZY_STORE_ID!,
+    signingSecret: process.env.LEMONSQUEEZY_WEBHOOK_SECRET!,
+  },
   app: {
     url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     env: process.env.NODE_ENV || 'development',

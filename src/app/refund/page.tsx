@@ -1,5 +1,3 @@
-'use client'
-
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
@@ -17,7 +15,7 @@ export default function RefundPage() {
             <Card className="p-6">
               <h2 className="text-xl font-semibold text-slate-900 mb-3">30-Day Money-Back Guarantee</h2>
               <p>
-                We want you to be completely satisfied with your AI headshots. If you're not happy 
+                We want you to be completely satisfied with your AI headshots. If you&apos;re not happy 
                 with the results, we offer a full refund within 30 days of your purchase.
               </p>
             </Card>
@@ -28,8 +26,8 @@ export default function RefundPage() {
               <ol className="list-decimal pl-6 space-y-2">
                 <li>Email us at postmaster@magic-headshot.com</li>
                 <li>Include your order number and email address</li>
-                <li>Briefly explain why you're not satisfied (optional)</li>
-                <li>We'll process your refund within 5-7 business days</li>
+                <li>Briefly explain why you&apos;re not satisfied (optional)</li>
+                <li>We&apos;ll process your refund within 5-7 business days</li>
               </ol>
             </Card>
 
@@ -48,7 +46,7 @@ export default function RefundPage() {
               <p className="mb-3">Refunds may not be available if:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>More than 30 days have passed since purchase</li>
-                <li>You've previously received a refund from us</li>
+                <li>You&apos;ve previously received a refund from us</li>
                 <li>Account shows signs of abuse</li>
                 <li>Payment was made through a non-refundable method</li>
               </ul>

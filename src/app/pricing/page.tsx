@@ -2,15 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
-import AuthModal from '@/components/auth/auth-modal'
-import { Check, X, Sparkles, Zap, Crown, Building } from 'lucide-react'
+import { Check, X, Sparkles, Zap, Crown } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { pricingConfig, appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
+
+// Lazy load AuthModal for better initial page load
+const AuthModal = dynamic(() => import('@/components/auth/auth-modal'), {
+  loading: () => null,
+  ssr: false,
+})
 
 const plans = Object.values(pricingConfig).map((plan) => ({
   ...plan,
@@ -101,30 +107,30 @@ export default function PricingPage() {
         }}
       />
 
-      <main className="pt-24 pb-16">
+      <main className="pt-24 pb-12 sm:pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-slate-900 mb-4">
+          <div className="text-center mb-10 sm:mb-12">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-3 sm:mb-4">
               Best AI Headshot Generator for LinkedIn Profile
             </h1>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto">
               Get professional headshots without a photographer. Simple, transparent pricing for AI headshots with business attire, virtual headshots for LinkedIn, and team photos online.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto">
             {plans.map((plan) => (
               <Card 
                 key={plan.id}
-                className={`relative p-8 ${
+                className={`relative p-5 sm:p-8 ${
                   plan.highlighted 
-                    ? 'border-2 border-primary-500 shadow-xl scale-105' 
+                    ? 'border-2 border-primary-500 shadow-xl lg:scale-105' 
                     : ''
                 }`}
               >
                 {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-primary-500 text-white text-xs font-semibold px-4 py-1 rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                    <span className="bg-primary-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                       Most Popular
                     </span>
                   </div>
@@ -138,10 +144,10 @@ export default function PricingPage() {
                   }`}>
                     {plan.icon}
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-1">{plan.name}</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-1">{plan.name}</h2>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-slate-900">${plan.price}</span>
-                    <span className="text-slate-500">/one-time</span>
+                    <span className="text-3xl sm:text-4xl font-bold text-slate-900">${plan.price}</span>
+                    <span className="text-slate-500 text-sm">/one-time</span>
                   </div>
                 </div>
 
@@ -179,8 +185,8 @@ export default function PricingPage() {
           </div>
 
           {/* Comparison Table */}
-          <div className="mt-20">
-            <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">
+          <div className="mt-12 sm:mt-20">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center mb-6 sm:mb-8">
               Compare Plans
             </h2>
             

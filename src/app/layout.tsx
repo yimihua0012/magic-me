@@ -1,13 +1,32 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
+import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import CookieConsent from '@/components/layout/cookie-consent'
+import BackToTop from '@/components/layout/back-to-top'
+import { ToastProvider } from '@/components/ui/toast'
 import { appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
 
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-inter',
+  fallback: ['system-ui', 'sans-serif'],
+})
+
 const siteUrl = appConfig.url.replace(/\/$/, '')
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#4F46E5',
+  viewportFit: 'cover',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -143,10 +162,19 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <head>
+        {/* Preload critical resources - highest priority */}
+        <link rel="preload" href="/logo.svg" as="image" fetchPriority="high" />
+        
+        {/* Preconnect critical origins */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Google Analytics - Load after page is interactive */}
         <Script
-          async
           src="https://www.googletagmanager.com/gtag/js?id=G-1JFS76C362"
           strategy="afterInteractive"
         />
@@ -158,16 +186,20 @@ export default function RootLayout({
             gtag('config', 'G-1JFS76C362');
           `}
         </Script>
+        {/* JSON-LD Schema - Critical for SEO */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="min-h-screen bg-white">
-        {children}
+      <body className={`min-h-screen bg-white ${inter.className}`}>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
         <Analytics />
         <SpeedInsights />
         <CookieConsent />
+        <BackToTop />
       </body>
     </html>
   )

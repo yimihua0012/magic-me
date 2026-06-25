@@ -2,11 +2,11 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
-import AuthModal from '@/components/auth/auth-modal'
 import { 
   Upload, 
   Image as ImageIcon, 
@@ -18,6 +18,12 @@ import {
   Loader2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+
+// Lazy load AuthModal for better initial page load
+const AuthModal = dynamic(() => import('@/components/auth/auth-modal'), {
+  loading: () => null,
+  ssr: false,
+})
 
 interface PhotoValidation {
   file: File
@@ -253,19 +259,19 @@ export default function UploadPage() {
         }}
       />
 
-      <main className="pt-24 pb-16">
+      <main className="pt-24 pb-12 sm:pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
               Upload Your Best Selfie
             </h1>
-            <p className="text-slate-600">
+            <p className="text-slate-600 text-sm sm:text-base">
               For best results, follow these guidelines
             </p>
           </div>
 
           {/* Guidelines */}
-          <Card className="p-6 mb-8">
+          <Card className="p-4 sm:p-6 mb-6 sm:mb-8">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
@@ -302,7 +308,7 @@ export default function UploadPage() {
 
           {/* Upload Zone */}
           <div
-            className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 ${
+            className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all duration-200 ${
               isDragging 
                 ? 'border-primary-500 bg-primary-50' 
                 : 'border-slate-300 hover:border-primary-400 hover:bg-slate-50'
@@ -321,13 +327,13 @@ export default function UploadPage() {
             />
             
             <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Upload className="w-8 h-8 text-primary-600" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Upload className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
               </div>
-              <p className="text-slate-900 font-medium mb-1">
+              <p className="text-slate-900 font-medium mb-1 text-sm sm:text-base">
                 Drag & drop your selfies here
               </p>
-              <p className="text-slate-500 text-sm mb-4">
+              <p className="text-slate-500 text-xs sm:text-sm mb-4">
                 or click to browse
               </p>
               <p className="text-xs text-slate-400">
@@ -344,7 +350,7 @@ export default function UploadPage() {
 
           {/* Photo Grid */}
           {photos.length > 0 && (
-            <div className="mt-8 grid grid-cols-3 gap-4">
+            <div className="mt-6 sm:mt-8 grid grid-cols-3 gap-3 sm:gap-4">
               {photos.map((photo, index) => (
                 <div key={index} className="relative">
                   <div className="aspect-square rounded-xl overflow-hidden bg-slate-200">
@@ -387,11 +393,12 @@ export default function UploadPage() {
           )}
 
           {/* Action Buttons */}
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
             <Button 
               variant="secondary"
               onClick={() => fileInputRef.current?.click()}
               disabled={photos.length >= 3}
+              className="w-full sm:w-auto"
             >
               <ImageIcon className="w-4 h-4 mr-2" />
               Add More Photos
@@ -399,6 +406,7 @@ export default function UploadPage() {
             <Button
               disabled={!canProceed}
               onClick={handleProceed}
+              className="w-full sm:w-auto"
             >
               <Camera className="w-4 h-4 mr-2" />
               Generate Headshots

@@ -4,7 +4,7 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import Button from '@/components/ui/button'
-import { Mail, Phone, MapPin, MessageSquare, Send } from 'lucide-react'
+import { Mail, MapPin, MessageSquare, Send } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 import { useState } from 'react'
 
