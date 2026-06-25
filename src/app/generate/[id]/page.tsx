@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
@@ -18,6 +18,7 @@ import {
   Share2,
   AlertCircle
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 const Modal = dynamic(() => import('@/components/ui/modal'), {
   ssr: false,
@@ -47,6 +48,7 @@ interface GenerationState {
 
 export default function GenerationPage() {
   const params = useParams()
+  const router = useRouter()
   const generationId = params?.id as string
   
   const [generation, setGeneration] = useState<GenerationState>({
@@ -60,11 +62,21 @@ export default function GenerationPage() {
   const [selectedPhotos, setSelectedPhotos] = useState<Set<number>>(new Set())
   const [showLightbox, setShowLightbox] = useState(false)
   const [lightboxPhoto, setLightboxPhoto] = useState<number | null>(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     let cleanupPolling: (() => void) | undefined
-    
+    let mounted = true
+
+    const getAuthHeaders = async (): Promise<Record<string, string>> => {
+      const { data } = await supabase.auth.getSession()
+      if (data.session?.access_token) {
+        return { 'Authorization': `Bearer ${data.session.access_token}` }
+      }
+      return {}
+    }
+
     const startGeneration = async () => {
       const photosBase64 = localStorage.getItem('pending_generation_photos')
       
@@ -90,9 +102,10 @@ export default function GenerationPage() {
 
           setGeneration(prev => ({ ...prev, currentStep: 'Uploading your photo...', styleCount: styleIds.length }))
           
+          const authHeaders = await getAuthHeaders()
           const response = await fetch('/api/generate-headshots', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ 
               faceImageUrl: photos[0],
               styleIds: [
@@ -107,6 +120,16 @@ export default function GenerationPage() {
               ]
             })
           })
+
+          if (response.status === 401) {
+            router.push('/login?returnTo=/generate/' + generationId)
+            return
+          }
+
+          if (response.status === 402) {
+            router.push('/pricing')
+            return
+          }
 
           const data = await response.json()
           
@@ -176,6 +199,13 @@ export default function GenerationPage() {
           const data = await response.json()
           console.log(`[Polling] Response data:`, JSON.stringify(data))
 
+          if (response.status === 401) {
+            clearInterval(intervalId)
+            pollIntervalRef.current = null
+            router.push('/login?returnTo=/generate/' + generationId)
+            return
+          }
+
           if (data.status === 'completed') {
             console.log(`[Polling] Task completed! outputUrls count: ${data.outputUrls?.length || 0}`)
             clearInterval(intervalId)
@@ -242,7 +272,6 @@ export default function GenerationPage() {
             outputPhotos,
           }))
           
-          // Save to localStorage
           const newRecord = {
             id: generationId,
             status: 'completed' as const,
@@ -273,15 +302,30 @@ export default function GenerationPage() {
       return () => clearInterval(interval)
     }
 
-    startGeneration()
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!mounted) return
+      
+      if (!user) {
+        router.push('/login?returnTo=/generate/' + generationId)
+        return
+      }
+      
+      setIsCheckingAuth(false)
+      startGeneration()
+    }
+    
+    init()
 
     return () => {
+      mounted = false
       if (typeof cleanupPolling === 'function') {
         console.log('[Polling] Cleaning up polling on component unmount')
         cleanupPolling()
       }
     }
-  }, [generationId])
+  }, [generationId, router])
 
   const togglePhotoSelection = (index: number) => {
     setSelectedPhotos(prev => {
@@ -320,7 +364,14 @@ export default function GenerationPage() {
 
       <main className="pt-24 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
+          {isCheckingAuth ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-10 h-10 text-primary-600 animate-spin mb-4" />
+              <p className="text-slate-600">Checking authentication...</p>
+            </div>
+          ) : (
+            <>
+              <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
               {generation.status === 'completed' ? 'Your Headshots Are Ready!' : 'Generating Your Headshots'}
             </h1>
@@ -483,13 +534,15 @@ export default function GenerationPage() {
                     View Dashboard
                   </Link>
                   <Link href="/upload" className="text-slate-600 hover:text-slate-900">
-                    Create New
+                    Create New Headshot Generation
                   </Link>
                   <Link href="/" className="text-slate-600 hover:text-slate-900">
                     Back to Home
                   </Link>
                 </div>
               </div>
+            </>
+          )}
             </>
           )}
         </div>

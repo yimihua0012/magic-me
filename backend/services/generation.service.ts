@@ -14,6 +14,28 @@ if (!global.mockGenerations) {
 
 const mockGenerations = global.mockGenerations
 
+// 内存缓存 - 用于减少频繁的数据库查询（前端轮询优化）
+interface CacheEntry {
+  data: Generation
+  expiresAt: number
+}
+
+const generationCache = new Map<string, CacheEntry>()
+const CACHE_TTL_MS = 3000 // 3秒缓存，状态查询频繁但变化不快
+
+function getCachedGeneration(id: string): Generation | null {
+  const entry = generationCache.get(id)
+  if (entry && Date.now() < entry.expiresAt) {
+    return entry.data
+  }
+  generationCache.delete(id)
+  return null
+}
+
+function setCachedGeneration(id: string, data: Generation): void {
+  generationCache.set(id, { data, expiresAt: Date.now() + CACHE_TTL_MS })
+}
+
 const STYLE_CONFIGS: Record<string, StyleConfig> = {
   linkedin_professional: {
     id: 'linkedin_professional',
@@ -227,6 +249,19 @@ const STYLE_CONFIGS: Record<string, StyleConfig> = {
   }
 }
 
+// 带超时的 fetch 包装
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 30000): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal })
+    return response
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
 const QUALITY_SUFFIX = '4k, highly detailed, professional photography, sharp focus, beautiful lighting, masterpiece'
 const DEFAULT_NEGATIVE = 'worst quality, low quality, blurry, distorted face, extra fingers, fused fingers, bad anatomy, ugly, deformed, disfigured, watermark, text, logo'
 
@@ -245,17 +280,83 @@ export interface GenerationResponse {
 }
 
 export class GenerationService {
+  static async getPendingGeneration(userId: string): Promise<Generation | null> {
+    console.log(`[GenerationService] getPendingGeneration for user: ${userId}`)
+    
+    const { data, error } = await supabaseAdmin
+      .from('generations')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      console.error('[GenerationService] Error getting pending generation:', error)
+      return null
+    }
+
+    return data as Generation | null
+  }
+
+  static async activateGeneration(generationId: string, faceImageUrl: string, styleIds?: string[]): Promise<GenerationResponse> {
+    console.log(`[GenerationService] activateGeneration called - id: ${generationId}`)
+    
+    const { data: existing } = await supabaseAdmin
+      .from('generations')
+      .select('*')
+      .eq('id', generationId)
+      .single()
+
+    if (!existing) {
+      throw new Error('Generation not found')
+    }
+
+    const styles = styleIds?.length 
+      ? styleIds.slice(0, existing.style_count || 30)
+      : Object.keys(STYLE_CONFIGS).slice(0, existing.style_count || 30)
+
+    const updateData: Partial<Generation> = {
+      status: 'processing',
+      progress: 0,
+      current_step: 'Initializing...',
+      input_photos: [faceImageUrl],
+      output_photos: [],
+      started_at: new Date().toISOString(),
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('generations')
+      .update(updateData)
+      .eq('id', generationId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[GenerationService] Error activating generation:', error)
+      throw error
+    }
+
+    console.log(`[GenerationService] Activated generation: ${generationId}, styles: ${styles.length}`)
+    setCachedGeneration(generationId, data as Generation)
+
+    return {
+      id: generationId,
+      status: 'processing',
+      progress: 0,
+      currentStep: 'Initializing...',
+      outputUrls: []
+    }
+  }
+
   static async createGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
     console.log(`[GenerationService] createGeneration called - userId: ${input.userId}, faceImageUrl: ${input.faceImageUrl?.substring(0, 50)}...`)
     const { userId, faceImageUrl, styleIds } = input
     const styles = styleIds || Object.keys(STYLE_CONFIGS).slice(0, 30)
     console.log(`[GenerationService] Creating generation with ${styles.length} styles`)
     
-    const generationId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-    console.log(`[GenerationService] Generated generationId: ${generationId}`)
-    
-    const generation: Partial<Generation> = {
-      id: generationId,
+    const generationData: Partial<Generation> = {
       user_id: userId,
       plan_type: 'basic',
       style_count: styles.length,
@@ -264,18 +365,19 @@ export class GenerationService {
       status: 'pending',
       progress: 0,
       current_step: 'Initializing...',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
     }
 
-    const { error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('generations')
-      .insert(generation)
+      .insert(generationData)
+      .select()
+      .single()
 
     if (error) {
       console.log(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
-      mockGenerations.set(generationId, {
-        id: generationId,
+      const fallbackId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+      mockGenerations.set(fallbackId, {
+        id: fallbackId,
         user_id: userId,
         plan_type: 'basic',
         style_count: styles.length,
@@ -287,10 +389,19 @@ export class GenerationService {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
-      console.log(`[GenerationService] Successfully stored in memory: ${generationId}`)
-    } else {
-      console.log(`[GenerationService] Successfully stored in database: ${generationId}`)
+      console.log(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
+      return {
+        id: fallbackId,
+        status: 'pending',
+        progress: 0,
+        currentStep: 'Initializing...',
+        outputUrls: []
+      }
     }
+
+    const generationId = data.id
+    console.log(`[GenerationService] Successfully stored in database: ${generationId}`)
+    setCachedGeneration(generationId, data as Generation)
 
     return {
       id: generationId,
@@ -303,7 +414,14 @@ export class GenerationService {
 
   static async getGeneration(id: string): Promise<Generation | null> {
     console.log(`[GenerationService] getGeneration called for id: ${id}`)
-    
+
+    // 先查内存缓存
+    const cached = getCachedGeneration(id)
+    if (cached) {
+      console.log(`[GenerationService] Cache hit for id: ${id}, status: ${cached.status}`)
+      return cached
+    }
+
     const { data, error } = await supabaseAdmin
       .from('generations')
       .select('*')
@@ -312,26 +430,31 @@ export class GenerationService {
 
     if (!error && data) {
       console.log(`[GenerationService] Found in database - id: ${id}, status: ${data.status}, progress: ${data.progress}`)
-      return data as Generation
+      const gen = data as Generation
+      setCachedGeneration(id, gen)
+      return gen
     }
-    
+
     if (error) {
       console.log(`[GenerationService] Database query error for id ${id}: ${error.message || error}`)
     }
-    
+
     const mockGeneration = mockGenerations.get(id)
     if (mockGeneration) {
       console.log(`[GenerationService] Found in memory - id: ${id}, status: ${mockGeneration.status}, progress: ${mockGeneration.progress}`)
       return mockGeneration
     }
-    
+
     console.log(`[GenerationService] Generation NOT FOUND for id: ${id}`)
     return null
   }
 
   static async updateGeneration(id: string, updates: Partial<Generation>): Promise<void> {
     console.log(`[GenerationService] updateGeneration called for id: ${id}, updates:`, JSON.stringify(updates))
-    
+
+    // 更新数据库时清除缓存，下次查询会重新加载
+    generationCache.delete(id)
+
     const { error } = await supabaseAdmin
       .from('generations')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -491,23 +614,27 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
         console.log(`[GenerationService] Calling Replicate API for ${styleId} (attempt ${attempt}/${maxRetries})...`)
         console.log(`[GenerationService] Using model: ${modelName}`)
         
-        // 使用官方模型端点
-        const response = await fetch(`https://api.replicate.com/v1/models/${modelName}/predictions`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${replicateApiKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'wait'
+        // 使用官方模型端点（30秒超时）
+        const response = await fetchWithTimeout(
+          `https://api.replicate.com/v1/models/${modelName}/predictions`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${replicateApiKey}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'wait',
+            },
+            body: JSON.stringify({
+              input: {
+                prompt,
+                image_input: [faceImageUrl],
+                aspect_ratio: 'match_input_image',
+                output_format: 'jpg',
+              },
+            }),
           },
-          body: JSON.stringify({
-            input: {
-              prompt,
-              image_input: [faceImageUrl],
-              aspect_ratio: 'match_input_image',
-              output_format: 'jpg'
-            }
-          })
-        })
+          30000
+        )
 
         console.log(`[GenerationService] Replicate API response status: ${response.status}`)
         
@@ -545,9 +672,13 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
           pollCount++
           console.log(`[GenerationService] Polling ${styleId} - attempt ${pollCount}, status: ${result.status}`)
           await new Promise(resolve => setTimeout(resolve, 2000))
-          const statusResponse = await fetch(`https://api.replicate.com/v1/predictions/${result.id}`, {
-            headers: { 'Authorization': `Token ${replicateApiKey}` }
-          })
+          const statusResponse = await fetchWithTimeout(
+            `https://api.replicate.com/v1/predictions/${result.id}`,
+            {
+              headers: { 'Authorization': `Token ${replicateApiKey}` },
+            },
+            15000
+          )
           
           if (statusResponse.status === 429) {
             const retryAfter = parseInt(statusResponse.headers.get('Retry-After') || '5')

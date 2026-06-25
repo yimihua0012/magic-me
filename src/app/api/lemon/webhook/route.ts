@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
+import { PLANS } from '@backend/config/plans'
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
@@ -20,7 +20,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No signature' }, { status: 401 })
     }
 
-    // Verify signature using HMAC
     const hmac = crypto.createHmac('sha256', process.env.LEMONSQUEEZY_WEBHOOK_SECRET!)
     const digest = hmac.update(rawBody).digest('hex')
 
@@ -32,31 +31,25 @@ export async function POST(request: Request) {
     const event = JSON.parse(rawBody)
     const eventName = event.meta.event_name
 
-    // Handle order_created event
     if (eventName === 'order_created') {
-      const { user_email, product_name } = event.data.attributes
-      const userId = event.meta.custom_data?.user_id // User ID passed during checkout
+      const { product_name } = event.data.attributes
+      const userId = event.meta.custom_data?.user_id
 
-      // Determine plan type based on product name
-      const plan = product_name.toLowerCase().includes('pro') ? 'pro' : 'basic'
-      const styleCount = plan === 'pro' ? 36 : 12
+      const planType = product_name.toLowerCase().includes('pro') ? 'pro' : 'basic'
+      const plan = PLANS[planType]
+      const orderId = event.data.id
 
       try {
         const supabase = await createClient()
 
-        const generationId = `${userId}-${Date.now()}`
-        const orderId = event.data.id
-
-        // Insert generation record
         const { error } = await supabase.from('generations').insert({
           user_id: userId,
           status: 'pending',
-          plan_type: plan,
-          style_count: styleCount,
+          plan_type: planType,
+          style_count: plan.styleCount,
           input_photos: [],
           output_photos: [],
           lemon_order_id: orderId.toString(),
-          created_at: new Date().toISOString(),
         })
 
         if (error) {
@@ -64,7 +57,7 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: 'Failed to save generation' }, { status: 500 })
         }
 
-        console.log(`Order created for user ${userId}, plan: ${plan}, styles: ${styleCount}`)
+        console.log(`Order created for user ${userId}, plan: ${planType}, styles: ${plan.styleCount}`)
       } catch (dbError) {
         console.error('Database error:', dbError)
         return NextResponse.json({ error: 'Database error' }, { status: 500 })

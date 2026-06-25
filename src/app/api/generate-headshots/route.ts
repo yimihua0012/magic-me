@@ -1,21 +1,42 @@
 import { NextResponse } from 'next/server'
 import { GenerationService } from '@backend/services'
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@backend/config/supabase'
 
 export const dynamic = 'force-dynamic'
+
+async function getCurrentUser(request: Request) {
+  const authHeader = request.headers.get('authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.substring(7)
+    try {
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
+      if (!error && user) {
+        return user
+      }
+    } catch (e) {
+      console.error('[Auth] Error verifying bearer token:', e)
+    }
+  }
+  
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user || null
+}
 
 export async function POST(request: Request) {
   try {
     console.log('[API POST] Request received')
-    const supabase = await createClient()
-    console.log('[API POST] Created supabase client')
     
-    const authResult = await supabase.auth.getUser()
-    console.log('[API POST] Auth check completed')
-    const { user } = authResult.data
+    const user = await getCurrentUser(request)
+    console.log('[API POST] Auth check completed, user:', user?.id || 'none')
     
-    if (authResult.error) {
-      console.warn('[API POST] Auth error:', authResult.error.message)
+    if (!user) {
+      console.warn('[API POST] Authentication required')
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
     }
 
     console.log('[API POST] Parsing request body...')
@@ -33,12 +54,23 @@ export async function POST(request: Request) {
       )
     }
 
-    const generation = await GenerationService.createGeneration({
-      userId: user?.id || 'anonymous',
+    const pendingGeneration = await GenerationService.getPendingGeneration(user.id)
+    console.log(`[API POST] Pending generation: ${pendingGeneration?.id || 'none'}`)
+
+    if (!pendingGeneration) {
+      console.warn('[API POST] No available credits, payment required')
+      return NextResponse.json(
+        { error: 'No available credits. Please purchase a plan first.' },
+        { status: 402 }
+      )
+    }
+
+    const generation = await GenerationService.activateGeneration(
+      pendingGeneration.id,
       faceImageUrl,
-      styleIds: styleIds || GenerationService.getStyleConfigs().map(s => s.id)
-    })
-    console.log(`[API POST] Created generation: ${generation.id}`)
+      styleIds
+    )
+    console.log(`[API POST] Activated generation: ${generation.id}`)
 
     GenerationService.generateHeadshots(generation.id).then(() => {
       console.log(`[API POST] Generation completed for taskId: ${generation.id}`)
@@ -96,13 +128,21 @@ export async function GET(request: Request) {
     }
 
     console.log(`[API GET] Found generation - id: ${generation.id}, status: ${generation.status}, progress: ${generation.progress}, outputUrls count: ${generation.output_photos?.length || 0}`)
-    
-    return NextResponse.json({
-      taskId: generation.id,
-      status: generation.status,
-      progress: generation.progress,
-      outputUrls: generation.output_photos
-    })
+
+    // 添加短缓存头 - 生成状态每5秒刷新一次足够
+    return NextResponse.json(
+      {
+        taskId: generation.id,
+        status: generation.status,
+        progress: generation.progress,
+        outputUrls: generation.output_photos,
+      },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=5, stale-while-revalidate=10',
+        },
+      }
+    )
   } catch (error) {
     console.error('[API GET] Error getting generation:', error)
     return NextResponse.json(

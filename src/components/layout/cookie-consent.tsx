@@ -55,7 +55,7 @@ export default function CookieConsent() {
                 href="/privacy" 
                 className="text-sm text-primary-600 hover:text-primary-700 font-medium px-3 py-2 inline-flex items-center"
               >
-                Learn More
+                Read our Privacy Policy
               </Link>
             </div>
           </div>

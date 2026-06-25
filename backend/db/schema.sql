@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS generations (
     
     -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     started_at TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE,
     
@@ -161,6 +162,12 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
 CREATE TRIGGER update_profiles_updated_at
     BEFORE UPDATE ON profiles
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger for generations updated_at
+DROP TRIGGER IF EXISTS update_generations_updated_at ON generations;
+CREATE TRIGGER update_generations_updated_at
+    BEFORE UPDATE ON generations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================

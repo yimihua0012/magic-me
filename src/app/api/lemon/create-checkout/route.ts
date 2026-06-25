@@ -27,7 +27,10 @@ export async function POST(request: Request) {
 
     const plan = PLANS[plan_type as PlanType]
 
-    // Create checkout using Lemon Squeezy API
+    // Create checkout using Lemon Squeezy API (20s timeout)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 20000)
+
     const response = await fetch(`${LEMON_API_URL}/checkouts`, {
       method: 'POST',
       headers: {
@@ -35,6 +38,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/vnd.api+json',
         'Authorization': `Bearer ${process.env.LEMONSQUEEZY_API_KEY}`,
       },
+      signal: controller.signal,
       body: JSON.stringify({
         data: {
           type: 'checkouts',
@@ -67,6 +71,8 @@ export async function POST(request: Request) {
         },
       }),
     })
+
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       const errorData = await response.json()

@@ -35,50 +35,64 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+    const initDashboard = async () => {
+      // 并行执行：获取会话 + 加载本地缓存 + 发起 API 请求
+      const sessionPromise = supabase.auth.getSession()
+      
+      // 先从 localStorage 快速显示本地记录（骨架屏时间缩短）
+      let localRecords: Generation[] = []
+      try {
+        const stored = localStorage.getItem('generation_records')
+        if (stored) {
+          localRecords = JSON.parse(stored)
+          if (localRecords.length > 0) {
+            setGenerations(localRecords)
+            setIsLoading(false)
+          }
+        }
+      } catch {
+        // 忽略解析错误
+      }
+
+      const { data: { session } } = await sessionPromise
+      
+      if (!session?.user) {
         router.push('/login?returnTo=/dashboard')
         return
       }
-      
-      const fetchGenerations = async () => {
-        let records: Generation[] = []
-        
-        // First try API
-        try {
-          const res = await fetch('/api/generations')
-          if (res.ok) {
-            const data = await res.json()
-            records = data.generations || []
-          }
-        } catch {
-          // API failed, continue
+
+      // API 请求获取最新数据（与上面并行）
+      try {
+        const res = await fetch('/api/generations?limit=20', {
+          credentials: 'same-origin',
+        })
+        if (res.ok) {
+          const data = await res.json()
+          const apiRecords: Generation[] = data.generations || []
+          
+          // 合并本地和 API 数据，API 优先
+          const apiIds = new Set(apiRecords.map(r => r.id))
+          const merged = [...apiRecords]
+          localRecords.forEach(record => {
+            if (!apiIds.has(record.id)) {
+              merged.push(record)
+            }
+          })
+          
+          // 按时间排序
+          merged.sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )
+          
+          setGenerations(merged)
+          setIsLoading(false)
         }
-        
-        // Then merge with localStorage records
-        const localStorageRecords = localStorage.getItem('generation_records')
-        if (localStorageRecords) {
-          try {
-            const localRecords = JSON.parse(localStorageRecords) as Generation[]
-            // Merge, prioritizing API records
-            const apiIds = new Set(records.map(r => r.id))
-            localRecords.forEach(record => {
-              if (!apiIds.has(record.id)) {
-                records.push(record)
-              }
-            })
-          } catch {
-            // JSON parse failed
-          }
-        }
-        
-        setGenerations(records)
-        setIsLoading(false)
+      } catch {
+        // API 失败时继续使用本地数据
       }
-      fetchGenerations()
     }
-    checkAuth()
+    
+    initDashboard()
   }, [router])
 
   const formatDate = (dateString: string) => {
@@ -91,7 +105,6 @@ export default function DashboardPage() {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this generation?')) {
-      // Remove from localStorage
       const localStorageRecords = localStorage.getItem('generation_records')
       if (localStorageRecords) {
         try {
@@ -103,7 +116,6 @@ export default function DashboardPage() {
         }
       }
       
-      // Update UI
       setGenerations(prev => prev.filter(g => g.id !== id))
     }
   }
@@ -167,6 +179,15 @@ export default function DashboardPage() {
                         loading="lazy"
                         decoding="async"
                       />
+                    ) : gen.output_photos && gen.output_photos.length > 0 ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img 
+                        src={gen.output_photos[0]}
+                        alt="Headshot"
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Camera className="w-12 h-12 text-slate-400" />
@@ -183,13 +204,15 @@ export default function DashboardPage() {
                     )}
                     
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                      <Link href={`/generate/${gen.id}`}>
+                      <Link href={`/generate/${gen.id}`} aria-label="View headshot details">
                         <Button size="sm" className="bg-white text-slate-900 hover:bg-white">
                           <ExternalLink className="w-4 h-4" />
+                          <span className="sr-only">View Details</span>
                         </Button>
                       </Link>
-                      <Button size="sm" variant="ghost" className="bg-white/90 text-slate-900 hover:bg-white">
+                      <Button size="sm" variant="ghost" className="bg-white/90 text-slate-900 hover:bg-white" aria-label="Share headshot">
                         <Share2 className="w-4 h-4" />
+                        <span className="sr-only">Share</span>
                       </Button>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Menu, X, Camera, User } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -13,6 +14,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onOpenAuthModal }: NavbarProps) {
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -27,12 +29,12 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   }, [])
 
   useEffect(() => {
-    // 检查用户登录状态
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
+    // 初始化时同步获取一次会话状态，避免延迟
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
     }
-    checkUser()
+    initAuth()
 
     // 监听认证状态变化
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -94,12 +96,10 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
                 >
                   Sign In
                 </button>
-                <Link href="/upload" prefetch={true}>
-                  <Button variant="primary" size="sm">
-                    <Camera className="w-4 h-4 mr-2" />
-                    Generate Headshots
-                  </Button>
-                </Link>
+                <Button variant="primary" size="sm" onClick={() => router.push('/upload')}>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Generate Headshots
+                </Button>
               </>
             )}
           </div>
@@ -174,12 +174,15 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
                 >
                   Sign In
                 </button>
-                <Link href="/upload" onClick={() => setIsOpen(false)} className="block pt-2">
-                  <Button className="w-full" size="lg">
+                <div className="block pt-2">
+                  <Button className="w-full" size="lg" onClick={() => {
+                    setIsOpen(false)
+                    router.push('/upload')
+                  }}>
                     <Camera className="w-4 h-4 mr-2" />
                     Generate Headshots
                   </Button>
-                </Link>
+                </div>
               </>
             )}
           </div>

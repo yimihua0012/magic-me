@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { PLANS } from '@backend/config/plans'
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
@@ -34,17 +34,17 @@ export async function POST(request: Request) {
     try {
       const supabase = await createClient()
       
-      const generationId = `${session.metadata?.user_id}-${Date.now()}`
+      const planType = session.metadata?.plan_type as keyof typeof PLANS
+      const plan = PLANS[planType] || PLANS.basic
       
       const { error } = await supabase.from('generations').insert({
         user_id: session.metadata?.user_id,
-        status: 'completed',
-        plan_type: session.metadata?.plan_type,
-        style_count: session.metadata?.plan_type === 'pro' ? 100 : 30,
+        status: 'pending',
+        plan_type: planType,
+        style_count: plan.styleCount,
         input_photos: [],
         output_photos: [],
         stripe_payment_id: session.payment_intent as string,
-        completed_at: new Date().toISOString(),
       })
 
       if (error) {

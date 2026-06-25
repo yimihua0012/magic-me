@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
+import { supabase } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
 
 const AuthModal = dynamic(() => import('@/components/auth/auth-modal'), {
@@ -90,9 +92,39 @@ const styles = [
 ]
 
 export default function HomePage() {
+  const router = useRouter()
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      setIsCheckingAuth(false)
+    }
+    initAuth()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleOpenAuth = () => setShowAuthModal(true)
+
+  const handlePrimaryAction = (planType?: string) => {
+    if (user) {
+      if (planType === 'enterprise') {
+        router.push('/contact')
+      } else {
+        router.push('/upload')
+      }
+    } else {
+      setShowAuthModal(true)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -111,9 +143,9 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-accent-50" />
-        <div className="absolute top-16 left-0 w-64 h-64 sm:w-72 sm:h-72 bg-primary-200 rounded-full blur-3xl opacity-30" />
-        <div className="absolute bottom-16 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-accent-200 rounded-full blur-3xl opacity-30" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-accent-50 pointer-events-none" />
+        <div className="absolute top-16 left-0 w-64 h-64 sm:w-72 sm:h-72 bg-primary-200 rounded-full blur-3xl opacity-30 pointer-events-none" />
+        <div className="absolute bottom-16 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-accent-200 rounded-full blur-3xl opacity-30 pointer-events-none" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-20 items-center">
@@ -132,14 +164,14 @@ export default function HomePage() {
                 The best AI headshot generator for LinkedIn profile. Upload a selfie, get 36 professional styles with business attire in 3 minutes. Perfect for resume, team photos, and virtual headshots.
               </p>
               
-              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                <Button size="lg" onClick={handleOpenAuth} className="w-full sm:w-auto">
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start relative z-10">
+                <Button size="lg" onClick={() => handlePrimaryAction()} className="w-full sm:w-auto">
                   <Camera className="w-5 h-5 mr-2" />
                   Generate Headshots - ${PLANS.basic.price}
                 </Button>
                 <Link href="#examples" prefetch={false} className="w-full sm:w-auto">
                   <Button variant="secondary" size="lg" className="w-full">
-                    See Examples
+                    View Headshot Style Examples
                   </Button>
                 </Link>
               </div>
@@ -260,7 +292,7 @@ export default function HomePage() {
           </div>
 
           <div className="text-center mt-10 sm:mt-12">
-            <Button size="lg" onClick={handleOpenAuth} className="w-full sm:w-auto">
+            <Button size="lg" onClick={() => handlePrimaryAction()} className="w-full sm:w-auto">
               <Sparkles className="w-5 h-5 mr-2" />
               Try All {PLANS.basic.styleCount} Styles - ${PLANS.basic.price}
             </Button>
@@ -333,7 +365,7 @@ export default function HomePage() {
                   <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Commercial use
                 </li>
               </ul>
-              <Button className="w-full" onClick={handleOpenAuth}>
+              <Button className="w-full" onClick={() => handlePrimaryAction('basic')}>
                 Get Started
               </Button>
             </Card>
@@ -361,7 +393,7 @@ export default function HomePage() {
                   <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> All Basic features
                 </li>
               </ul>
-              <Button className="w-full" onClick={handleOpenAuth}>
+              <Button className="w-full" onClick={() => handlePrimaryAction('pro')}>
                 Go Pro
               </Button>
             </Card>
@@ -383,14 +415,16 @@ export default function HomePage() {
                   <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Team management
                 </li>
               </ul>
-              <Button className="w-full" onClick={handleOpenAuth}>
+              <Button className="w-full" onClick={() => handlePrimaryAction('enterprise')}>
                 Contact Sales
               </Button>
             </Card>
           </div>
 
           <p className="text-center text-slate-500 mt-8 text-sm sm:text-base">
-            Compare all features <Link href="/pricing" className="text-primary-600 hover:underline" prefetch={true}>here</Link>
+            <Link href="/pricing" className="text-primary-600 hover:underline" prefetch={true}>
+              Compare all features on our pricing page
+            </Link>
           </p>
         </div>
       </section>
@@ -408,7 +442,7 @@ export default function HomePage() {
             <Button 
               size="lg" 
               className="bg-white text-primary-600 hover:bg-primary-50 shadow-xl w-full sm:w-auto"
-              onClick={handleOpenAuth}
+              onClick={() => handlePrimaryAction()}
             >
               <Camera className="w-5 h-5 mr-2" />
               Generate Headshots Now

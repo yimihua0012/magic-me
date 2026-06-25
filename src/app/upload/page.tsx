@@ -50,7 +50,29 @@ export default function UploadPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [showAuthRequired, setShowAuthRequired] = useState(false)
+  const [availableCredits, setAvailableCredits] = useState<number>(0)
+  const [isLoadingCredits, setIsLoadingCredits] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const fetchCredits = async () => {
+    try {
+      setIsLoadingCredits(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+
+      const res = await fetch('/api/credits', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setAvailableCredits(data.availableCredits || 0)
+      }
+    } catch (e) {
+      console.error('Failed to fetch credits:', e)
+    } finally {
+      setIsLoadingCredits(false)
+    }
+  }
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -60,6 +82,7 @@ export default function UploadPage() {
           setIsAuthenticated(true)
           setShowAuthModal(false)
           setShowAuthRequired(false)
+          fetchCredits()
         } else {
           setShowAuthModal(true)
         }
@@ -71,12 +94,12 @@ export default function UploadPage() {
     }
     checkAuth()
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setIsAuthenticated(true)
         setShowAuthModal(false)
         setShowAuthRequired(false)
+        fetchCredits()
       }
     })
 
@@ -206,11 +229,14 @@ export default function UploadPage() {
       return
     }
     
+    if (availableCredits <= 0) {
+      router.push('/pricing')
+      return
+    }
+    
     if (canProceed) {
-      // Skip payment, go directly to generation
       const generationId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
       
-      // Convert files to base64 for localStorage
       const convertToBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
           const reader = new FileReader()
@@ -220,7 +246,6 @@ export default function UploadPage() {
         })
       }
       
-      // Store photos as base64 in localStorage for the generation page
       Promise.all(validPhotos.map(p => convertToBase64(p.file))).then(base64Photos => {
         localStorage.setItem('pending_generation_photos', JSON.stringify(base64Photos))
         localStorage.setItem('pending_generation_id', generationId)
@@ -403,13 +428,33 @@ export default function UploadPage() {
               <ImageIcon className="w-4 h-4 mr-2" />
               Add More Photos
             </Button>
+
+            {isAuthenticated && (
+              <div className="w-full sm:w-auto text-center sm:text-left">
+                {isLoadingCredits ? (
+                  <p className="text-sm text-slate-500 flex items-center justify-center sm:justify-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Checking credits...
+                  </p>
+                ) : availableCredits > 0 ? (
+                  <p className="text-sm text-emerald-600 font-medium">
+                    {availableCredits} credit{availableCredits > 1 ? 's' : ''} available
+                  </p>
+                ) : (
+                  <p className="text-sm text-amber-600 font-medium">
+                    No credits remaining
+                  </p>
+                )}
+              </div>
+            )}
+
             <Button
-              disabled={!canProceed}
+              disabled={!canProceed || (isAuthenticated && availableCredits <= 0 && !isLoadingCredits)}
               onClick={handleProceed}
               className="w-full sm:w-auto"
             >
               <Camera className="w-4 h-4 mr-2" />
-              Generate Headshots
+              {availableCredits <= 0 && isAuthenticated && !isLoadingCredits ? 'Buy Credits' : 'Generate Headshots'}
             </Button>
           </div>
 
