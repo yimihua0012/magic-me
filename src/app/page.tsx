@@ -7,6 +7,7 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import Button from '@/components/ui/button'
+import PayPalButton from '@/components/ui/paypal-button'
 import { 
   Zap, 
   Shield, 
@@ -14,6 +15,7 @@ import {
   Clock, 
   Sparkles,
   Check,
+  X,
   Star,
   Users,
   Camera,
@@ -202,7 +204,7 @@ export default function HomePage() {
                   <div className="w-7 h-7 sm:w-8 sm:h-8 bg-accent-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <Check className="w-4 h-4 text-accent-600" />
                   </div>
-                  <span className="text-xs sm:text-sm font-medium text-slate-700">{PLANS.basic.styleCount} Styles Ready</span>
+                  <span className="text-xs sm:text-sm font-medium text-slate-700">{PLANS.basic.credits} Headshots Ready</span>
                 </div>
               </div>
             </div>
@@ -223,7 +225,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {[
               { step: '1', icon: <Sparkles className="w-8 h-8" />, title: 'Upload Your Selfie', desc: 'Take or upload 1-3 selfies with good lighting and a clear view of your face.' },
-              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'AI Magic Happens', desc: `Our AI analyzes your photos and generates ${PLANS.pro.styleCount} professional styles in 3 minutes.` },
+              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'AI Magic Happens', desc: `Our AI analyzes your photos and generates ${PLANS.pro.credits} professional headshots in 3 minutes.` },
               { step: '3', icon: <Download className="w-8 h-8" />, title: 'Download & Save', desc: 'Pick your favorites and download in high resolution for any platform.' },
             ].map((item, i) => (
               <div key={i} className="relative">
@@ -271,7 +273,7 @@ export default function HomePage() {
       <section id="examples" className="py-14 sm:py-20 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">{PLANS.basic.styleCount} Styles to Match Your Brand</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">{PLANS.basic.credits}+ Styles to Match Your Brand</h2>
             <p className="text-slate-400 mt-4 max-w-2xl mx-auto text-sm sm:text-base">
               From corporate polish to creative flair, find the perfect headshot style for every platform and purpose.
             </p>
@@ -294,7 +296,7 @@ export default function HomePage() {
           <div className="text-center mt-10 sm:mt-12">
             <Button size="lg" onClick={() => handlePrimaryAction()} className="w-full sm:w-auto">
               <Sparkles className="w-5 h-5 mr-2" />
-              Try All {PLANS.basic.styleCount} Styles - ${PLANS.basic.price}
+              Try All {PLANS.basic.credits} Styles - ${PLANS.basic.price}
             </Button>
           </div>
         </div>
@@ -352,11 +354,14 @@ export default function HomePage() {
                 <span className="text-slate-500 text-sm sm:text-base">/one-time</span>
               </div>
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.basic.styleCount} unique styles
+                <li className="flex items-center gap-2 text-sm text-primary-600 font-semibold">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.basic.credits} headshots
+                </li>
+                <li className="flex items-center gap-2 text-sm text-primary-600 font-semibold">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.basic.validityDays} days validity
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.basic.resolution} resolution
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> 1024x1024 resolution
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Unlimited downloads
@@ -364,10 +369,17 @@ export default function HomePage() {
                 <li className="flex items-center gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Commercial use
                 </li>
+                <li className="flex items-center gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Email support
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-400">
+                  <X className="w-4 h-4 text-slate-300 flex-shrink-0" /> Priority processing
+                </li>
               </ul>
-              <Button className="w-full" onClick={() => handlePrimaryAction('basic')}>
+              <Button className="w-full mb-3" onClick={() => handlePrimaryAction('basic')}>
                 Get Started
               </Button>
+              <PayPalButton buttonId="SUZNHDUUW6K6E" price={PLANS.basic.price} />
             </Card>
 
             <Card className="p-6 sm:p-8 border-2 border-primary-500 relative">
@@ -380,44 +392,74 @@ export default function HomePage() {
                 <span className="text-slate-500 text-sm sm:text-base">/one-time</span>
               </div>
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.pro.styleCount} unique styles
+                <li className="flex items-center gap-2 text-sm text-primary-600 font-semibold">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.pro.credits} headshots
+                </li>
+                <li className="flex items-center gap-2 text-sm text-primary-600 font-semibold">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.pro.validityDays} days validity
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.pro.resolution} resolution
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> 1024x1024 HD resolution
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Unlimited downloads
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Commercial use
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Priority processing
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> All Basic features
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Email support
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-400">
+                  <X className="w-4 h-4 text-slate-300 flex-shrink-0" /> Dedicated support
                 </li>
               </ul>
-              <Button className="w-full" onClick={() => handlePrimaryAction('pro')}>
+              <Button className="w-full mb-3" onClick={() => handlePrimaryAction('pro')}>
                 Go Pro
               </Button>
+              <PayPalButton buttonId="U8CQE5WXQEM4W" price={PLANS.pro.price} />
             </Card>
 
             <Card className="p-6 sm:p-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">{PLANS.enterprise.name}</h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">{PLANS.premium.name}</h3>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-3xl sm:text-4xl font-bold text-slate-900">${PLANS.enterprise.price}</span>
+                <span className="text-3xl sm:text-4xl font-bold text-slate-900">${PLANS.premium.price}</span>
                 <span className="text-slate-500 text-sm sm:text-base">/one-time</span>
               </div>
               <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2 text-sm text-primary-600 font-semibold">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.premium.credits} headshots
+                </li>
+                <li className="flex items-center gap-2 text-sm text-primary-600 font-semibold">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> {PLANS.premium.validityDays} days validity
+                </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Custom style training
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> 1024x1024 Ultra HD resolution
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Unlimited downloads
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Commercial use
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Priority processing
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Email support
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Dedicated support
                 </li>
-                <li className="flex items-center gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Team management
-                </li>
               </ul>
-              <Button className="w-full" onClick={() => handlePrimaryAction('enterprise')}>
-                Contact Sales
+              <Button className="w-full mb-3" onClick={() => handlePrimaryAction('premium')}>
+                Go Premium
               </Button>
+              {/* PayPal Button */}
+              <PayPalButton buttonId="EWV87BFAXRZ88" price={PLANS.premium.price} />
             </Card>
           </div>
 

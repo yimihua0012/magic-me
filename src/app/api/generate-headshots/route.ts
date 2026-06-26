@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { GenerationService } from '@backend/services'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@backend/config/supabase'
+import { CreditPackageService } from '@backend/services'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,28 +55,43 @@ export async function POST(request: Request) {
       )
     }
 
-    const pendingGeneration = await GenerationService.getPendingGeneration(user.id)
-    console.log(`[API POST] Pending generation: ${pendingGeneration?.id || 'none'}`)
+    // 确定本次生成需要消耗的次数（风格数量）
+    const styleCount = styleIds?.length || 30
+    console.log(`[API POST] Credits needed: ${styleCount}`)
 
-    if (!pendingGeneration) {
-      console.warn('[API POST] No available credits, payment required')
+    // 检查是否有足够的信用次数
+    const hasEnough = await CreditPackageService.hasEnoughCredits(user.id, styleCount)
+    if (!hasEnough) {
+      console.warn(`[API POST] Insufficient credits - needed: ${styleCount}`)
       return NextResponse.json(
         { error: 'No available credits. Please purchase a plan first.' },
         { status: 402 }
       )
     }
 
-    const generation = await GenerationService.activateGeneration(
-      pendingGeneration.id,
+    // 创建并激活生成（会自动预扣信用次数）
+    const generation = await GenerationService.createAndActivateGeneration({
+      userId: user.id,
       faceImageUrl,
-      styleIds
-    )
-    console.log(`[API POST] Activated generation: ${generation.id}`)
+      styleIds,
+    })
+    console.log(`[API POST] Created and activated generation: ${generation.id}`)
 
+    // 后台异步生成
     GenerationService.generateHeadshots(generation.id).then(() => {
       console.log(`[API POST] Generation completed for taskId: ${generation.id}`)
-    }).catch(error => {
+    }).catch(async (error) => {
       console.error('[API POST] Background generation error:', error)
+      // 生成失败时回退信用次数
+      try {
+        const gen = await GenerationService.getGeneration(generation.id)
+        if (gen?.credit_package_id && gen?.credits_used) {
+          await CreditPackageService.refundCredits(gen.credit_package_id, gen.credits_used)
+          console.log(`[API POST] Refunded ${gen.credits_used} credits to package ${gen.credit_package_id}`)
+        }
+      } catch (refundError) {
+        console.error('[API POST] Failed to refund credits:', refundError)
+      }
     })
     console.log(`[API POST] Started background generation for taskId: ${generation.id}`)
 

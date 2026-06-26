@@ -116,7 +116,7 @@ export async function GET(req: NextRequest) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <span style={{ marginRight: '10px', fontSize: '24px' }}>🎨</span>
-              <span>{PLANS.basic.styleCount} Styles</span>
+              <span>{PLANS.basic.credits} Headshots</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <span style={{ marginRight: '10px', fontSize: '24px' }}>💰</span>

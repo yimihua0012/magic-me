@@ -1,5 +1,8 @@
 import { supabaseAdmin } from '@backend/config/supabase'
 import { Generation, GenerationStatus, StyleConfig, CreateGenerationInput } from '@backend/types'
+import { CreditPackageService } from './credit-package.service'
+import { emailService } from './email.service'
+import { userRepository } from '@backend/db/repositories'
 
 // 内存存储作为数据库降级方案（使用全局变量确保跨请求共享）
 declare global {
@@ -350,6 +353,84 @@ export class GenerationService {
     }
   }
 
+  static async createAndActivateGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
+    console.log(`[GenerationService] createAndActivateGeneration called - userId: ${input.userId}`)
+    const { userId, faceImageUrl, styleIds } = input
+    const styles = styleIds || Object.keys(STYLE_CONFIGS).slice(0, 30)
+    const styleCount = styles.length
+    console.log(`[GenerationService] Creating generation with ${styleCount} styles`)
+
+    // 预扣信用次数
+    const consumeResult = await CreditPackageService.consumeCredits(userId, styleCount)
+    if (!consumeResult.success || !consumeResult.packageId) {
+      console.error(`[GenerationService] Failed to consume credits: ${consumeResult.error}`)
+      throw new Error(consumeResult.error || 'Failed to consume credits')
+    }
+
+    const generationData: Partial<Generation> = {
+      user_id: userId,
+      plan_type: 'basic',
+      style_count: styleCount,
+      input_photos: [faceImageUrl],
+      output_photos: [],
+      status: 'processing',
+      progress: 0,
+      current_step: 'Initializing...',
+      started_at: new Date().toISOString(),
+      credit_package_id: consumeResult.packageId,
+      credits_used: styleCount,
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('generations')
+      .insert(generationData)
+      .select()
+      .single()
+
+    if (error) {
+      console.log(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
+      // 内存降级
+      const fallbackId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+      mockGenerations.set(fallbackId, {
+        id: fallbackId,
+        user_id: userId,
+        plan_type: 'basic',
+        style_count: styleCount,
+        input_photos: [faceImageUrl],
+        output_photos: [],
+        status: 'processing',
+        progress: 0,
+        current_step: 'Initializing...',
+        started_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        credit_package_id: consumeResult.packageId,
+        credits_used: styleCount,
+      })
+      console.log(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
+      setCachedGeneration(fallbackId, mockGenerations.get(fallbackId)!)
+      return {
+        id: fallbackId,
+        status: 'processing',
+        progress: 0,
+        currentStep: 'Initializing...',
+        outputUrls: []
+      }
+    }
+
+    const generationId = data.id
+    console.log(`[GenerationService] Successfully stored in database: ${generationId}`)
+    setCachedGeneration(generationId, data as Generation)
+
+    return {
+      id: generationId,
+      status: 'processing',
+      progress: 0,
+      currentStep: 'Initializing...',
+      outputUrls: []
+    }
+  }
+
   static async createGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
     console.log(`[GenerationService] createGeneration called - userId: ${input.userId}, faceImageUrl: ${input.faceImageUrl?.substring(0, 50)}...`)
     const { userId, faceImageUrl, styleIds } = input
@@ -362,7 +443,7 @@ export class GenerationService {
       style_count: styles.length,
       input_photos: [faceImageUrl],
       output_photos: [],
-      status: 'pending',
+      status: 'processing',
       progress: 0,
       current_step: 'Initializing...',
     }
@@ -383,7 +464,7 @@ export class GenerationService {
         style_count: styles.length,
         input_photos: [faceImageUrl],
         output_photos: [],
-        status: 'pending',
+        status: 'processing',
         progress: 0,
         current_step: 'Initializing...',
         created_at: new Date().toISOString(),
@@ -392,7 +473,7 @@ export class GenerationService {
       console.log(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
       return {
         id: fallbackId,
-        status: 'pending',
+        status: 'processing',
         progress: 0,
         currentStep: 'Initializing...',
         outputUrls: []
@@ -405,7 +486,7 @@ export class GenerationService {
 
     return {
       id: generationId,
-      status: 'pending',
+      status: 'processing',
       progress: 0,
       currentStep: 'Initializing...',
       outputUrls: []
@@ -562,6 +643,41 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
       completed_at: new Date().toISOString(),
       current_step: 'Generation complete!'
     })
+
+    // 发送生成完成邮件
+    this.sendCompletionEmail(generationId, outputUrls.length).catch(err => {
+      console.error('[GenerationService] Failed to send completion email:', err)
+    })
+  }
+
+  /**
+   * 发送生成完成邮件
+   */
+  private static async sendCompletionEmail(generationId: string, styleCount: number): Promise<void> {
+    try {
+      const generation = await this.getGeneration(generationId)
+      if (!generation) {
+        console.warn(`[GenerationService] Generation not found for email: ${generationId}`)
+        return
+      }
+
+      const user = await userRepository.findById(generation.user_id)
+      if (!user?.email) {
+        console.warn(`[GenerationService] User email not found for generation: ${generationId}`)
+        return
+      }
+
+      await emailService.sendGenerationCompleteEmail({
+        email: user.email,
+        name: user.full_name || undefined,
+        generationId: generation.id,
+        styleCount,
+      })
+
+      console.log(`[GenerationService] Completion email sent to ${user.email}`)
+    } catch (err) {
+      console.error('[GenerationService] Error sending completion email:', err)
+    }
   }
 
   private static isMockMode(): boolean {

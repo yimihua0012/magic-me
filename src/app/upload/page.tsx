@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
@@ -15,7 +15,8 @@ import {
   AlertCircle,
   Camera,
   Lightbulb,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
@@ -44,6 +45,7 @@ const faceDetectionMessages = {
 
 export default function UploadPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [photos, setPhotos] = useState<PhotoValidation[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -51,8 +53,19 @@ export default function UploadPage() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [showAuthRequired, setShowAuthRequired] = useState(false)
   const [availableCredits, setAvailableCredits] = useState<number>(0)
+  const [nearestExpiresAt, setNearestExpiresAt] = useState<string | null>(null)
   const [isLoadingCredits, setIsLoadingCredits] = useState(false)
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Check for payment success param
+  useEffect(() => {
+    if (searchParams.get('payment') === 'success') {
+      setShowPaymentSuccess(true)
+      // Auto-hide after 5 seconds
+      setTimeout(() => setShowPaymentSuccess(false), 5000)
+    }
+  }, [searchParams])
 
   const fetchCredits = async () => {
     try {
@@ -66,6 +79,7 @@ export default function UploadPage() {
       if (res.ok) {
         const data = await res.json()
         setAvailableCredits(data.availableCredits || 0)
+        setNearestExpiresAt(data.nearestExpiresAt || null)
       }
     } catch (e) {
       console.error('Failed to fetch credits:', e)
@@ -286,6 +300,23 @@ export default function UploadPage() {
 
       <main className="pt-24 pb-12 sm:pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Payment Success Banner */}
+          {showPaymentSuccess && (
+            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 animate-fade-in">
+              <Sparkles className="w-5 h-5 text-emerald-500" />
+              <div>
+                <p className="text-emerald-700 font-medium">Payment successful!</p>
+                <p className="text-emerald-600 text-sm">Your credits are now available. Start creating your professional headshots below.</p>
+              </div>
+              <button 
+                onClick={() => setShowPaymentSuccess(false)}
+                className="ml-auto text-emerald-400 hover:text-emerald-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           <div className="text-center mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
               Upload Your Best Selfie
@@ -437,9 +468,14 @@ export default function UploadPage() {
                     Checking credits...
                   </p>
                 ) : availableCredits > 0 ? (
-                  <p className="text-sm text-emerald-600 font-medium">
-                    {availableCredits} credit{availableCredits > 1 ? 's' : ''} available
-                  </p>
+                  <div className="text-sm text-emerald-600 font-medium">
+                    <p>{availableCredits} credit{availableCredits > 1 ? 's' : ''} available</p>
+                    {nearestExpiresAt && (
+                      <p className="text-xs text-emerald-500/70 mt-0.5">
+                        Expires {new Date(nearestExpiresAt).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-sm text-amber-600 font-medium">
                     No credits remaining

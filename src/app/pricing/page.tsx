@@ -7,10 +7,27 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
+import PayPalButton from '@/components/ui/paypal-button'
 import { Check, X, Sparkles, Zap, Crown } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
-import { pricingConfig, appConfig } from '@/lib/config'
+import { pricingConfig, pricingFAQ, appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
+
+// PayPal button configuration for each plan
+const PAYPAL_BUTTONS = {
+  basic: {
+    id: 'SUZNHDUUW6K6E',
+    className: 'pp-SUZNHDUUW6K6E',
+  },
+  pro: {
+    id: 'U8CQE5WXQEM4W',
+    className: 'pp-U8CQE5WXQEM4W',
+  },
+  premium: {
+    id: 'EWV87BFAXRZ88',
+    className: 'pp-EWV87BFAXRZ88',
+  },
+} as const
 
 // Lazy load AuthModal for better initial page load
 const AuthModal = dynamic(() => import('@/components/auth/auth-modal'), {
@@ -119,7 +136,9 @@ export default function PricingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto">
-            {plans.map((plan) => (
+            {plans.map((plan) => {
+              const paypal = PAYPAL_BUTTONS[plan.id as keyof typeof PAYPAL_BUTTONS]
+              return (
               <Card 
                 key={plan.id}
                 className={`relative p-5 sm:p-8 ${
@@ -152,12 +171,16 @@ export default function PricingPage() {
                 </div>
 
                 <div className="space-y-3 mb-8">
-                  {plan.features.map((feature, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-slate-600">{feature}</span>
-                    </div>
-                  ))}
+                  {plan.features.map((feature, i) => {
+                    // Check if this is a headshots or validity feature - highlight it
+                    const isHighlight = feature.includes('headshots') || feature.includes('days validity')
+                    return (
+                      <div key={i} className="flex items-start gap-3">
+                        <Check className="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" />
+                        <span className={`text-sm ${isHighlight ? 'text-primary-600 font-semibold' : 'text-slate-600'}`}>{feature}</span>
+                      </div>
+                    )
+                  })}
                   {plan.notIncluded.map((feature, i) => (
                     <div key={i} className="flex items-start gap-3">
                       <X className="w-5 h-5 text-slate-300 flex-shrink-0 mt-0.5" />
@@ -167,25 +190,33 @@ export default function PricingPage() {
                 </div>
 
                 <Button 
-                  className="w-full" 
+                  className="w-full mb-3" 
                   variant={plan.highlighted ? 'primary' : 'secondary'}
                   isLoading={isLoading}
                   onClick={() => handleSelectPlan(plan.id)}
                 >
-                  {plan.id === 'enterprise' ? 'Contact Sales' : `Get ${plan.name}`}
+                  Get {plan.name}
                 </Button>
 
-                {plan.id !== 'enterprise' && (
-                  <p className="text-xs text-slate-500 text-center mt-3">
-                    {plan.styleCount} styles • {plan.resolutionLabel}
-                  </p>
-                )}
+                {/* PayPal Button */}
+                <PayPalButton buttonId={paypal.id} price={plan.price} />
+
+                <p className="text-xs text-center mt-3">
+                  <span className="text-primary-600 font-semibold">{plan.credits} headshots</span>
+                  <span className="text-slate-400 mx-1">•</span>
+                  <span className="text-primary-600 font-semibold">{plan.validityDays} days validity</span>
+                </p>
+                
+                <p className="text-xs text-primary-600 text-center mt-2">
+                  {plan.validityNote}
+                </p>
               </Card>
-            ))}
+              )
+            })}
           </div>
 
-          {/* Comparison Table */}
-          <div className="mt-12 sm:mt-20">
+          {/* Comparison Table - hidden on mobile */}
+          <div className="hidden md:block mt-12 sm:mt-16">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center mb-6 sm:mb-8">
               Compare Plans
             </h2>
@@ -197,27 +228,33 @@ export default function PricingPage() {
                     <th className="px-6 py-4 text-left font-semibold text-slate-900">Feature</th>
                     <th className="px-6 py-4 text-center font-semibold text-slate-900">Basic</th>
                     <th className="px-6 py-4 text-center font-semibold text-primary-600 bg-primary-50">Pro</th>
-                    <th className="px-6 py-4 text-center font-semibold text-slate-900">Enterprise</th>
+                    <th className="px-6 py-4 text-center font-semibold text-slate-900">Premium</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   <tr>
-                    <td className="px-6 py-4 text-slate-600">AI Styles</td>
-                    <td className="px-6 py-4 text-center text-slate-900">{PLANS.basic.styleCount}</td>
-                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">{PLANS.pro.styleCount}</td>
-                    <td className="px-6 py-4 text-center text-slate-900">{PLANS.enterprise.styleCount}</td>
+                    <td className="px-6 py-4 text-slate-600">Headshots</td>
+                    <td className="px-6 py-4 text-center font-semibold text-primary-600">{PLANS.basic.credits}</td>
+                    <td className="px-6 py-4 text-center font-semibold text-primary-600 bg-primary-50/50">{PLANS.pro.credits}</td>
+                    <td className="px-6 py-4 text-center font-semibold text-primary-600">{PLANS.premium.credits}</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-4 text-slate-600">Validity Period</td>
+                    <td className="px-6 py-4 text-center font-semibold text-primary-600">{PLANS.basic.validityDays} days</td>
+                    <td className="px-6 py-4 text-center font-semibold text-primary-600 bg-primary-50/50">{PLANS.pro.validityDays} days</td>
+                    <td className="px-6 py-4 text-center font-semibold text-primary-600">{PLANS.premium.validityDays} days</td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 text-slate-600">Resolution</td>
-                    <td className="px-6 py-4 text-center text-slate-900">{PLANS.basic.resolution}</td>
-                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">{PLANS.pro.resolution}</td>
-                    <td className="px-6 py-4 text-center text-slate-900">{PLANS.enterprise.resolution}</td>
+                    <td className="px-6 py-4 text-center text-slate-900">1024x1024</td>
+                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">1024x1024 HD</td>
+                    <td className="px-6 py-4 text-center text-slate-900">1024x1024 Ultra HD</td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 text-slate-600">Processing</td>
                     <td className="px-6 py-4 text-center text-slate-900">Standard</td>
                     <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">Priority</td>
-                    <td className="px-6 py-4 text-center text-slate-900">Instant</td>
+                    <td className="px-6 py-4 text-center text-slate-900">Priority</td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 text-slate-600">Downloads</td>
@@ -229,24 +266,6 @@ export default function PricingPage() {
                     <td className="px-6 py-4 text-slate-600">Commercial Use</td>
                     <td className="px-6 py-4 text-center"><Check className="w-5 h-5 text-accent-500 mx-auto" /></td>
                     <td className="px-6 py-4 text-center bg-primary-50/50"><Check className="w-5 h-5 text-accent-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-5 h-5 text-accent-500 mx-auto" /></td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-slate-600">Custom Training</td>
-                    <td className="px-6 py-4 text-center"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center bg-primary-50/50"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-5 h-5 text-accent-500 mx-auto" /></td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-slate-600">API Access</td>
-                    <td className="px-6 py-4 text-center"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center bg-primary-50/50"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-5 h-5 text-accent-500 mx-auto" /></td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-slate-600">Team Management</td>
-                    <td className="px-6 py-4 text-center"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center bg-primary-50/50"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
                     <td className="px-6 py-4 text-center"><Check className="w-5 h-5 text-accent-500 mx-auto" /></td>
                   </tr>
                 </tbody>
@@ -261,6 +280,14 @@ export default function PricingPage() {
             </h2>
             
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {/* Credit-specific FAQs */}
+              {pricingFAQ.map((faq, i) => (
+                <Card key={`credit-${i}`} className="p-6">
+                  <h3 className="font-semibold text-slate-900 mb-2">{faq.question}</h3>
+                  <p className="text-sm text-slate-600">{faq.answer}</p>
+                </Card>
+              ))}
+              {/* General FAQs */}
               {[
                 {
                   q: 'Can I use the headshots commercially?',
@@ -272,7 +299,7 @@ export default function PricingPage() {
                 },
                 {
                   q: 'How long does it take to generate my headshots?',
-                  a: 'Most generations complete in 3-5 minutes. Pro users get priority processing for faster results.'
+                  a: 'Most generations complete in 3-5 minutes. Pro and Premium users get priority processing for faster results.'
                 },
                 {
                   q: 'Can I get a refund if I\'m not satisfied?',
@@ -287,7 +314,7 @@ export default function PricingPage() {
                   a: 'No! Unlike other services, we use a one-time payment model. Pay once and you own your headshots forever.'
                 },
               ].map((faq, i) => (
-                <Card key={i} className="p-6">
+                <Card key={`general-${i}`} className="p-6">
                   <h3 className="font-semibold text-slate-900 mb-2">{faq.q}</h3>
                   <p className="text-sm text-slate-600">{faq.a}</p>
                 </Card>

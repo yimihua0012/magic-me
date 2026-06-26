@@ -37,7 +37,7 @@ export class PaymentService {
             currency: 'usd',
             product_data: {
               name: `HeadshotAI ${plan.name}`,
-              description: `${plan.styleCount} styles, ${plan.resolution} resolution`,
+              description: `${plan.credits} headshots, ${plan.validityDays} days validity, ${plan.resolution} resolution`,
               images: [`${config.app.url}/og-image.png`],
             },
             unit_amount: Math.round(plan.price * 100),

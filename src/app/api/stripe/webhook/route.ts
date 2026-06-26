@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { headers } from 'next/headers'
-import { createClient } from '@/lib/supabase/server'
-import { PLANS } from '@backend/config/plans'
+import { CreditPackageService } from '@backend/services'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,26 +31,26 @@ export async function POST(request: Request) {
     const session = event.data.object
     
     try {
-      const supabase = await createClient()
+      const userId = session.metadata?.user_id
+      const planType = session.metadata?.plan_type
       
-      const planType = session.metadata?.plan_type as keyof typeof PLANS
-      const plan = PLANS[planType] || PLANS.basic
-      
-      const { error } = await supabase.from('generations').insert({
-        user_id: session.metadata?.user_id,
-        status: 'pending',
-        plan_type: planType,
-        style_count: plan.styleCount,
-        input_photos: [],
-        output_photos: [],
+      if (!userId || !planType) {
+        console.error('Missing user_id or plan_type in session metadata')
+        return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
+      }
+
+      // 创建信用包而不是 generation
+      await CreditPackageService.createPackage({
+        user_id: userId,
+        plan_type: planType as 'basic' | 'pro' | 'premium',
         stripe_payment_id: session.payment_intent as string,
+        amount_paid: session.amount_total ? session.amount_total / 100 : undefined,
+        currency: session.currency || 'USD',
       })
 
-      if (error) {
-        console.error('Failed to save generation:', error)
-      }
+      console.log(`[Stripe Webhook] Created credit package for user: ${userId}, plan: ${planType}`)
     } catch (error) {
-      console.error('Webhook handler error:', error)
+      console.error('[Stripe Webhook] Error creating credit package:', error)
     }
   }
 

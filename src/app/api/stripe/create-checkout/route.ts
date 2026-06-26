@@ -32,7 +32,7 @@ export async function POST(request: Request) {
             currency: 'usd',
             product_data: {
               name: `${appConfig.name} ${plan.name}`,
-              description: `${plan.styleCount} styles, ${plan.resolution} resolution`,
+              description: `${plan.credits} headshots, ${plan.validityDays} days validity, ${plan.resolution} resolution`,
             },
             unit_amount: Math.round(plan.price * 100),
           },
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/generate/${user.id}-${Date.now()}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/upload?payment=success`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
       customer_email: user.email,
       metadata: {

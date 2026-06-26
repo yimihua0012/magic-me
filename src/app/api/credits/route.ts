@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@backend/config/supabase'
 import { headers } from 'next/headers'
+import { CreditPackageService } from '@backend/services'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,36 +25,18 @@ async function getCurrentUser() {
 export async function GET() {
   try {
     const user = await getCurrentUser()
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const { data: pending, error: pendingError, count: pendingCount } = await supabaseAdmin
-      .from('generations')
-      .select('id, plan_type, style_count, created_at', { count: 'exact' })
-      .eq('user_id', user.id)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: true })
-
-    if (pendingError) {
-      console.error('[Credits] Error fetching pending generations:', pendingError)
-      return NextResponse.json({ error: 'Failed to fetch credits' }, { status: 500 })
-    }
-
-    const { count: totalUsedCount } = await supabaseAdmin
-      .from('generations')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .in('status', ['completed', 'failed', 'processing'])
-
-    const availableCredits = pendingCount || 0
-    const totalUsed = totalUsedCount || 0
+    // 使用 CreditPackageService 获取用户信用包信息
+    const summary = await CreditPackageService.getTotalRemaining(user.id)
 
     return NextResponse.json({
-      availableCredits,
-      totalUsed,
-      pendingGenerations: pending || [],
+      availableCredits: summary.totalRemaining,
+      nearestExpiresAt: summary.nearestExpiresAt,
+      packages: summary.packages,
     })
   } catch (error) {
     console.error('[Credits] Error:', error)

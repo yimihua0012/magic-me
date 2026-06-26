@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
+import { CreditPackageService } from '@backend/services'
 import { PLANS } from '@backend/config/plans'
 
 export const dynamic = 'force-dynamic'
+
+// Lemon Squeezy variant_id 到 plan 的映射
+// 需要在 Lemon Squeezy 后台配置产品时设置对应的 variant ID
+const VARIANT_TO_PLAN: Record<string, 'basic' | 'pro' | 'premium'> = {
+  // TODO: 替换为实际的 Lemon Squeezy variant IDs
+  // 'variant_basic_123': 'basic',
+  // 'variant_pro_456': 'pro',
+  // 'variant_premium_789': 'premium',
+}
 
 export async function POST(request: Request) {
   if (request.method !== 'POST') {
@@ -32,41 +41,62 @@ export async function POST(request: Request) {
     const eventName = event.meta.event_name
 
     if (eventName === 'order_created') {
-      const { product_name } = event.data.attributes
+      const { product_name, total } = event.data.attributes
       const userId = event.meta.custom_data?.user_id
-
-      const planType = product_name.toLowerCase().includes('pro') ? 'pro' : 'basic'
-      const plan = PLANS[planType]
       const orderId = event.data.id
+      const variantId = event.data.attributes?.variant_id?.toString()
+
+      // 优先使用 variant_id 确定套餐类型
+      let planType: 'basic' | 'pro' | 'premium' = 'basic'
+
+      if (variantId && VARIANT_TO_PLAN[variantId]) {
+        planType = VARIANT_TO_PLAN[variantId]
+        console.log(`[Lemon Webhook] Plan determined by variant_id: ${variantId} -> ${planType}`)
+      } else if (variantId) {
+        // 如果 variant_id 没有配置，尝试从 product_name 推断
+        console.warn(`[Lemon Webhook] Unknown variant_id: ${variantId}, falling back to product_name`)
+        const productNameLower = product_name.toLowerCase()
+        if (productNameLower.includes('premium')) {
+          planType = 'premium'
+        } else if (productNameLower.includes('pro')) {
+          planType = 'pro'
+        }
+      } else {
+        // 完全没有 variant_id，使用 product_name
+        const productNameLower = product_name.toLowerCase()
+        if (productNameLower.includes('premium')) {
+          planType = 'premium'
+        } else if (productNameLower.includes('pro')) {
+          planType = 'pro'
+        }
+        console.warn(`[Lemon Webhook] No variant_id, used product_name: ${product_name} -> ${planType}`)
+      }
+
+      if (!userId) {
+        console.error('Missing user_id in custom_data')
+        return NextResponse.json({ error: 'Missing user_id' }, { status: 400 })
+      }
 
       try {
-        const supabase = await createClient()
-
-        const { error } = await supabase.from('generations').insert({
+        // 创建信用包而不是 generation
+        await CreditPackageService.createPackage({
           user_id: userId,
-          status: 'pending',
           plan_type: planType,
-          style_count: plan.styleCount,
-          input_photos: [],
-          output_photos: [],
           lemon_order_id: orderId.toString(),
+          amount_paid: total || undefined,
+          currency: 'USD',
         })
 
-        if (error) {
-          console.error('Failed to save generation:', error)
-          return NextResponse.json({ error: 'Failed to save generation' }, { status: 500 })
-        }
-
-        console.log(`Order created for user ${userId}, plan: ${planType}, styles: ${plan.styleCount}`)
+        console.log(`[Lemon Webhook] Created credit package for user: ${userId}, plan: ${planType}`)
       } catch (dbError) {
-        console.error('Database error:', dbError)
-        return NextResponse.json({ error: 'Database error' }, { status: 500 })
+        console.error('[Lemon Webhook] Error creating credit package:', dbError)
+        return NextResponse.json({ error: 'Failed to create credit package' }, { status: 500 })
       }
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Webhook handler error:', error)
+    console.error('[Lemon Webhook] Handler error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

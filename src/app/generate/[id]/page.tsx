@@ -409,7 +409,7 @@ export default function GenerationPage() {
 
               <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
                 <Sparkles className="w-4 h-4" />
-                <span>Creating {generation.styleCount || PLANS.basic.styleCount} unique styles for you</span>
+                <span>Creating {generation.styleCount || PLANS.basic.credits} unique headshots for you</span>
               </div>
             </Card>
           )}

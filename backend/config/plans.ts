@@ -2,25 +2,28 @@ export const PLANS = {
   basic: {
     id: 'basic',
     name: 'Basic',
-    price: 12.90,
-    styleCount: 12,
+    price: 19,
+    credits: 20, // 总次数
+    validityDays: 30, // 有效期（从第一次生成开始）
     resolution: '1024x1024',
     priceId: 'prod_Ul3eCiU0C6mCCx', // Set in Stripe dashboard
   },
   pro: {
     id: 'pro',
     name: 'Pro',
-    price: 28.90,
-    styleCount: 36,
+    price: 39,
+    credits: 60, // 总次数
+    validityDays: 45, // 有效期（从第一次生成开始）
     resolution: '1024x1024',
     priceId: 'prod_Ul3iGVN0rrs1NW',
   },
-  enterprise: {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 99,
-    styleCount: 100,
-    resolution: 'Custom',
+  premium: {
+    id: 'premium',
+    name: 'Premium',
+    price: 69,
+    credits: 120, // 总次数
+    validityDays: 60, // 有效期（从第一次生成开始）
+    resolution: '1024x1024',
     priceId: 'prod_Ul3l0JbDSnkjbS',
   },
 } as const

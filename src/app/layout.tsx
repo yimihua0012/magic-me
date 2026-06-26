@@ -110,14 +110,14 @@ export default function RootLayout({
         name: 'Basic Plan',
         price: PLANS.basic.price.toString(),
         priceCurrency: 'USD',
-        description: `${PLANS.basic.styleCount} unique AI styles at ${PLANS.basic.resolution} resolution - Perfect AI headshot for resume and CV`,
+        description: `${PLANS.basic.credits} AI headshots at ${PLANS.basic.resolution} resolution - Perfect AI headshot for resume and CV`,
       },
       {
         '@type': 'Offer',
         name: 'Pro Plan',
         price: PLANS.pro.price.toString(),
         priceCurrency: 'USD',
-        description: `${PLANS.pro.styleCount} unique AI styles at ${PLANS.pro.resolution} resolution - Best AI headshot generator for LinkedIn profile with business attire`,
+        description: `${PLANS.pro.credits} AI headshots at ${PLANS.pro.resolution} resolution - Best AI headshot generator for LinkedIn profile with business attire`,
       },
     ],
     aggregateRating: {

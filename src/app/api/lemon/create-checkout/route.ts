@@ -49,9 +49,12 @@ export async function POST(request: Request) {
                 plan_type,
               },
             },
+            checkout_options: {
+              redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/upload?payment=success`,
+            },
             product_options: {
               name: `${appConfig.name} ${plan.name}`,
-              description: `${plan.styleCount} styles, ${plan.resolution} resolution`,
+              description: `${plan.credits} headshots, ${plan.validityDays} days validity, ${plan.resolution} resolution`,
             },
           },
           relationships: {
