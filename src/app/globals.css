@@ -74,7 +74,7 @@
            text-slate-600 font-medium rounded-lg
            hover:bg-slate-100 hover:text-slate-900 transition-colors;
   }
-  
+
   .card {
     @apply bg-white rounded-2xl border border-slate-200 
            shadow-sm hover:shadow-md transition-shadow duration-200;
@@ -123,5 +123,10 @@
   .touch-target {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 900px;
   }
 }

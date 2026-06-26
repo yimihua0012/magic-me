@@ -21,6 +21,7 @@ export interface CreditPackage {
   // 支付信息
   stripe_payment_id?: string
   lemon_order_id?: string
+  paypal_order_id?: string
   amount_paid?: number
   currency?: string
   
@@ -36,6 +37,7 @@ export interface CreateCreditPackageInput {
   plan_type: PlanType
   stripe_payment_id?: string
   lemon_order_id?: string
+  paypal_order_id?: string
   amount_paid?: number
   currency?: string
 }
@@ -50,5 +52,6 @@ export interface ConsumeCreditsResult {
   success: boolean
   packageId?: string
   consumedAmount?: number
+  consumedFrom?: { packageId: string; amount: number }[]
   error?: string
 }

@@ -56,8 +56,22 @@ export async function POST(request: Request) {
     }
 
     // 确定本次生成需要消耗的次数（风格数量）
+    if (styleIds && (!Array.isArray(styleIds) || styleIds.some((styleId) => typeof styleId !== 'string'))) {
+      return NextResponse.json(
+        { error: 'styleIds must be an array of strings' },
+        { status: 400 }
+      )
+    }
+
     const styleCount = styleIds?.length || 30
     console.log(`[API POST] Credits needed: ${styleCount}`)
+
+    if (styleCount < 1 || styleCount > 120) {
+      return NextResponse.json(
+        { error: 'Invalid style count' },
+        { status: 400 }
+      )
+    }
 
     // 检查是否有足够的信用次数
     const hasEnough = await CreditPackageService.hasEnoughCredits(user.id, styleCount)
@@ -85,7 +99,16 @@ export async function POST(request: Request) {
       // 生成失败时回退信用次数
       try {
         const gen = await GenerationService.getGeneration(generation.id)
-        if (gen?.credit_package_id && gen?.credits_used) {
+        const consumedCredits = Array.isArray(gen?.metadata?.consumedCredits)
+          ? gen.metadata.consumedCredits as { packageId: string; amount: number }[]
+          : []
+
+        if (consumedCredits.length > 0) {
+          await Promise.all(consumedCredits.map(({ packageId, amount }) =>
+            CreditPackageService.refundCredits(packageId, amount)
+          ))
+          console.log(`[API POST] Refunded credits for generation ${generation.id}`)
+        } else if (gen?.credit_package_id && gen?.credits_used) {
           await CreditPackageService.refundCredits(gen.credit_package_id, gen.credits_used)
           console.log(`[API POST] Refunded ${gen.credits_used} credits to package ${gen.credit_package_id}`)
         }
@@ -102,6 +125,14 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error('[API POST] Error creating generation:', error)
+    const message = error instanceof Error ? error.message : ''
+    if (message.includes('Insufficient credits') || message.includes('Concurrent credit update')) {
+      return NextResponse.json(
+        { error: 'No available credits. Please purchase a plan first.' },
+        { status: 402 }
+      )
+    }
+
     return NextResponse.json(
       { error: 'Failed to create generation' },
       { status: 500 }
@@ -132,11 +163,27 @@ export async function GET(request: Request) {
       })
     }
 
+    const user = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     console.log(`[API GET] Looking up generation for taskId: ${taskId}`)
     const generation = await GenerationService.getGeneration(taskId)
     
     if (!generation) {
       console.log(`[API GET] Generation NOT FOUND for taskId: ${taskId}`)
+      return NextResponse.json(
+        { error: 'Generation not found' },
+        { status: 404 }
+      )
+    }
+
+    if (generation.user_id !== user.id) {
+      console.warn(`[API GET] Forbidden generation access - user: ${user.id}, generation: ${generation.id}`)
       return NextResponse.json(
         { error: 'Generation not found' },
         { status: 404 }

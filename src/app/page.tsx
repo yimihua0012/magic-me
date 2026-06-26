@@ -1,13 +1,9 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import Button from '@/components/ui/button'
-import PayPalButton from '@/components/ui/paypal-button'
+import TrackedLink from '@/components/ui/tracked-link'
 import { 
   Zap, 
   Shield, 
@@ -22,24 +18,17 @@ import {
 } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
-import { supabase } from '@/lib/supabase/client'
-import dynamic from 'next/dynamic'
-
-const AuthModal = dynamic(() => import('@/components/auth/auth-modal'), {
-  loading: () => null,
-  ssr: false,
-})
 
 const features = [
   {
     icon: <Zap className="w-6 h-6" />,
-    title: 'Professional Headshots Without a Photographer',
-    description: 'Get studio-quality headshots without hiring a photographer. Our AI headshot generator delivers professional results in just 3 minutes.',
+    title: 'Trained for Portraits',
+    description: 'Built on a dedicated portrait model for realistic, high-likeness headshots.',
   },
   {
     icon: <Sparkles className="w-6 h-6" />,
-    title: '36 Styles with Business Attire',
-    description: 'From corporate professional to executive portraits, choose from 36 different styles with business attire perfect for LinkedIn and resume.',
+    title: 'Professional Styles',
+    description: 'Business-ready options for LinkedIn, resumes, websites, and teams.',
   },
   {
     icon: <Shield className="w-6 h-6" />,
@@ -48,18 +37,18 @@ const features = [
   },
   {
     icon: <Download className="w-6 h-6" />,
-    title: 'HD Downloads for Any Platform',
-    description: 'Get high-resolution 1024x1024 images perfect for LinkedIn profile, resume, CV, and business portraits.',
+    title: 'HD Downloads',
+    description: 'Use your 1024x1024 images across profiles, resumes, and marketing.',
   },
   {
     icon: <Clock className="w-6 h-6" />,
-    title: '24/7 Virtual Headshot Generator',
-    description: 'Generate virtual headshots for LinkedIn anytime, anywhere. No appointment needed with our AI business portrait generator.',
+    title: 'Fast Turnaround',
+    description: 'Generate polished results in minutes, not days.',
   },
   {
     icon: <Users className="w-6 h-6" />,
-    title: 'Team Photos for Remote Teams',
-    description: 'Professional headshots for team photos online. Perfect for remote teams who need consistent, high-quality portraits.',
+    title: 'Team Friendly',
+    description: 'Create consistent portraits for remote teams and company pages.',
   },
 ]
 
@@ -94,103 +83,69 @@ const styles = [
 ]
 
 export default function HomePage() {
-  const router = useRouter()
-  const [showAuthModal, setShowAuthModal] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-
-  useEffect(() => {
-    const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setIsCheckingAuth(false)
-    }
-    initAuth()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const handleOpenAuth = () => setShowAuthModal(true)
-
-  const handlePrimaryAction = (planType?: string) => {
-    if (user) {
-      if (planType === 'enterprise') {
-        router.push('/contact')
-      } else {
-        router.push('/upload')
-      }
-    } else {
-      setShowAuthModal(true)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-white">
-      <Navbar onOpenAuthModal={handleOpenAuth} />
-      
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={() => {
-          setShowAuthModal(false)
-          setTimeout(() => {
-            window.location.href = '/upload'
-          }, 300)
-        }}
-      />
+      <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
+      <section className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-accent-50 pointer-events-none" />
-        <div className="absolute top-16 left-0 w-64 h-64 sm:w-72 sm:h-72 bg-primary-200 rounded-full blur-3xl opacity-30 pointer-events-none" />
-        <div className="absolute bottom-16 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-accent-200 rounded-full blur-3xl opacity-30 pointer-events-none" />
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-20 items-center">
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium mb-4 sm:mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-6">
                 <Sparkles className="w-4 h-4" />
-                AI-Powered Professional Headshots
+                AI Headshot Generator for LinkedIn
               </div>
               
               <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-tight">
-                Get Professional Headshots{' '}
-                <span className="gradient-text">Without a Photographer</span>
+                Realistic AI Headshots{' '}
+                <span className="gradient-text">in Minutes</span>
               </h1>
               
-              <p className="mt-4 sm:mt-6 text-base sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0">
-                The best AI headshot generator for LinkedIn profile. Upload a selfie, get 36 professional styles with business attire in 3 minutes. Perfect for resume, team photos, and virtual headshots.
+              <p className="mt-3 sm:mt-6 text-base sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0">
+                Upload a selfie and get realistic, high-likeness AI portraits from our dedicated portrait model for LinkedIn, resumes, and company profiles.
               </p>
               
-              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start relative z-10">
-                <Button size="lg" onClick={() => handlePrimaryAction()} className="w-full sm:w-auto">
-                  <Camera className="w-5 h-5 mr-2" />
-                  Generate Headshots - ${PLANS.basic.price}
-                </Button>
-                <Link href="#examples" prefetch={false} className="w-full sm:w-auto">
+              <div className="mt-5 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start relative z-10">
+                <TrackedLink
+                  href="/pricing?plan=basic#plans"
+                  className="w-full sm:w-auto"
+                  buttonType="primary_cta"
+                  source="home_hero_view_pricing"
+                  metadata={{ plan: 'basic', price: PLANS.basic.price }}
+                >
+                  <Button size="lg" className="w-full">
+                    Generate Headshots
+                  </Button>
+                </TrackedLink>
+                <TrackedLink
+                  href="#examples"
+                  prefetch={false}
+                  className="w-full sm:w-auto"
+                  buttonType="secondary_cta"
+                  source="home_hero_view_examples"
+                >
                   <Button variant="secondary" size="lg" className="w-full">
                     View Headshot Style Examples
                   </Button>
-                </Link>
+                </TrackedLink>
               </div>
               
-              <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-4 sm:gap-6 justify-center lg:justify-start text-xs sm:text-sm text-slate-500">
+              <div className="mt-4 sm:mt-8 flex flex-wrap items-center gap-4 sm:gap-6 justify-center lg:justify-start text-xs sm:text-sm text-slate-500">
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 sm:w-5 sm:h-5 text-accent-500" />
-                  No credit card required
+                  Pay once, no subscription
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 sm:w-5 sm:h-5 text-accent-500" />
-                  1024x1024 HD
+                  Fast generation, high likeness
                 </div>
               </div>
             </div>
 
-            <div className="relative max-w-sm mx-auto w-full">
+            <div className="relative max-w-sm mx-auto w-full hidden sm:block">
               <div className="relative z-10">
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {['bg-gradient-to-br from-blue-400 to-blue-600', 'bg-gradient-to-br from-purple-400 to-purple-600', 'bg-gradient-to-br from-pink-400 to-pink-600'].map((bg, i) => (
@@ -213,31 +168,31 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-14 sm:py-20 bg-slate-50">
+      <section className="content-auto py-10 sm:py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-16">
+              <div className="text-center mb-8 sm:mb-16">
             <h2 className="section-heading">How It Works</h2>
-            <p className="section-subheading mx-auto mt-4">
-              Three simple steps to professional headshots
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">
+              Three quick steps to realistic AI headshots
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+          <div className="grid md:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
             {[
               { step: '1', icon: <Sparkles className="w-8 h-8" />, title: 'Upload Your Selfie', desc: 'Take or upload 1-3 selfies with good lighting and a clear view of your face.' },
-              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'AI Magic Happens', desc: `Our AI analyzes your photos and generates ${PLANS.pro.credits} professional headshots in 3 minutes.` },
+              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'Portrait Model Works', desc: `Our dedicated portrait model generates ${PLANS.pro.credits} realistic headshots with strong likeness in minutes.` },
               { step: '3', icon: <Download className="w-8 h-8" />, title: 'Download & Save', desc: 'Pick your favorites and download in high resolution for any platform.' },
             ].map((item, i) => (
               <div key={i} className="relative">
-                <Card className="p-8 text-center h-full">
-                  <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-primary-600">
+                <Card className="p-5 sm:p-8 text-center h-full">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 text-primary-600">
                     {item.icon}
                   </div>
                   <div className="absolute top-4 right-4 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
                     {item.step}
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
-                  <p className="text-slate-600">{item.desc}</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 sm:mb-3">{item.title}</h3>
+                  <p className="text-sm sm:text-base text-slate-600">{item.desc}</p>
                 </Card>
               </div>
             ))}
@@ -246,19 +201,19 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-14 sm:py-20">
+      <section id="features" className="content-auto py-10 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="section-heading">Why Choose Us</h2>
-            <p className="section-subheading mx-auto mt-4">
-              Everything you need for the perfect professional headshot
+          <div className="text-center mb-8 sm:mb-16">
+            <h2 className="section-heading">Why Choose Our AI Headshot Generator</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">
+              Built for fast, high-likeness LinkedIn headshots, resume photos, and team portraits
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {features.map((feature, i) => (
-              <Card key={i} className="p-6">
-                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-4 text-primary-600">
+              <Card key={i} className="p-4 sm:p-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-3 sm:mb-4 text-primary-600">
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{feature.title}</h3>
@@ -270,12 +225,12 @@ export default function HomePage() {
       </section>
 
       {/* Style Examples */}
-      <section id="examples" className="py-14 sm:py-20 bg-slate-900 text-white">
+      <section id="examples" className="content-auto py-10 sm:py-20 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">{PLANS.basic.credits}+ Styles to Match Your Brand</h2>
-            <p className="text-slate-400 mt-4 max-w-2xl mx-auto text-sm sm:text-base">
-              From corporate polish to creative flair, find the perfect headshot style for every platform and purpose.
+          <div className="text-center mb-8 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">AI Headshot Styles for Every Profile</h2>
+            <p className="text-slate-400 mt-3 sm:mt-4 max-w-2xl mx-auto text-sm sm:text-base">
+              Corporate, creative, classic, and modern options for realistic portrait generation.
             </p>
           </div>
 
@@ -293,34 +248,41 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="text-center mt-10 sm:mt-12">
-            <Button size="lg" onClick={() => handlePrimaryAction()} className="w-full sm:w-auto">
-              <Sparkles className="w-5 h-5 mr-2" />
-              Try All {PLANS.basic.credits} Styles - ${PLANS.basic.price}
-            </Button>
+          <div className="text-center mt-8 sm:mt-12">
+            <TrackedLink
+              href="/pricing?plan=basic#plans"
+              className="inline-flex w-full sm:w-auto"
+              buttonType="primary_cta"
+              source="home_style_examples_view_pricing"
+              metadata={{ plan: 'basic', price: PLANS.basic.price }}
+            >
+              <Button size="lg" className="w-full">
+                Try Basic {PLANS.basic.credits} Headshots
+              </Button>
+            </TrackedLink>
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-14 sm:py-20">
+      <section id="testimonials" className="content-auto py-10 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="section-heading">Loved by Professionals</h2>
-            <p className="section-subheading mx-auto mt-4">
-              Join thousands of happy users who upgraded their professional image
+          <div className="text-center mb-8 sm:mb-16">
+            <h2 className="section-heading">Loved by LinkedIn Professionals</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">
+              Trusted for fast profile upgrades and better likeness
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+          <div className="grid md:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
             {testimonials.map((testimonial, i) => (
-              <Card key={i} className="p-6">
+              <Card key={i} className="p-4 sm:p-6">
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, j) => (
                     <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-slate-600 mb-6">&ldquo;{testimonial.content}&rdquo;</p>
+                <p className="text-sm sm:text-base text-slate-600 mb-5 sm:mb-6">&ldquo;{testimonial.content}&rdquo;</p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                     {testimonial.avatar}
@@ -337,12 +299,12 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Preview */}
-      <section className="py-14 sm:py-20 bg-slate-50">
+      <section className="content-auto py-10 sm:py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="section-heading">Simple, Transparent Pricing</h2>
+          <div className="text-center mb-8 sm:mb-16">
+            <h2 className="section-heading">AI Headshot Pricing</h2>
             <p className="section-subheading mx-auto mt-4">
-              No subscriptions. No hidden fees. Pay only for what you need.
+              One-time pricing for realistic AI portraits, LinkedIn headshots, resume photos, and team profiles.
             </p>
           </div>
 
@@ -376,10 +338,15 @@ export default function HomePage() {
                   <X className="w-4 h-4 text-slate-300 flex-shrink-0" /> Priority processing
                 </li>
               </ul>
-              <Button className="w-full mb-3" onClick={() => handlePrimaryAction('basic')}>
-                Get Started
-              </Button>
-              <PayPalButton buttonId="SUZNHDUUW6K6E" price={PLANS.basic.price} />
+              <TrackedLink
+                href="/pricing?plan=basic#plans"
+                className="block"
+                buttonType="pricing_preview_cta"
+                source="home_pricing_preview"
+                metadata={{ plan: 'basic', price: PLANS.basic.price }}
+              >
+                <Button className="w-full">Get Started</Button>
+              </TrackedLink>
             </Card>
 
             <Card className="p-6 sm:p-8 border-2 border-primary-500 relative">
@@ -417,10 +384,15 @@ export default function HomePage() {
                   <X className="w-4 h-4 text-slate-300 flex-shrink-0" /> Dedicated support
                 </li>
               </ul>
-              <Button className="w-full mb-3" onClick={() => handlePrimaryAction('pro')}>
-                Go Pro
-              </Button>
-              <PayPalButton buttonId="U8CQE5WXQEM4W" price={PLANS.pro.price} />
+              <TrackedLink
+                href="/pricing?plan=pro#plans"
+                className="block"
+                buttonType="pricing_preview_cta"
+                source="home_pricing_preview"
+                metadata={{ plan: 'pro', price: PLANS.pro.price }}
+              >
+                <Button className="w-full">Go Pro</Button>
+              </TrackedLink>
             </Card>
 
             <Card className="p-6 sm:p-8">
@@ -455,11 +427,15 @@ export default function HomePage() {
                   <Check className="w-4 h-4 text-accent-500 flex-shrink-0" /> Dedicated support
                 </li>
               </ul>
-              <Button className="w-full mb-3" onClick={() => handlePrimaryAction('premium')}>
-                Go Premium
-              </Button>
-              {/* PayPal Button */}
-              <PayPalButton buttonId="EWV87BFAXRZ88" price={PLANS.premium.price} />
+              <TrackedLink
+                href="/pricing?plan=premium#plans"
+                className="block"
+                buttonType="pricing_preview_cta"
+                source="home_pricing_preview"
+                metadata={{ plan: 'premium', price: PLANS.premium.price }}
+              >
+                <Button className="w-full">Go Premium</Button>
+              </TrackedLink>
             </Card>
           </div>
 
@@ -472,7 +448,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="py-14 sm:py-20 bg-gradient-to-br from-primary-600 to-primary-700">
+      <section className="content-auto py-10 sm:py-20 bg-gradient-to-br from-primary-600 to-primary-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6">
             Ready to Upgrade Your Professional Image?
@@ -481,15 +457,26 @@ export default function HomePage() {
             Join 10,000+ professionals who trust {appConfig.name} for their personal branding needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-white text-primary-600 hover:bg-primary-50 shadow-xl w-full sm:w-auto"
-              onClick={() => handlePrimaryAction()}
+            <TrackedLink
+              href="/pricing"
+              className="w-full sm:w-auto"
+              buttonType="primary_cta"
+              source="home_bottom_cta_view_pricing"
             >
-              <Camera className="w-5 h-5 mr-2" />
-              Generate Headshots Now
-            </Button>
-            <Link href="/pricing" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                className="bg-white text-primary-600 hover:bg-primary-50 shadow-xl w-full"
+              >
+                <Camera className="w-5 h-5 mr-2" />
+                Generate Headshots Now
+              </Button>
+            </TrackedLink>
+            <TrackedLink
+              href="/pricing"
+              className="w-full sm:w-auto"
+              buttonType="secondary_cta"
+              source="home_bottom_cta_view_pricing"
+            >
               <Button
                 size="lg"
                 variant="ghost"
@@ -497,7 +484,7 @@ export default function HomePage() {
               >
                 View Pricing
               </Button>
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </section>

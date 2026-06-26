@@ -155,7 +155,10 @@ export default function GenerationPage() {
       } else if (generationId) {
         console.log('[Generation] No pending photos, checking existing task:', generationId)
         try {
-          const response = await fetch(`/api/generate-headshots?taskId=${generationId}`)
+            const authHeaders = await getAuthHeaders()
+            const response = await fetch(`/api/generate-headshots?taskId=${generationId}`, {
+              headers: authHeaders,
+            })
           const data = await response.json()
           
           if (data.error || !data.taskId) {
@@ -194,7 +197,10 @@ export default function GenerationPage() {
       const intervalId = setInterval(async () => {
         try {
           console.log(`[Polling] Fetching status for taskId: ${taskId}`)
-          const response = await fetch(`/api/generate-headshots?taskId=${taskId}`)
+            const authHeaders = await getAuthHeaders()
+            const response = await fetch(`/api/generate-headshots?taskId=${taskId}`, {
+              headers: authHeaders,
+            })
           console.log(`[Polling] Response status: ${response.status}`)
           const data = await response.json()
           console.log(`[Polling] Response data:`, JSON.stringify(data))

@@ -70,7 +70,7 @@ export default function TermsPage() {
               <h2 className="text-xl font-semibold text-slate-900 mb-3">6. Payment Terms</h2>
               <ul className="list-disc pl-6 space-y-2">
                 <li>All prices are in USD unless otherwise stated</li>
-                <li>Payments are processed securely through Stripe</li>
+                <li>Payments are processed securely through PayPal</li>
                 <li>One-time payments grant permanent access to generated content</li>
                 <li>All sales are final unless otherwise stated in our refund policy</li>
               </ul>

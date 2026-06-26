@@ -16,6 +16,7 @@ if (!global.mockGenerations) {
 }
 
 const mockGenerations = global.mockGenerations
+const allowMemoryFallback = process.env.NODE_ENV !== 'production'
 
 // 内存缓存 - 用于减少频繁的数据库查询（前端轮询优化）
 interface CacheEntry {
@@ -379,6 +380,9 @@ export class GenerationService {
       started_at: new Date().toISOString(),
       credit_package_id: consumeResult.packageId,
       credits_used: styleCount,
+      metadata: {
+        consumedCredits: consumeResult.consumedFrom || [],
+      },
     }
 
     const { data, error } = await supabaseAdmin
@@ -388,6 +392,13 @@ export class GenerationService {
       .single()
 
     if (error) {
+      if (!allowMemoryFallback) {
+        await Promise.all((consumeResult.consumedFrom || []).map(({ packageId, amount }) =>
+          CreditPackageService.refundCredits(packageId, amount)
+        ))
+        throw error
+      }
+
       console.log(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
       // 内存降级
       const fallbackId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
@@ -406,6 +417,9 @@ export class GenerationService {
         updated_at: new Date().toISOString(),
         credit_package_id: consumeResult.packageId,
         credits_used: styleCount,
+        metadata: {
+          consumedCredits: consumeResult.consumedFrom || [],
+        },
       })
       console.log(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
       setCachedGeneration(fallbackId, mockGenerations.get(fallbackId)!)
@@ -455,6 +469,10 @@ export class GenerationService {
       .single()
 
     if (error) {
+      if (!allowMemoryFallback) {
+        throw error
+      }
+
       console.log(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
       const fallbackId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
       mockGenerations.set(fallbackId, {
@@ -542,6 +560,10 @@ export class GenerationService {
       .eq('id', id)
 
     if (error) {
+      if (!allowMemoryFallback) {
+        throw error
+      }
+
       console.log(`[GenerationService] Database update error for id ${id}: ${error.message || error}, falling back to memory`)
       const mockGeneration = mockGenerations.get(id)
       if (mockGeneration) {
@@ -705,7 +727,7 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
     }
 
     console.error(`Failed to generate ${styleId} after ${maxRetries + 1} attempts:`, lastError)
-    return this.generateMockImage(styleId)
+    return this.fallbackGenerationImage(styleId, lastError?.message || 'Retry limit reached')
   }
 
   private static async generateSingleStyle(faceImageUrl: string, styleId: string): Promise<string> {
@@ -713,6 +735,9 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
     if (!styleConfig) throw new Error(`Style ${styleId} not found`)
 
     if (this.isMockMode()) {
+      if (!allowMemoryFallback && process.env.GENERATION_MODE?.toLowerCase() === 'mock') {
+        throw new Error('Mock generation mode is not allowed in production')
+      }
       return this.generateMockImage(styleId)
     }
 
@@ -767,17 +792,17 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
         
         if (response.status === 422) {
           console.error(`[GenerationService] Request validation failed (422) for ${styleId}:`, JSON.stringify(data))
-          return this.generateMockImage(styleId)
+          return this.fallbackGenerationImage(styleId, 'Replicate validation failed')
         }
         
         if (data.error) {
           console.error(`[GenerationService] Error generating ${styleId}:`, data.error)
-          return this.generateMockImage(styleId)
+          return this.fallbackGenerationImage(styleId, data.error)
         }
 
         if (!data.id) {
           console.error(`[GenerationService] No prediction ID returned for ${styleId}`)
-          return this.generateMockImage(styleId)
+          return this.fallbackGenerationImage(styleId, 'No prediction ID returned')
         }
 
         console.log(`[GenerationService] Prediction ID: ${data.id}, status: ${data.status}`)
@@ -807,7 +832,11 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
         }
 
         console.log(`[GenerationService] ${styleId} completed with status: ${result.status}`)
-        return result.output || this.generateMockImage(styleId)
+        if (result.status === 'failed') {
+          return this.fallbackGenerationImage(styleId, result.error || 'Prediction failed')
+        }
+
+        return result.output || this.fallbackGenerationImage(styleId, 'Prediction returned no output')
       } catch (error) {
         console.error(`[GenerationService] Exception generating ${styleId} (attempt ${attempt}):`, error)
         if (attempt < maxRetries) {
@@ -819,6 +848,14 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
     }
 
     console.error(`[GenerationService] Failed to generate ${styleId} after ${maxRetries} attempts`)
+    return this.fallbackGenerationImage(styleId, 'Generation attempts exhausted')
+  }
+
+  private static fallbackGenerationImage(styleId: string, reason: string): string {
+    if (!allowMemoryFallback) {
+      throw new Error(`Generation failed for ${styleId}: ${reason}`)
+    }
+
     return this.generateMockImage(styleId)
   }
 

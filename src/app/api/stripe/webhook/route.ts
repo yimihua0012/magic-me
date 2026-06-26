@@ -39,6 +39,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
       }
 
+      if (!['basic', 'pro', 'premium'].includes(planType)) {
+        console.error(`Invalid plan_type in session metadata: ${planType}`)
+        return NextResponse.json({ error: 'Invalid plan type' }, { status: 400 })
+      }
+
       // 创建信用包而不是 generation
       await CreditPackageService.createPackage({
         user_id: userId,
@@ -51,6 +56,7 @@ export async function POST(request: Request) {
       console.log(`[Stripe Webhook] Created credit package for user: ${userId}, plan: ${planType}`)
     } catch (error) {
       console.error('[Stripe Webhook] Error creating credit package:', error)
+      return NextResponse.json({ error: 'Failed to create credit package' }, { status: 500 })
     }
   }
 

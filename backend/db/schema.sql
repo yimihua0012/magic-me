@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS credit_packages (
     -- 支付信息
     stripe_payment_id TEXT,
     lemon_order_id TEXT,
+    paypal_order_id TEXT,
     amount_paid DECIMAL(10, 2),
     currency TEXT DEFAULT 'USD',
     
@@ -78,6 +79,15 @@ CREATE TABLE IF NOT EXISTS credit_packages (
 CREATE INDEX idx_credit_packages_user_id ON credit_packages(user_id);
 CREATE INDEX idx_credit_packages_status ON credit_packages(status);
 CREATE INDEX idx_credit_packages_expires_at ON credit_packages(expires_at);
+CREATE UNIQUE INDEX idx_credit_packages_stripe_payment_id_unique
+    ON credit_packages(stripe_payment_id)
+    WHERE stripe_payment_id IS NOT NULL;
+CREATE UNIQUE INDEX idx_credit_packages_lemon_order_id_unique
+    ON credit_packages(lemon_order_id)
+    WHERE lemon_order_id IS NOT NULL;
+CREATE UNIQUE INDEX idx_credit_packages_paypal_order_id_unique
+    ON credit_packages(paypal_order_id)
+    WHERE paypal_order_id IS NOT NULL;
 
 -- RLS
 ALTER TABLE credit_packages ENABLE ROW LEVEL SECURITY;
@@ -161,6 +171,31 @@ CREATE INDEX idx_generations_user_id ON generations(user_id);
 CREATE INDEX idx_generations_status ON generations(status);
 CREATE INDEX idx_generations_created_at ON generations(created_at DESC);
 CREATE INDEX idx_generations_credit_package_id ON generations(credit_package_id);
+
+-- ============================================
+-- BUTTON CLICK LOGS TABLE
+-- Analytics for marketing and pricing page button clicks
+-- ============================================
+CREATE TABLE IF NOT EXISTS button_click_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    clicked_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    button_type TEXT NOT NULL,
+    source TEXT NOT NULL,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE button_click_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role can manage all button click logs"
+    ON button_click_logs FOR ALL
+    USING (auth.jwt()->>'role' = 'service_role');
+
+CREATE INDEX idx_button_click_logs_clicked_at ON button_click_logs(clicked_at DESC);
+CREATE INDEX idx_button_click_logs_button_type ON button_click_logs(button_type);
+CREATE INDEX idx_button_click_logs_source ON button_click_logs(source);
+CREATE INDEX idx_button_click_logs_user_id ON button_click_logs(user_id);
 
 -- ============================================
 -- STORAGE BUCKETS

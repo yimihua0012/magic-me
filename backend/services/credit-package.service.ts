@@ -22,6 +22,7 @@ if (!global.mockCreditPackages) {
 }
 
 const mockCreditPackages = global.mockCreditPackages
+const allowMemoryFallback = process.env.NODE_ENV !== 'production'
 
 export class CreditPackageService {
   /**
@@ -33,6 +34,45 @@ export class CreditPackageService {
       throw new Error(`Invalid plan type: ${input.plan_type}`)
     }
 
+    if (input.stripe_payment_id) {
+      const { data: existing, error } = await supabaseAdmin
+        .from('credit_packages')
+        .select('*')
+        .eq('stripe_payment_id', input.stripe_payment_id)
+        .maybeSingle()
+
+      if (!error && existing) {
+        console.log(`[CreditPackage] Reusing existing Stripe package for payment: ${input.stripe_payment_id}`)
+        return existing as CreditPackage
+      }
+    }
+
+    if (input.lemon_order_id) {
+      const { data: existing, error } = await supabaseAdmin
+        .from('credit_packages')
+        .select('*')
+        .eq('lemon_order_id', input.lemon_order_id)
+        .maybeSingle()
+
+      if (!error && existing) {
+        console.log(`[CreditPackage] Reusing existing Lemon package for order: ${input.lemon_order_id}`)
+        return existing as CreditPackage
+      }
+    }
+
+    if (input.paypal_order_id) {
+      const { data: existing, error } = await supabaseAdmin
+        .from('credit_packages')
+        .select('*')
+        .eq('paypal_order_id', input.paypal_order_id)
+        .maybeSingle()
+
+      if (!error && existing) {
+        console.log(`[CreditPackage] Reusing existing PayPal package for order: ${input.paypal_order_id}`)
+        return existing as CreditPackage
+      }
+    }
+
     const packageData: Partial<CreditPackage> = {
       user_id: input.user_id,
       plan_type: input.plan_type,
@@ -41,6 +81,7 @@ export class CreditPackageService {
       validity_days: plan.validityDays,
       stripe_payment_id: input.stripe_payment_id,
       lemon_order_id: input.lemon_order_id,
+      paypal_order_id: input.paypal_order_id,
       amount_paid: input.amount_paid || plan.price,
       currency: input.currency || 'USD',
       status: 'inactive', // 未激活，有效期未开始
@@ -54,6 +95,26 @@ export class CreditPackageService {
       .single()
 
     if (error) {
+      if ((input.stripe_payment_id || input.lemon_order_id || input.paypal_order_id)) {
+        let query = supabaseAdmin.from('credit_packages').select('*')
+        if (input.stripe_payment_id) {
+          query = query.eq('stripe_payment_id', input.stripe_payment_id)
+        } else if (input.lemon_order_id) {
+          query = query.eq('lemon_order_id', input.lemon_order_id)
+        } else {
+          query = query.eq('paypal_order_id', input.paypal_order_id!)
+        }
+
+        const { data: existing } = await query.maybeSingle()
+        if (existing) {
+          return existing as CreditPackage
+        }
+      }
+
+      if (!allowMemoryFallback) {
+        throw error
+      }
+
       console.log(`[CreditPackage] Database insert error: ${error.message}, falling back to memory`)
       const fallbackId = `pkg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
       const fallbackPackage: CreditPackage = {
@@ -65,6 +126,7 @@ export class CreditPackageService {
         validity_days: plan.validityDays,
         stripe_payment_id: input.stripe_payment_id,
         lemon_order_id: input.lemon_order_id,
+        paypal_order_id: input.paypal_order_id,
         amount_paid: input.amount_paid || plan.price,
         currency: input.currency || 'USD',
         status: 'inactive',
@@ -95,6 +157,10 @@ export class CreditPackageService {
       .order('expires_at', { ascending: true, nullsFirst: true }) // 未激活的排前面（expires_at 为 null）
 
     if (error) {
+      if (!allowMemoryFallback) {
+        throw error
+      }
+
       console.error('[CreditPackage] Error fetching available packages:', error)
       // 从内存获取
       const packages = Array.from(mockCreditPackages.values())
@@ -278,16 +344,24 @@ export class CreditPackageService {
 
       const consumeFromThis = Math.min(pkg.remaining_credits, remainingToConsume)
       
-      const { error } = await supabaseAdmin
+      const { data: updatedPackage, error } = await supabaseAdmin
         .from('credit_packages')
         .update({
           remaining_credits: pkg.remaining_credits - consumeFromThis,
           status: pkg.remaining_credits - consumeFromThis === 0 ? 'depleted' : 'active',
         })
         .eq('id', pkg.id)
+        .eq('remaining_credits', pkg.remaining_credits)
+        .gt('remaining_credits', 0)
+        .select('id')
+        .maybeSingle()
 
-      if (error) {
-        console.error(`[CreditPackage] Error consuming from package ${pkg.id}:`, error)
+      if (error || !updatedPackage) {
+        if (!allowMemoryFallback) {
+          throw error || new Error(`Concurrent credit update detected for package ${pkg.id}`)
+        }
+
+        console.error(`[CreditPackage] Error consuming from package ${pkg.id}:`, error || 'No row updated')
         // 降级到内存
         pkg.remaining_credits -= consumeFromThis
         pkg.status = pkg.remaining_credits === 0 ? 'depleted' : 'active'
@@ -305,6 +379,7 @@ export class CreditPackageService {
       success: true,
       packageId: consumedFrom[0]?.packageId, // 返回主要使用的包 ID
       consumedAmount: amount,
+      consumedFrom,
     }
   }
 
@@ -412,6 +487,10 @@ export class CreditPackageService {
       .order('created_at', { ascending: false })
 
     if (error) {
+      if (!allowMemoryFallback) {
+        throw error
+      }
+
       console.error('[CreditPackage] Error fetching user packages:', error)
       return Array.from(mockCreditPackages.values()).filter(p => p.user_id === userId)
     }

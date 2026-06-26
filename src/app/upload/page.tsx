@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { Suspense, useState, useCallback, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
+import Modal from '@/components/ui/modal'
 import { 
   Upload, 
   Image as ImageIcon, 
@@ -43,7 +44,15 @@ const faceDetectionMessages = {
   'lighting': 'Image is too dark. Try taking your selfie near a window during daytime.',
 }
 
-export default function UploadPage() {
+function UploadLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+    </div>
+  )
+}
+
+function UploadContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [photos, setPhotos] = useState<PhotoValidation[]>([])
@@ -56,6 +65,8 @@ export default function UploadPage() {
   const [nearestExpiresAt, setNearestExpiresAt] = useState<string | null>(null)
   const [isLoadingCredits, setIsLoadingCredits] = useState(false)
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
+  const [showNoCreditsModal, setShowNoCreditsModal] = useState(false)
+  const hasShownNoCreditsModalRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Check for payment success param
@@ -78,8 +89,14 @@ export default function UploadPage() {
       })
       if (res.ok) {
         const data = await res.json()
-        setAvailableCredits(data.availableCredits || 0)
+        const credits = data.availableCredits || 0
+        setAvailableCredits(credits)
         setNearestExpiresAt(data.nearestExpiresAt || null)
+
+        if (credits <= 0 && !hasShownNoCreditsModalRef.current) {
+          hasShownNoCreditsModalRef.current = true
+          setShowNoCreditsModal(true)
+        }
       }
     } catch (e) {
       console.error('Failed to fetch credits:', e)
@@ -236,6 +253,7 @@ export default function UploadPage() {
 
   const validPhotos = photos.filter(p => p.status === 'valid')
   const canProceed = validPhotos.length >= 1
+  const shouldShowBuyCredits = isAuthenticated && availableCredits <= 0 && !isLoadingCredits
 
   const handleProceed = () => {
     if (!isAuthenticated) {
@@ -269,11 +287,7 @@ export default function UploadPage() {
   }
 
   if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-      </div>
-    )
+    return <UploadLoading />
   }
 
   return (
@@ -286,6 +300,7 @@ export default function UploadPage() {
         onSuccess={() => {
           setShowAuthModal(false)
           setIsAuthenticated(true)
+          void fetchCredits()
         }}
       />
 
@@ -295,8 +310,39 @@ export default function UploadPage() {
         onSuccess={() => {
           setShowAuthRequired(false)
           setIsAuthenticated(true)
+          void fetchCredits()
         }}
       />
+
+      <Modal
+        isOpen={showNoCreditsModal}
+        onClose={() => setShowNoCreditsModal(false)}
+        title="No credits remaining"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">
+            You don&apos;t have any credits available. Buy credits to generate your professional headshots.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              className="w-full"
+              onClick={() => {
+                setShowNoCreditsModal(false)
+                router.push('/pricing')
+              }}
+            >
+              Buy Credits
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => setShowNoCreditsModal(false)}
+            >
+              Later
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <main className="pt-24 pb-12 sm:pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -485,12 +531,12 @@ export default function UploadPage() {
             )}
 
             <Button
-              disabled={!canProceed || (isAuthenticated && availableCredits <= 0 && !isLoadingCredits)}
+              disabled={!shouldShowBuyCredits && (!canProceed || isLoadingCredits)}
               onClick={handleProceed}
               className="w-full sm:w-auto"
             >
               <Camera className="w-4 h-4 mr-2" />
-              {availableCredits <= 0 && isAuthenticated && !isLoadingCredits ? 'Buy Credits' : 'Generate Headshots'}
+              {shouldShowBuyCredits ? 'Buy Credits' : 'Generate Headshots'}
             </Button>
           </div>
 
@@ -504,5 +550,13 @@ export default function UploadPage() {
 
       <Footer />
     </div>
+  )
+}
+
+export default function UploadPage() {
+  return (
+    <Suspense fallback={<UploadLoading />}>
+      <UploadContent />
+    </Suspense>
   )
 }

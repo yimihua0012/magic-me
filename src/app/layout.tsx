@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     default: appConfig.title,
     template: `%s | ${appConfig.name}`,
   },
-  description: `${appConfig.description} - Get professional headshots without a photographer. Perfect AI headshot for LinkedIn profile & resume. 36 styles with business attire.`,
+  description: `${appConfig.description}. Fast AI headshots for LinkedIn, resumes, and profile photos with a dedicated portrait model and high likeness.`,
   keywords: [
     ...appConfig.keywords.split(','),
     'AI headshot generator',
@@ -43,6 +43,8 @@ export const metadata: Metadata = {
     'AI business portrait',
     'virtual headshot generator',
     'team photos online',
+    'realistic AI portraits',
+    'fast headshot generation',
   ],
   authors: [{ name: appConfig.name }],
   creator: appConfig.name,
@@ -63,7 +65,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: appConfig.title,
-    description: `${appConfig.description} - Get professional headshots without a photographer. Perfect AI headshot for LinkedIn profile & resume.`,
+    description: `${appConfig.description}. Fast AI headshots for LinkedIn, resumes, and profile photos with high likeness.`,
     type: 'website',
     locale: 'en_US',
     siteName: appConfig.name,
@@ -80,7 +82,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: appConfig.title,
-    description: `${appConfig.description} Starting at $${PLANS.basic.price}.`,
+    description: `${appConfig.description}. Starting at $${PLANS.basic.price}.`,
     images: [`${siteUrl}/api/og`],
   },
   icons: {
@@ -99,11 +101,11 @@ export default function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: appConfig.name,
-    description: `${appConfig.description} - Get professional headshots without a photographer. Best AI headshot generator for LinkedIn profile & resume.`,
+    description: `${appConfig.description}. Fast AI headshots for LinkedIn, resumes, and profile photos with high likeness.`,
     url: siteUrl,
     applicationCategory: 'DesignApplication',
     operatingSystem: 'Web',
-    keywords: 'AI headshot generator, LinkedIn profile photo maker, professional headshots without photographer, AI business portrait with suit, virtual headshot generator',
+    keywords: 'AI headshot generator, LinkedIn profile photo maker, professional headshots without photographer, AI business portrait, virtual headshot generator, realistic AI portraits, fast headshot generation',
     offers: [
       {
         '@type': 'Offer',
@@ -131,7 +133,7 @@ export default function RootLayout({
         name: 'How to get professional headshots without a photographer?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Use our AI headshot generator to get professional headshots without hiring a photographer. Simply upload your selfie, choose from 36 unique styles with business attire, and get high-quality headshots in 3 minutes.',
+          text: 'Use our AI headshot generator to get realistic headshots without hiring a photographer. Simply upload your selfie, choose a style, and get high-likeness portraits in minutes.',
         },
       },
       {
@@ -139,7 +141,7 @@ export default function RootLayout({
         name: 'What is the best AI headshot generator for LinkedIn profile?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Our AI headshot generator creates professional LinkedIn profile photos with 36 unique styles, including corporate professional, business attire, and executive portraits. Perfect for updating your LinkedIn profile photo.',
+          text: 'Our AI headshot generator creates realistic LinkedIn profile photos with a dedicated portrait model, fast generation, and styles for business, resume, and executive use.',
         },
       },
       {
@@ -147,7 +149,7 @@ export default function RootLayout({
         name: 'Can I get AI headshots with different backgrounds?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes! Our AI headshot generator offers multiple background options including solid colors, office settings, and custom backgrounds. Perfect for different professional contexts and platforms.',
+          text: 'Yes. Our AI headshot generator offers multiple background options for different professional contexts and platforms.',
         },
       },
       {
@@ -155,7 +157,7 @@ export default function RootLayout({
         name: 'Do you offer professional headshots for team photos online?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes! Our Enterprise plan includes team management features for generating professional headshots for remote teams. Get consistent, high-quality team photos without coordinating a group photoshoot.',
+          text: 'Yes. Our Enterprise plan includes team management features for consistent, high-quality headshots for remote teams.',
         },
       },
     ],

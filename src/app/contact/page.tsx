@@ -40,7 +40,7 @@ export default function ContactPage() {
               Contact Us
             </h1>
             <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-              Have questions about {appConfig.name}? We're here to help. Reach out to us and we'll respond as soon as possible.
+              Have questions about {appConfig.name}? We&apos;re here to help. Reach out to us and we&apos;ll respond as soon as possible.
             </p>
           </div>
 
@@ -55,7 +55,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">Email</h3>
                     <p className="text-slate-600 text-sm">postmaster@magic-headshot.com</p>
-                    <p className="text-slate-500 text-xs mt-1">We'll respond within 24 hours</p>
+                    <p className="text-slate-500 text-xs mt-1">We&apos;ll respond within 24 hours</p>
                   </div>
                 </div>
               </Card>
@@ -99,7 +99,7 @@ export default function ContactPage() {
                       Message Sent!
                     </h3>
                     <p className="text-slate-600 mb-6">
-                      Thank you for contacting us. We'll get back to you within 24 hours.
+                      Thank you for contacting us. We&apos;ll get back to you within 24 hours.
                     </p>
                     <Button onClick={() => setSubmitted(false)}>
                       Send Another Message

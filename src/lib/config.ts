@@ -1,10 +1,10 @@
 // App Configuration
 export const appConfig = {
   name: process.env.NEXT_PUBLIC_APP_NAME || 'HeadshotAI',
-  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Professional AI Headshot Generator',
+  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'AI headshot generator trained for realistic portraits, fast generation, and high likeness for LinkedIn, resumes, and profile photos',
   url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-  title: process.env.NEXT_PUBLIC_APP_TITLE || 'AI Headshot Generator - Professional Photos in 3 Minutes',
-  keywords: process.env.NEXT_PUBLIC_APP_KEYWORDS || 'AI headshot, professional photos, LinkedIn photo, AI portrait, headshot generator',
+  title: process.env.NEXT_PUBLIC_APP_TITLE || 'AI Headshot Generator for LinkedIn - Fast, High-Likeness Portraits',
+  keywords: process.env.NEXT_PUBLIC_APP_KEYWORDS || 'AI headshot generator, LinkedIn headshot, professional headshots, resume photo, profile photo, high likeness portrait, fast AI generation, headshot pricing',
 }
 
 // Pricing Configuration - imported from backend

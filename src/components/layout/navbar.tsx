@@ -5,9 +5,15 @@ import { useRouter } from 'next/navigation'
 import { Menu, X, Camera, User } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import Button from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import { appConfig } from '@/lib/config'
+
+const AuthModal = dynamic(() => import('@/components/auth/auth-modal'), {
+  loading: () => null,
+  ssr: false,
+})
 
 interface NavbarProps {
   onOpenAuthModal?: () => void
@@ -18,13 +24,28 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
+    let ticking = false
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
+      if (ticking) {
+        return
+      }
+
+      ticking = true
+      window.requestAnimationFrame(() => {
+        setIsScrolled((current) => {
+          const next = window.scrollY > 10
+          return current === next ? current : next
+        })
+        ticking = false
+      })
     }
     
-    window.addEventListener('scroll', handleScroll)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -49,18 +70,39 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
     window.location.href = '/'
   }
 
+  const handleOpenAuth = () => {
+    if (onOpenAuthModal) {
+      onOpenAuthModal()
+      return
+    }
+
+    setShowAuthModal(true)
+  }
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 safe-top ${
-      isScrolled 
-        ? 'bg-white/80 backdrop-blur-navbar shadow-sm border-b border-slate-200/50' 
-        : 'bg-transparent'
-    }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
-          <Link href="/" className="flex items-center gap-2 touch-target">
-            <Image src="/logo.svg" alt={appConfig.name} width={32} height={32} className="rounded-lg sm:rounded-xl sm:w-10 sm:h-10" />
-            <span className="text-lg sm:text-xl font-bold text-slate-900">{appConfig.name}</span>
-          </Link>
+    <>
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={() => {
+            setShowAuthModal(false)
+            router.push('/upload')
+          }}
+        />
+      )}
+
+      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 safe-top ${
+        isScrolled
+          ? 'bg-white/80 backdrop-blur-navbar shadow-sm border-b border-slate-200/50'
+          : 'bg-transparent'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
+            <Link href="/" className="flex items-center gap-2 touch-target">
+              <Image src="/logo.svg" alt={appConfig.name} width={32} height={32} className="rounded-lg sm:rounded-xl sm:w-10 sm:h-10" priority />
+              <span className="text-lg sm:text-xl font-bold text-slate-900">{appConfig.name}</span>
+            </Link>
 
           <div className="hidden lg:flex items-center gap-8">
             <Link href="/#features" className="text-slate-600 hover:text-slate-900 font-medium transition-colors" prefetch={false}>
@@ -91,7 +133,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
             ) : (
               <>
                 <button 
-                  onClick={onOpenAuthModal}
+                  onClick={handleOpenAuth}
                   className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
                 >
                   Sign In
@@ -168,7 +210,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
                 <button 
                   onClick={() => {
                     setIsOpen(false)
-                    onOpenAuthModal?.()
+                    handleOpenAuth()
                   }}
                   className="block text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium rounded-xl px-4 py-3 w-full text-left touch-target"
                 >
@@ -188,6 +230,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
           </div>
         </div>
       )}
-    </nav>
+      </nav>
+    </>
   )
 }

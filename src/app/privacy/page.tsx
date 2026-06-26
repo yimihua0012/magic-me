@@ -20,7 +20,7 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-6 space-y-2">
                 <li>Account information (name, email, password) when you register</li>
                 <li>Photos you upload for AI headshot generation</li>
-                <li>Payment information processed through Stripe</li>
+                <li>Payment information processed through PayPal</li>
                 <li>Communications and correspondence</li>
               </ul>
             </Card>
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-6 space-y-2 mt-3">
                 <li>With your explicit consent</li>
                 <li>To comply with legal obligations</li>
-                <li>With service providers (Stripe for payments, Supabase for auth)</li>
+                <li>With service providers (PayPal for payments, Supabase for auth)</li>
               </ul>
             </Card>
 
