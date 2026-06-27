@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const returnTo = safeReturnTo(requestUrl.searchParams.get('returnTo'))
+  const cookieStore = await cookies()
+  const returnTo = safeReturnTo(
+    requestUrl.searchParams.get('returnTo') || cookieStore.get('oauth_return_to')?.value || null
+  )
 
   if (!code) {
     return redirectToLogin(requestUrl, returnTo, 'missing_code')
@@ -24,7 +28,7 @@ export async function GET(request: Request) {
     return redirectToLogin(requestUrl, returnTo, 'session_missing')
   }
 
-  return NextResponse.redirect(new URL(returnTo, requestUrl.origin))
+  return redirectAndClear(new URL(returnTo, requestUrl.origin))
 }
 
 function safeReturnTo(value: string | null): string {
@@ -39,5 +43,14 @@ function redirectToLogin(requestUrl: URL, returnTo: string, error: string) {
   const loginUrl = new URL('/login', requestUrl.origin)
   loginUrl.searchParams.set('returnTo', returnTo)
   loginUrl.searchParams.set('error', error)
-  return NextResponse.redirect(loginUrl)
+  return redirectAndClear(loginUrl)
+}
+
+function redirectAndClear(url: URL) {
+  const response = NextResponse.redirect(url)
+  response.cookies.set('oauth_return_to', '', {
+    maxAge: 0,
+    path: '/',
+  })
+  return response
 }

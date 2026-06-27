@@ -10,13 +10,13 @@ export async function GET(request: Request) {
   const origin = requestUrl.hostname === 'localhost' || requestUrl.hostname === '127.0.0.1'
     ? requestUrl.origin
     : appConfig.url
-  const returnTo = requestUrl.searchParams.get('returnTo') || '/dashboard'
+  const returnTo = safeReturnTo(requestUrl.searchParams.get('returnTo'))
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${origin}/api/auth/callback?returnTo=${encodeURIComponent(returnTo)}`,
+      redirectTo: `${origin}/api/auth/callback`,
       skipBrowserRedirect: true,
     },
   })
@@ -35,5 +35,22 @@ export async function GET(request: Request) {
     ? data.url
     : new URL(data.url, getSupabaseUrl()).toString()
 
-  return NextResponse.redirect(redirectUrl)
+  const response = NextResponse.redirect(redirectUrl)
+  response.cookies.set('oauth_return_to', returnTo, {
+    httpOnly: true,
+    maxAge: 10 * 60,
+    path: '/',
+    sameSite: 'lax',
+    secure: origin.startsWith('https://'),
+  })
+
+  return response
+}
+
+function safeReturnTo(value: string | null): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) {
+    return '/dashboard'
+  }
+
+  return value
 }
