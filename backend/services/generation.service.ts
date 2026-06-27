@@ -18,11 +18,25 @@ if (!global.mockGenerations) {
 const mockGenerations = global.mockGenerations
 const allowMemoryFallback = false
 const generationDebugEnabled = process.env.GENERATION_DEBUG === 'true'
+const INPUT_PHOTOS_BUCKET = 'input-photos'
+const OUTPUT_PHOTOS_BUCKET = 'output-photos'
 
 function logGenerationDebug(...args: unknown[]): void {
   if (generationDebugEnabled) {
     console.log(...args)
   }
+}
+
+interface OutputPhotoStorageContext {
+  userId: string
+  generationId: string
+  folderName: string
+  index: number
+}
+
+interface StoredImage {
+  path: string
+  publicUrl: string | null
 }
 
 // 内存缓存 - 用于减少频繁的数据库查询（前端轮询优化）
@@ -761,6 +775,7 @@ export class GenerationService {
     const outputUrls: string[] = []
     const maxRetries = 1
     const totalStyles = stylesToGenerate.length
+    const storageFolderName = this.createStorageFolderName()
     let completedStyles = 0
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
@@ -771,8 +786,18 @@ export class GenerationService {
         current_step: `Generating batch ${batchIndex + 1}/${batches.length}...`
       })
 
-      const batchPromises = batch.map(styleId => 
-        this.generateWithRetry(generation.input_photos[0], styleId, maxRetries)
+      const batchPromises = batch.map((styleId, batchItemIndex) => 
+        this.generateWithRetry(
+          generation.input_photos[0],
+          styleId,
+          maxRetries,
+          {
+            userId: generation.user_id,
+            generationId,
+            folderName: storageFolderName,
+            index: completedStyles + batchItemIndex,
+          }
+        )
       )
 
       const batchResults = await Promise.all(batchPromises)
@@ -788,10 +813,18 @@ export class GenerationService {
       })
     }
 
+    const archivedInputPhotos = await this.archiveInputPhotos(generation.input_photos, {
+      userId: generation.user_id,
+      generationId,
+      folderName: storageFolderName,
+      index: 0,
+    })
+
     logGenerationDebug(`[GenerationService] Generation completed for id: ${generationId}, total outputs: ${outputUrls.length}`)
     await this.updateGeneration(generationId, { 
       status: 'completed', 
       progress: 100,
+      input_photos: archivedInputPhotos.length ? archivedInputPhotos : generation.input_photos,
       output_photos: outputUrls,
       completed_at: new Date().toISOString(),
       current_step: 'Generation complete!'
@@ -840,13 +873,18 @@ export class GenerationService {
     return false
   }
 
-  private static async generateWithRetry(faceImageUrl: string, styleId: string, maxRetries: number): Promise<string> {
+  private static async generateWithRetry(
+    faceImageUrl: string,
+    styleId: string,
+    maxRetries: number,
+    storageContext: OutputPhotoStorageContext
+  ): Promise<string> {
     let attempts = 0
     let lastError: Error | undefined
 
     while (attempts <= maxRetries) {
       try {
-        return await this.generateSingleStyle(faceImageUrl, styleId)
+        return await this.generateSingleStyle(faceImageUrl, styleId, storageContext)
       } catch (error) {
         lastError = error as Error
         attempts++
@@ -860,7 +898,11 @@ export class GenerationService {
     return this.fallbackGenerationImage(styleId, lastError?.message || 'Retry limit reached')
   }
 
-  private static async generateSingleStyle(faceImageUrl: string, styleId: string): Promise<string> {
+  private static async generateSingleStyle(
+    faceImageUrl: string,
+    styleId: string,
+    storageContext: OutputPhotoStorageContext
+  ): Promise<string> {
     const availableStyles = await getStyleMap()
     const styleConfig = availableStyles[styleId]
     if (!styleConfig) throw new Error(`Style ${styleId} not found`)
@@ -967,7 +1009,12 @@ export class GenerationService {
           return this.fallbackGenerationImage(styleId, result.error || 'Prediction failed')
         }
 
-        return result.output || this.fallbackGenerationImage(styleId, 'Prediction returned no output')
+        const outputUrl = this.extractReplicateOutputUrl(result.output)
+        if (!outputUrl) {
+          return this.fallbackGenerationImage(styleId, 'Prediction returned no output')
+        }
+
+        return await this.persistOutputPhoto(outputUrl, styleId, storageContext)
       } catch (error) {
         console.error(`[GenerationService] Exception generating ${styleId} (attempt ${attempt}):`, error)
         if (attempt < maxRetries) {
@@ -988,6 +1035,189 @@ export class GenerationService {
     }
 
     return this.generateMockImage(styleId)
+  }
+
+  private static extractReplicateOutputUrl(output: unknown): string | null {
+    if (typeof output === 'string') return output
+    if (Array.isArray(output)) {
+      for (const item of output) {
+        if (typeof item === 'string') return item
+        if (item && typeof item === 'object') {
+          const maybeOutput = item as { url?: unknown }
+          if (typeof maybeOutput.url === 'string') return maybeOutput.url
+        }
+      }
+
+      return null
+    }
+
+    if (output && typeof output === 'object') {
+      const maybeOutput = output as { url?: unknown }
+      if (typeof maybeOutput.url === 'string') return maybeOutput.url
+    }
+
+    return null
+  }
+
+  private static createStorageFolderName(): string {
+    return new Date().toISOString().replace(/[:.]/g, '-')
+  }
+
+  private static async persistOutputPhoto(
+    temporaryUrl: string,
+    styleId: string,
+    context: OutputPhotoStorageContext
+  ): Promise<string> {
+    const image = await this.loadImageFromUrl(temporaryUrl, 'image/jpeg')
+    const extension = this.extensionForContentType(image.contentType)
+    const safeStyleId = this.safeStorageSegment(styleId)
+    const objectPath = [
+      this.safeStorageSegment(context.userId),
+      `${context.folderName}-${this.safeStorageSegment(context.generationId)}`,
+      `${String(context.index + 1).padStart(3, '0')}-${safeStyleId}.${extension}`,
+    ].join('/')
+
+    const storedImage = await this.storeImage(temporaryUrl, image, {
+      bucket: OUTPUT_PHOTOS_BUCKET,
+      path: objectPath,
+      public: true,
+    })
+
+    if (!storedImage.publicUrl) {
+      throw new Error('Failed to create public URL for generated image')
+    }
+
+    return storedImage.publicUrl
+  }
+
+  private static async archiveInputPhotos(
+    inputPhotos: string[],
+    context: OutputPhotoStorageContext
+  ): Promise<string[]> {
+    const archivedPhotos: string[] = []
+
+    for (let index = 0; index < inputPhotos.length; index++) {
+      const inputPhoto = inputPhotos[index]
+      try {
+        const image = await this.loadImageFromUrl(inputPhoto, 'image/jpeg')
+        const extension = this.extensionForContentType(image.contentType)
+        const objectPath = [
+          this.safeStorageSegment(context.userId),
+          `${context.folderName}-${this.safeStorageSegment(context.generationId)}`,
+          `input-${String(index + 1).padStart(2, '0')}.${extension}`,
+        ].join('/')
+
+        const storedImage = await this.storeImage(inputPhoto, image, {
+          bucket: INPUT_PHOTOS_BUCKET,
+          path: objectPath,
+          public: false,
+        })
+
+        archivedPhotos.push(storedImage.path)
+      } catch (error) {
+        console.error('[GenerationService] Failed to archive input photo:', error)
+        archivedPhotos.push(inputPhoto)
+      }
+    }
+
+    return archivedPhotos
+  }
+
+  private static async loadImageFromUrl(
+    imageUrl: string,
+    fallbackContentType: string
+  ): Promise<{ contentType: string; data: ArrayBuffer }> {
+    if (imageUrl.startsWith('data:')) {
+      return this.loadDataUrlImage(imageUrl, fallbackContentType)
+    }
+
+    const response = await fetchWithTimeout(imageUrl, {}, 30000)
+    if (!response.ok) {
+      throw new Error(`Failed to download image: ${response.status}`)
+    }
+
+    const contentType = response.headers.get('content-type') || fallbackContentType
+    if (!contentType.startsWith('image/')) {
+      throw new Error(`Downloaded file is not an image: ${contentType}`)
+    }
+
+    return {
+      contentType,
+      data: await response.arrayBuffer(),
+    }
+  }
+
+  private static loadDataUrlImage(
+    dataUrl: string,
+    fallbackContentType: string
+  ): { contentType: string; data: ArrayBuffer } {
+    const match = dataUrl.match(/^data:([^;,]+)?(;base64)?,(.*)$/)
+    if (!match) {
+      throw new Error('Invalid data URL image')
+    }
+
+    const contentType = match[1] || fallbackContentType
+    if (!contentType.startsWith('image/')) {
+      throw new Error(`Data URL is not an image: ${contentType}`)
+    }
+
+    const payload = match[3] || ''
+    const bytes = match[2]
+      ? Buffer.from(payload, 'base64')
+      : Buffer.from(decodeURIComponent(payload), 'utf8')
+
+    return {
+      contentType,
+      data: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+    }
+  }
+
+  private static async storeImage(
+    sourceUrl: string,
+    image: { contentType: string; data: ArrayBuffer },
+    options: {
+      bucket: string
+      path: string
+      public: boolean
+    }
+  ): Promise<StoredImage> {
+    const { error } = await supabaseAdmin.storage
+      .from(options.bucket)
+      .upload(options.path, image.data, {
+        contentType: image.contentType,
+        upsert: true,
+        metadata: {
+          source: sourceUrl.startsWith('data:') ? 'data-url' : sourceUrl,
+        },
+      })
+
+    if (error) {
+      throw new Error(`Failed to upload image to ${options.bucket}: ${error.message}`)
+    }
+
+    if (!options.public) {
+      return { path: options.path, publicUrl: null }
+    }
+
+    const { data } = supabaseAdmin.storage
+      .from(options.bucket)
+      .getPublicUrl(options.path)
+
+    return {
+      path: options.path,
+      publicUrl: data.publicUrl || null,
+    }
+  }
+
+  private static extensionForContentType(contentType: string): string {
+    const normalized = contentType.split(';')[0].trim().toLowerCase()
+    if (normalized === 'image/png') return 'png'
+    if (normalized === 'image/webp') return 'webp'
+    return 'jpg'
+  }
+
+  private static safeStorageSegment(value: string): string {
+    return value.replace(/[^a-zA-Z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'unknown'
   }
 
   private static generateMockImage(styleId: string): string {
