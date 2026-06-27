@@ -13,6 +13,7 @@ export async function GET(request: Request) {
     provider: 'google',
     options: {
       redirectTo: `${origin}/api/auth/callback?returnTo=${encodeURIComponent(returnTo)}`,
+      skipBrowserRedirect: true,
     },
   })
 

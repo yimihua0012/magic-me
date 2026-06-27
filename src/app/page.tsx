@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
@@ -102,7 +103,13 @@ const styles = [
   { name: 'Urban Edge', category: 'Street' },
 ]
 
-export default function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams?: Promise<{ code?: string; returnTo?: string }> }) {
+  const params = await searchParams
+  if (params?.code) {
+    const returnTo = params.returnTo || '/dashboard'
+    redirect(`/api/auth/callback?code=${encodeURIComponent(params.code)}&returnTo=${encodeURIComponent(returnTo)}`)
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
