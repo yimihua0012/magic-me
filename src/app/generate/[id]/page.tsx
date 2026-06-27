@@ -24,17 +24,6 @@ const Modal = dynamic(() => import('@/components/ui/modal'), {
   ssr: false,
 })
 
-const styleNames = [
-  'LinkedIn Professional', 'Corporate Office', 'Business Casual', 'Executive Portrait',
-  'Doctor Whitecoat', 'Modern Tech', 'Creative Agency', 'Oil Painting',
-  'Watercolor Art', 'Anime Illustration', 'Cyberpunk Neon', 'Pixel Art Retro',
-  'Pop Art Comic', 'Coffee Shop', 'Beach Golden Hour', 'Autumn Park',
-  'City Street', 'Library Study', 'Garden Spring', 'Spring Blossom',
-  'Summer Sunshine', 'Autumn Foliage', 'Winter Snow', 'Black & White Classic',
-  'Vintage Film', 'Rembrandt Lighting', 'Soft Glamour', 'Superhero',
-  'Royal Portrait', 'Astronaut Space'
-]
-
 type GenerationStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 interface GenerationState {
@@ -44,6 +33,11 @@ interface GenerationState {
   currentStep: string
   outputPhotos: string[]
   styleCount: number
+}
+
+interface HeadshotStyle {
+  id: string
+  name: string
 }
 
 export default function GenerationPage() {
@@ -60,10 +54,16 @@ export default function GenerationPage() {
     styleCount: 0,
   })
   const [selectedPhotos, setSelectedPhotos] = useState<Set<number>>(new Set())
+  const [selectedStyleIds, setSelectedStyleIds] = useState<string[]>([])
+  const [styles, setStyles] = useState<HeadshotStyle[]>([])
   const [showLightbox, setShowLightbox] = useState(false)
   const [lightboxPhoto, setLightboxPhoto] = useState<number | null>(null)
+  const [showCompletionModal, setShowCompletionModal] = useState(false)
+  const [pendingCompletion, setPendingCompletion] = useState<{ progress: number; outputUrls: string[] } | null>(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const hasStartedRef = useRef(false)
 
   useEffect(() => {
     let cleanupPolling: (() => void) | undefined
@@ -78,7 +78,11 @@ export default function GenerationPage() {
     }
 
     const startGeneration = async () => {
+      if (hasStartedRef.current) return
+      hasStartedRef.current = true
+
       const photosBase64 = localStorage.getItem('pending_generation_photos')
+      const storedStyleIds = localStorage.getItem('pending_generation_style_ids')
       
       if (photosBase64) {
         console.log('[Generation] Found pending photos, starting new generation')
@@ -89,18 +93,14 @@ export default function GenerationPage() {
             return
           }
 
-          const styleIds = [
-            'linkedin_professional', 'corporate_office', 'business_casual', 'executive_portrait',
-            'doctor_whitecoat', 'modern_tech', 'creative_agency', 'oil_painting',
-            'watercolor_art', 'anime_illustration', 'cyberpunk_neon', 'pixel_art_retro',
-            'pop_art_comic', 'coffee_shop', 'beach_golden_hour', 'autumn_park',
-            'city_street', 'library_study', 'garden_spring', 'spring_blossom',
-            'summer_sunshine', 'autumn_foliage', 'winter_snow', 'black_white_classic',
-            'vintage_film', 'rembrandt_lighting', 'soft_glamour', 'superhero_style',
-            'royal_portrait', 'astronaut_space'
-          ]
+          const styleIds = storedStyleIds ? JSON.parse(storedStyleIds) : []
+          setSelectedStyleIds(Array.isArray(styleIds) ? styleIds : [])
 
-          setGeneration(prev => ({ ...prev, currentStep: 'Uploading your photo...', styleCount: styleIds.length }))
+          localStorage.removeItem('pending_generation_photos')
+          localStorage.removeItem('pending_generation_id')
+          localStorage.removeItem('pending_generation_style_ids')
+
+          setGeneration(prev => ({ ...prev, currentStep: 'Preparing generation...', progress: 5, styleCount: styleIds.length }))
           
           const authHeaders = await getAuthHeaders()
           const response = await fetch('/api/generate-headshots', {
@@ -108,16 +108,8 @@ export default function GenerationPage() {
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ 
               faceImageUrl: photos[0],
-              styleIds: [
-                'linkedin_professional', 'corporate_office', 'business_casual', 'executive_portrait',
-                'doctor_whitecoat', 'modern_tech', 'creative_agency', 'oil_painting',
-                'watercolor_art', 'anime_illustration', 'cyberpunk_neon', 'pixel_art_retro',
-                'pop_art_comic', 'coffee_shop', 'beach_golden_hour', 'autumn_park',
-                'city_street', 'library_study', 'garden_spring', 'spring_blossom',
-                'summer_sunshine', 'autumn_foliage', 'winter_snow', 'black_white_classic',
-                'vintage_film', 'rembrandt_lighting', 'soft_glamour', 'superhero_style',
-                'royal_portrait', 'astronaut_space'
-              ]
+              styleIds,
+              clientGenerationId: generationId,
             })
           })
 
@@ -134,23 +126,13 @@ export default function GenerationPage() {
           const data = await response.json()
           
           if (data.taskId) {
-            localStorage.removeItem('pending_generation_photos')
-            localStorage.removeItem('pending_generation_id')
-            
-            const configResponse = await fetch('/api/generate-headshots')
-            const config = await configResponse.json()
-            
-            if (config.generationMode === 'mock') {
-              simulateMockGeneration()
-            } else {
-              cleanupPolling = pollGenerationStatus(data.taskId)
-            }
+            cleanupPolling = pollGenerationStatus(data.taskId)
           } else {
             setGeneration(prev => ({ ...prev, status: 'failed', currentStep: data.error || 'Failed to start generation' }))
           }
         } catch (error) {
           console.error('[Generation] Error starting new generation:', error)
-          simulateMockGeneration()
+          setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'Failed to start generation' }))
         }
       } else if (generationId) {
         console.log('[Generation] No pending photos, checking existing task:', generationId)
@@ -168,13 +150,8 @@ export default function GenerationPage() {
           }
           
           if (data.status === 'completed') {
-            setGeneration(prev => ({
-              ...prev,
-              status: 'completed',
-              progress: data.progress,
-              currentStep: 'Your headshots are ready!',
-              outputPhotos: data.outputUrls,
-            }))
+            setPendingCompletion({ progress: data.progress, outputUrls: data.outputUrls })
+            setShowCompletionModal(true)
           } else {
             cleanupPolling = pollGenerationStatus(generationId)
           }
@@ -216,17 +193,25 @@ export default function GenerationPage() {
             console.log(`[Polling] Task completed! outputUrls count: ${data.outputUrls?.length || 0}`)
             clearInterval(intervalId)
             pollIntervalRef.current = null
+            if (progressIntervalRef.current) {
+              clearInterval(progressIntervalRef.current)
+              progressIntervalRef.current = null
+            }
             setGeneration(prev => ({
               ...prev,
-              status: 'completed',
-              progress: data.progress,
-              currentStep: 'Your headshots are ready!',
-              outputPhotos: data.outputUrls,
+              progress: 100,
+              currentStep: 'Generation complete. Review your results.',
             }))
+            setPendingCompletion({ progress: data.progress, outputUrls: data.outputUrls || [] })
+            setShowCompletionModal(true)
           } else if (data.status === 'failed') {
             console.log(`[Polling] Task failed`)
             clearInterval(intervalId)
             pollIntervalRef.current = null
+            if (progressIntervalRef.current) {
+              clearInterval(progressIntervalRef.current)
+              progressIntervalRef.current = null
+            }
             setGeneration(prev => ({
               ...prev,
               status: 'failed',
@@ -236,7 +221,8 @@ export default function GenerationPage() {
             console.log(`[Polling] Task in progress - status: ${data.status}, progress: ${data.progress}`)
             setGeneration(prev => ({
               ...prev,
-              progress: data.progress,
+              progress: Math.max(prev.progress, data.progress || 0),
+              currentStep: data.currentStep || prev.currentStep || 'Generating selected styles...',
             }))
           }
         } catch (error) {
@@ -246,69 +232,47 @@ export default function GenerationPage() {
 
       pollIntervalRef.current = intervalId
 
+      if (!progressIntervalRef.current) {
+        progressIntervalRef.current = setInterval(() => {
+          setGeneration(prev => {
+            if (prev.status !== 'processing') return prev
+            const nextProgress = Math.min(95, Math.max(prev.progress + 1, Math.ceil(prev.progress * 1.04)))
+            const currentStep = nextProgress >= 85
+              ? 'Finalizing your headshots...'
+              : nextProgress >= 55
+                ? 'Generating selected styles...'
+                : nextProgress >= 25
+                  ? 'Analyzing your photo...'
+                  : 'Preparing generation...'
+            return { ...prev, progress: nextProgress, currentStep }
+          })
+        }, 2500)
+      }
+
       return () => {
         console.log('[Polling] Cleaning up poll')
         clearInterval(intervalId)
         pollIntervalRef.current = null
+        if (progressIntervalRef.current) {
+          clearInterval(progressIntervalRef.current)
+          progressIntervalRef.current = null
+        }
       }
     }
 
-    const simulateMockGeneration = () => {
-      const steps = [
-        { progress: 10, message: 'Analyzing your photos...' },
-        { progress: 25, message: 'Detecting facial features...' },
-        { progress: 40, message: 'Generating base model...' },
-        { progress: 55, message: 'Applying professional lighting...' },
-        { progress: 70, message: 'Creating style variations...' },
-        { progress: 85, message: 'Applying finishing touches...' },
-        { progress: 95, message: 'Finalizing your headshots...' },
-        { progress: 100, message: 'Complete!' },
-      ]
-
-      let currentStepIndex = 0
-      const interval = setInterval(() => {
-        if (currentStepIndex >= steps.length) {
-          clearInterval(interval)
-          const outputPhotos = Array(30).fill(null).map((_, i) => `https://picsum.photos/seed/${generationId}-${i}/1024/1024`)
-          setGeneration(prev => ({
-            ...prev,
-            status: 'completed',
-            progress: 100,
-            currentStep: 'Your headshots are ready!',
-            outputPhotos,
-          }))
-          
-          const newRecord = {
-            id: generationId,
-            status: 'completed' as const,
-            plan_type: 'basic',
-            style_count: 30,
-            created_at: new Date().toISOString(),
-            thumbnail: outputPhotos[0],
-            output_photos: outputPhotos,
-          }
-          
-          const existingRecords = localStorage.getItem('generation_records')
-          const records = existingRecords ? JSON.parse(existingRecords) : []
-          records.unshift(newRecord)
-          localStorage.setItem('generation_records', JSON.stringify(records))
-          
-          return
-        }
-
-        const step = steps[currentStepIndex]
-        setGeneration(prev => ({
-          ...prev,
-          progress: step.progress,
-          currentStep: step.message,
-        }))
-        currentStepIndex++
-      }, 2000)
-
-      return () => clearInterval(interval)
-    }
-
     const init = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.access_token) {
+          const res = await fetch('/api/styles', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          })
+          const data = await res.json()
+          setStyles(Array.isArray(data.styles) ? data.styles : [])
+        }
+      } catch {
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!mounted) return
@@ -333,6 +297,31 @@ export default function GenerationPage() {
     }
   }, [generationId, router])
 
+  useEffect(() => {
+    if (generation.status !== 'processing') return
+
+    window.history.pushState(null, '', window.location.href)
+    const handleBack = () => {
+      window.history.pushState(null, '', window.location.href)
+    }
+
+    window.addEventListener('popstate', handleBack)
+    return () => window.removeEventListener('popstate', handleBack)
+  }, [generation.status])
+
+  const confirmCompletion = () => {
+    if (!pendingCompletion) return
+    setGeneration(prev => ({
+      ...prev,
+      status: 'completed',
+      progress: 100,
+      currentStep: 'Your headshots are ready!',
+      outputPhotos: pendingCompletion.outputUrls,
+    }))
+    setShowCompletionModal(false)
+    setPendingCompletion(null)
+  }
+
   const togglePhotoSelection = (index: number) => {
     setSelectedPhotos(prev => {
       const newSet = new Set(prev)
@@ -345,12 +334,31 @@ export default function GenerationPage() {
     })
   }
 
-  const handleDownload = (index: number) => {
+  const handleDownload = async (index: number) => {
+    const photoUrl = generation.outputPhotos[index]
+    if (!photoUrl) return
     const link = document.createElement('a')
-    link.href = generation.outputPhotos[index]
-    link.download = `headshot-${styleNames[index].toLowerCase().replace(/\s+/g, '-')}.jpg`
-    link.target = '_blank'
-    window.open(link.href, '_blank')
+    const styleName = styles[index]?.name || `Style ${index + 1}`
+    const filename = `headshot-${styleName.toLowerCase().replace(/\s+/g, '-')}.jpg`
+
+    try {
+      const response = await fetch(photoUrl)
+      if (!response.ok) throw new Error('Failed to fetch original image')
+      const blob = await response.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      link.href = objectUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(objectUrl)
+    } catch {
+      link.href = photoUrl
+      link.download = filename
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+      link.click()
+    }
   }
 
   const handleDownloadAll = () => {
@@ -362,6 +370,11 @@ export default function GenerationPage() {
   const openLightbox = (index: number) => {
     setLightboxPhoto(index)
     setShowLightbox(true)
+  }
+
+  const styleNameForIndex = (index: number) => {
+    const styleId = selectedStyleIds[index]
+    return styles.find(style => style.id === styleId)?.name || `Style ${index + 1}`
   }
 
   return (
@@ -445,12 +458,13 @@ export default function GenerationPage() {
                   <Button 
                     variant="secondary" 
                     size="sm"
-                    onClick={() => setSelectedPhotos(prev => 
-                      prev.size === 30 ? new Set() : new Set(Array.from({ length: 30 }, (_, i) => i))
-                    )}
+                    onClick={() => {
+                      const total = generation.styleCount || generation.outputPhotos.length
+                      setSelectedPhotos(prev => prev.size === total ? new Set() : new Set(Array.from({ length: total }, (_, i) => i)))
+                    }}
                   >
                     <Grid3X3 className="w-4 h-4 mr-2" />
-                    {selectedPhotos.size === 30 ? 'Deselect All' : 'Select All'}
+                    {selectedPhotos.size === (generation.styleCount || generation.outputPhotos.length) ? 'Deselect All' : 'Select All'}
                   </Button>
                   <span className="text-sm text-slate-500">
                     {selectedPhotos.size} selected
@@ -484,7 +498,7 @@ export default function GenerationPage() {
                     <div className="aspect-square rounded-xl overflow-hidden bg-slate-200">
                       <img 
                         src={photo}
-                        alt={styleNames[index]}
+                        alt={styleNameForIndex(index)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                         decoding="async"
@@ -494,7 +508,7 @@ export default function GenerationPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
                     
                     <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-white text-sm font-medium truncate">{styleNames[index]}</p>
+                      <p className="text-white text-sm font-medium truncate">{styleNameForIndex(index)}</p>
                     </div>
 
                     <button
@@ -525,27 +539,23 @@ export default function GenerationPage() {
               </div>
 
               <div className="mt-12 text-center">
-                <Card className="p-6 max-w-lg mx-auto">
+                <Card className="p-6 max-w-4xl mx-auto">
                   <h3 className="font-semibold text-slate-900 mb-2">Love your headshots?</h3>
                   <p className="text-sm text-slate-600 mb-4">
-                    Get the Pro version for 100 styles and 2048x2048 resolution!
+                    Add Pro credits to generate more selected styles whenever you need them.
                   </p>
-                  <Link href="/pricing?plan=pro">
-                    <Button>Upgrade to Pro - $19.90</Button>
-                  </Link>
+                  <div className="flex flex-col sm:flex-row justify-center gap-3">
+                    <Link href="/pricing?plan=pro" className="w-full sm:w-auto">
+                      <Button className="w-full">Buy Pro Credits - $19.90</Button>
+                    </Link>
+                    <Link href="/upload" className="w-full sm:w-auto">
+                      <Button variant="secondary" className="w-full">Create New Headshot Generation</Button>
+                    </Link>
+                    <Link href="/" className="w-full sm:w-auto">
+                      <Button variant="secondary" className="w-full">Back to Home</Button>
+                    </Link>
+                  </div>
                 </Card>
-
-                <div className="mt-6 flex justify-center gap-4 text-sm">
-                  <Link href="/dashboard" className="text-slate-600 hover:text-slate-900">
-                    View Dashboard
-                  </Link>
-                  <Link href="/upload" className="text-slate-600 hover:text-slate-900">
-                    Create New Headshot Generation
-                  </Link>
-                  <Link href="/" className="text-slate-600 hover:text-slate-900">
-                    Back to Home
-                  </Link>
-                </div>
               </div>
             </>
           )}
@@ -553,6 +563,28 @@ export default function GenerationPage() {
           )}
         </div>
       </main>
+
+      <Modal 
+        isOpen={showCompletionModal} 
+        onClose={confirmCompletion}
+        title="Generation complete"
+        className="max-w-md"
+      >
+        <div className="space-y-5">
+          <div className="flex items-center gap-3 rounded-lg border border-primary-100 bg-primary-50 p-4">
+            <CheckCircle2 className="h-6 w-6 shrink-0 text-primary-600" />
+            <div>
+              <p className="font-medium text-slate-900">Your selected headshots are ready.</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Confirm to view, select, and download your results.
+              </p>
+            </div>
+          </div>
+          <Button className="w-full" onClick={confirmCompletion}>
+            View Headshots
+          </Button>
+        </div>
+      </Modal>
 
       <Modal 
         isOpen={showLightbox} 
@@ -564,11 +596,11 @@ export default function GenerationPage() {
             <div className="aspect-square rounded-xl overflow-hidden bg-slate-200 mb-4">
               <img 
                 src={generation.outputPhotos[lightboxPhoto]}
-                alt={styleNames[lightboxPhoto]}
+                alt={styleNameForIndex(lightboxPhoto)}
                 className="w-full h-full object-contain"
               />
             </div>
-            <h3 className="font-semibold text-slate-900 mb-4">{styleNames[lightboxPhoto]}</h3>
+            <h3 className="font-semibold text-slate-900 mb-4">{styleNameForIndex(lightboxPhoto)}</h3>
             <div className="flex gap-2">
               <Button 
                 className="flex-1"

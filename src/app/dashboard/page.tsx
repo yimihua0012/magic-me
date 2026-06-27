@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -7,15 +7,16 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
-import { 
-  Camera, 
-  Clock, 
-  Download, 
-  Share2, 
+import {
+  Camera,
+  Clock,
+  Download,
   Trash2,
   Plus,
   Image as ImageIcon,
-  ExternalLink
+  ExternalLink,
+  Coins,
+  AlertCircle,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
@@ -29,17 +30,27 @@ interface Generation {
   output_photos?: string[]
 }
 
+interface CreditPackageSummaryItem {
+  id: string
+  remaining_credits: number
+  status: 'inactive' | 'active' | 'expired' | 'depleted'
+  expires_at?: string
+  validity_days?: number
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [generations, setGenerations] = useState<Generation[]>([])
+  const [availableCredits, setAvailableCredits] = useState(0)
+  const [nearestExpiresAt, setNearestExpiresAt] = useState<string | null>(null)
+  const [creditPackages, setCreditPackages] = useState<CreditPackageSummaryItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hydratedLocalRecords, setHydratedLocalRecords] = useState(false)
 
   useEffect(() => {
     const initDashboard = async () => {
-      // 并行执行：获取会话 + 加载本地缓存 + 发起 API 请求
       const sessionPromise = supabase.auth.getSession()
-      
-      // 先从 localStorage 快速显示本地记录（骨架屏时间缩短）
+
       let localRecords: Generation[] = []
       try {
         const stored = localStorage.getItem('generation_records')
@@ -47,52 +58,63 @@ export default function DashboardPage() {
           localRecords = JSON.parse(stored)
           if (localRecords.length > 0) {
             setGenerations(localRecords)
-            setIsLoading(false)
           }
         }
       } catch {
-        // 忽略解析错误
+      } finally {
+        setHydratedLocalRecords(true)
       }
 
       const { data: { session } } = await sessionPromise
-      
+
       if (!session?.user) {
         router.push('/login?returnTo=/dashboard')
         return
       }
 
-      // API 请求获取最新数据（与上面并行）
       try {
         const res = await fetch('/api/generations?limit=20', {
-          credentials: 'same-origin',
+          headers: { Authorization: `Bearer ${session.access_token}` },
         })
+
         if (res.ok) {
           const data = await res.json()
           const apiRecords: Generation[] = data.generations || []
-          
-          // 合并本地和 API 数据，API 优先
-          const apiIds = new Set(apiRecords.map(r => r.id))
+          const apiIds = new Set(apiRecords.map((record) => record.id))
           const merged = [...apiRecords]
-          localRecords.forEach(record => {
+
+          localRecords.forEach((record) => {
             if (!apiIds.has(record.id)) {
               merged.push(record)
             }
           })
-          
-          // 按时间排序
-          merged.sort((a, b) => 
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          )
-          
+
+          merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           setGenerations(merged)
-          setIsLoading(false)
         }
       } catch {
-        // API 失败时继续使用本地数据
+      } finally {
+        setIsLoading(false)
+      }
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.access_token) {
+          const creditRes = await fetch('/api/credits', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          })
+          if (creditRes.ok) {
+            const creditData = await creditRes.json()
+            setAvailableCredits(creditData.availableCredits || 0)
+            setNearestExpiresAt(creditData.nearestExpiresAt || null)
+            setCreditPackages(Array.isArray(creditData.packages) ? creditData.packages : [])
+          }
+        }
+      } catch {
       }
     }
-    
-    initDashboard()
+
+    void initDashboard()
   }, [router])
 
   const formatDate = (dateString: string) => {
@@ -103,22 +125,49 @@ export default function DashboardPage() {
     })
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this generation?')) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        router.push('/login?returnTo=/dashboard')
+        return
+      }
+
+      const res = await fetch(`/api/generations/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+
+      if (!res.ok) {
+        alert('Failed to delete this generation. Please try again.')
+        return
+      }
+
       const localStorageRecords = localStorage.getItem('generation_records')
       if (localStorageRecords) {
         try {
           const records = JSON.parse(localStorageRecords) as Generation[]
-          const filteredRecords = records.filter(r => r.id !== id)
+          const filteredRecords = records.filter((record) => record.id !== id)
           localStorage.setItem('generation_records', JSON.stringify(filteredRecords))
         } catch {
-          // JSON parse failed
         }
       }
-      
-      setGenerations(prev => prev.filter(g => g.id !== id))
+
+      setGenerations((prev) => prev.filter((generation) => generation.id !== id))
     }
   }
+
+  const hasActiveCredits = availableCredits > 0 && creditPackages.some((pkg) => {
+    const expiresAt = pkg.expires_at ? new Date(pkg.expires_at).getTime() : null
+    return pkg.remaining_credits > 0 && pkg.status !== 'expired' && (pkg.status === 'inactive' || pkg.status === 'active') && (!expiresAt || expiresAt > Date.now())
+  })
+
+  const expirationLabel = nearestExpiresAt
+    ? new Date(nearestExpiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : 'No active package'
+  const daysUntilExpiration = nearestExpiresAt
+    ? Math.max(0, Math.ceil((new Date(nearestExpiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
+    : null
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -139,7 +188,45 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {isLoading ? (
+          <Card className="p-5 sm:p-6 mb-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-2 text-sm text-blue-600 mb-2">
+                  <Coins className="w-4 h-4 text-blue-600" />
+                  Credit status
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-blue-950">
+                  {hasActiveCredits ? `${availableCredits} credits ready` : 'No active credits'}
+                </h2>
+                <p className="mt-2 text-sm sm:text-base text-slate-600">
+                  Upload a photo, choose styles, then generate and deduct by selection.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:min-w-[360px]">
+                <div className="rounded-xl bg-blue-50 p-3">
+                  <p className="text-xs text-blue-600 mb-1">Status</p>
+                  <p className="font-semibold text-blue-950">{hasActiveCredits ? `${availableCredits} images available` : 'Need credits'}</p>
+                </div>
+                <div className="rounded-xl bg-blue-50 p-3">
+                  <p className="text-xs text-blue-600 mb-1">Expires</p>
+                  <p className="font-semibold text-blue-950">{expirationLabel}</p>
+                  {daysUntilExpiration !== null && (
+                    <p className="mt-0.5 text-xs text-blue-600">
+                      {daysUntilExpiration} day{daysUntilExpiration === 1 ? '' : 's'} left
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            {!hasActiveCredits && (
+              <div className="mt-4 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-xl">
+                <AlertCircle className="w-4 h-4" />
+                <span>Generation is disabled until credits are restored.</span>
+              </div>
+            )}
+          </Card>
+
+          {isLoading && !hydratedLocalRecords ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="p-4 animate-pulse">
@@ -172,7 +259,7 @@ export default function DashboardPage() {
                   <div className="aspect-square bg-slate-200 relative">
                     {gen.thumbnail ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img 
+                      <img
                         src={gen.thumbnail}
                         alt="Headshot"
                         className="w-full h-full object-cover"
@@ -181,7 +268,7 @@ export default function DashboardPage() {
                       />
                     ) : gen.output_photos && gen.output_photos.length > 0 ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img 
+                      <img
                         src={gen.output_photos[0]}
                         alt="Headshot"
                         className="w-full h-full object-cover"
@@ -193,7 +280,7 @@ export default function DashboardPage() {
                         <Camera className="w-12 h-12 text-slate-400" />
                       </div>
                     )}
-                    
+
                     {gen.status === 'processing' && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                         <div className="text-white text-center">
@@ -202,36 +289,35 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                      <Link href={`/generate/${gen.id}`} aria-label="View headshot details">
+                      <Link href={`/generations/${gen.id}`} aria-label="View all headshots">
                         <Button size="sm" className="bg-white text-slate-900 hover:bg-white">
                           <ExternalLink className="w-4 h-4" />
                           <span className="sr-only">View Details</span>
                         </Button>
                       </Link>
-                      <Button size="sm" variant="ghost" className="bg-white/90 text-slate-900 hover:bg-white" aria-label="Share headshot">
-                        <Share2 className="w-4 h-4" />
-                        <span className="sr-only">Share</span>
-                      </Button>
                     </div>
                   </div>
-                  
+
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
-                        gen.status === 'completed' 
-                          ? 'bg-accent-100 text-accent-700' 
-                          : gen.status === 'processing'
-                          ? 'bg-primary-100 text-primary-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+                          gen.status === 'completed'
+                            ? 'bg-accent-100 text-accent-700'
+                            : gen.status === 'processing'
+                              ? 'bg-primary-100 text-primary-700'
+                              : 'bg-red-100 text-red-700'
+                        }`}
+                      >
                         {gen.status === 'completed' && <><span className="w-1.5 h-1.5 bg-accent-500 rounded-full" /> Completed</>}
                         {gen.status === 'processing' && <><span className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse" /> Processing</>}
                         {gen.status === 'failed' && <><span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> Failed</>}
                       </span>
                       <span className="text-xs text-slate-500">{gen.style_count} styles</span>
                     </div>
+
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-slate-600 flex items-center gap-1">
                         <Clock className="w-4 h-4" />
@@ -241,7 +327,7 @@ export default function DashboardPage() {
                         <button className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
                           <Download className="w-4 h-4 text-slate-600" />
                         </button>
-                        <button 
+                        <button
                           className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
                           onClick={() => handleDelete(gen.id)}
                         >

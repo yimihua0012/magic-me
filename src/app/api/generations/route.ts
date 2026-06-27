@@ -1,44 +1,56 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@backend/config/supabase'
 
 export const dynamic = 'force-dynamic'
+
+async function getCurrentUser(request: Request) {
+  const authHeader = request.headers.get('authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.substring(7)
+    try {
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
+      if (!error && user) {
+        return user
+      }
+    } catch (e) {
+      console.error('[Generations] Error verifying bearer token:', e)
+    }
+  }
+
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user || null
+}
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
-    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')))
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)))
     const offset = (page - 1) * limit
 
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (!user && authError) {
-      console.warn('Auth error:', authError)
-    }
-
-    // 如果没有用户，返回空数组
+    const user = await getCurrentUser(request)
     if (!user) {
-      return NextResponse.json({ generations: [], pagination: { page, limit, total: 0, totalPages: 0 } })
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // 并行查询数据和总数
     const [{ data: generations, error }, { count, error: countError }] = await Promise.all([
-      supabase
+      supabaseAdmin
         .from('generations')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1),
-      supabase
+      supabaseAdmin
         .from('generations')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id),
     ])
 
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json({ generations: [], pagination: { page, limit, total: 0, totalPages: 0 } })
+    if (error || countError) {
+      console.error('[Generations] Database error:', error || countError)
+      return NextResponse.json({ error: 'Failed to fetch generations' }, { status: 500 })
     }
 
     const total = count || 0
@@ -49,23 +61,21 @@ export async function GET(request: Request) {
       pagination: { page, limit, total, totalPages },
     })
   } catch (error) {
-    console.error('Fetch generations error:', error)
-    return NextResponse.json({ generations: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } })
+    console.error('[Generations] Fetch error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const { plan_type, photo_count } = await request.json()
+    const { plan_type } = await request.json()
 
-    const { data: generation, error } = await supabase
+    const { data: generation, error } = await supabaseAdmin
       .from('generations')
       .insert({
         user_id: user.id,
@@ -78,13 +88,13 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      console.error('Database error:', error)
+      console.error('[Generations] Create error:', error)
       return NextResponse.json({ error: 'Failed to create generation' }, { status: 500 })
     }
 
     return NextResponse.json({ generation })
   } catch (error) {
-    console.error('Create generation error:', error)
+    console.error('[Generations] Create exception:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

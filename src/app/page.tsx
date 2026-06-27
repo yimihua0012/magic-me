@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
@@ -18,6 +19,25 @@ import {
 } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
+
+export const metadata: Metadata = {
+  title: 'AI Headshot Generator for LinkedIn, Resume, and Profile Photos',
+  description: appConfig.description,
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: appConfig.title,
+    description: appConfig.description,
+    url: '/',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: appConfig.title,
+    description: appConfig.description,
+  },
+}
 
 const features = [
   {
@@ -84,7 +104,7 @@ const styles = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white">
       <Navbar />
 
       {/* Hero Section */}
@@ -105,7 +125,7 @@ export default function HomePage() {
               </h1>
               
               <p className="mt-3 sm:mt-6 text-base sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0">
-                Upload a selfie and get realistic, high-likeness AI portraits from our dedicated portrait model for LinkedIn, resumes, and company profiles.
+                Pay once to add credits, choose the styles you want, then generate and deduct only the styles you selected.
               </p>
               
               <div className="mt-5 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start relative z-10">
@@ -136,11 +156,11 @@ export default function HomePage() {
               <div className="mt-4 sm:mt-8 flex flex-wrap items-center gap-4 sm:gap-6 justify-center lg:justify-start text-xs sm:text-sm text-slate-500">
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 sm:w-5 sm:h-5 text-accent-500" />
-                  Pay once, no subscription
+                  Pay once, add credits, no subscription
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 sm:w-5 sm:h-5 text-accent-500" />
-                  Fast generation, high likeness
+                  Select styles, generate, then deduct by selection
                 </div>
               </div>
             </div>
@@ -228,9 +248,9 @@ export default function HomePage() {
       <section id="examples" className="content-auto py-10 sm:py-20 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">AI Headshot Styles for Every Profile</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">56 AI Headshot Styles, grouped by type</h2>
             <p className="text-slate-400 mt-3 sm:mt-4 max-w-2xl mx-auto text-sm sm:text-base">
-              Corporate, creative, classic, and modern options for realistic portrait generation.
+              Professional, lifestyle, creative, and seasonal looks. Pick any combination up to your credits.
             </p>
           </div>
 
@@ -302,9 +322,9 @@ export default function HomePage() {
       <section className="content-auto py-10 sm:py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-16">
-            <h2 className="section-heading">AI Headshot Pricing</h2>
+            <h2 className="section-heading">Buy credits, then generate styles</h2>
             <p className="section-subheading mx-auto mt-4">
-              One-time pricing for realistic AI portraits, LinkedIn headshots, resume photos, and team profiles.
+              Buy a credit pack once, choose your preferred styles, and each selected style is deducted on generation.
             </p>
           </div>
 
@@ -490,6 +510,6 @@ export default function HomePage() {
       </section>
 
       <Footer />
-    </div>
+    </main>
   )
 }

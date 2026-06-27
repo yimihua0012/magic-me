@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { GenerationService } from '@backend/services'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@backend/config/supabase'
@@ -44,8 +44,8 @@ export async function POST(request: Request) {
     const body = await request.json()
     console.log('[API POST] Request body parsed successfully')
     
-    const { faceImageUrl, styleIds } = body
-    console.log(`[API POST] faceImageUrl: ${faceImageUrl?.substring(0, 50)}..., styleIds count: ${styleIds?.length || 'all'}`)
+    const { faceImageUrl, styleIds, clientGenerationId } = body
+    console.log(`[API POST] faceImageUrl: ${faceImageUrl?.substring(0, 50)}..., styleIds count: ${styleIds?.length || 0}`)
 
     if (!faceImageUrl) {
       console.log('[API POST] Error: faceImageUrl is required')
@@ -55,15 +55,21 @@ export async function POST(request: Request) {
       )
     }
 
-    // 确定本次生成需要消耗的次数（风格数量）
-    if (styleIds && (!Array.isArray(styleIds) || styleIds.some((styleId) => typeof styleId !== 'string'))) {
+    if (!Array.isArray(styleIds) || styleIds.some((styleId) => typeof styleId !== 'string')) {
       return NextResponse.json(
         { error: 'styleIds must be an array of strings' },
         { status: 400 }
       )
     }
 
-    const styleCount = styleIds?.length || 30
+    if (clientGenerationId !== undefined && typeof clientGenerationId !== 'string') {
+      return NextResponse.json(
+        { error: 'clientGenerationId must be a string' },
+        { status: 400 }
+      )
+    }
+
+    const styleCount = styleIds.length
     console.log(`[API POST] Credits needed: ${styleCount}`)
 
     if (styleCount < 1 || styleCount > 120) {
@@ -73,50 +79,40 @@ export async function POST(request: Request) {
       )
     }
 
-    // 检查是否有足够的信用次数
-    const hasEnough = await CreditPackageService.hasEnoughCredits(user.id, styleCount)
-    if (!hasEnough) {
-      console.warn(`[API POST] Insufficient credits - needed: ${styleCount}`)
-      return NextResponse.json(
-        { error: 'No available credits. Please purchase a plan first.' },
-        { status: 402 }
-      )
-    }
-
-    // 创建并激活生成（会自动预扣信用次数）
     const generation = await GenerationService.createAndActivateGeneration({
       userId: user.id,
       faceImageUrl,
       styleIds,
+      clientGenerationId,
     })
     console.log(`[API POST] Created and activated generation: ${generation.id}`)
 
-    // 后台异步生成
-    GenerationService.generateHeadshots(generation.id).then(() => {
-      console.log(`[API POST] Generation completed for taskId: ${generation.id}`)
-    }).catch(async (error) => {
-      console.error('[API POST] Background generation error:', error)
-      // 生成失败时回退信用次数
-      try {
-        const gen = await GenerationService.getGeneration(generation.id)
-        const consumedCredits = Array.isArray(gen?.metadata?.consumedCredits)
-          ? gen.metadata.consumedCredits as { packageId: string; amount: number }[]
-          : []
+    if (!generation.reused) {
+      GenerationService.generateHeadshots(generation.id).then(() => {
+        console.log(`[API POST] Generation completed for taskId: ${generation.id}`)
+      }).catch(async (error) => {
+        console.error('[API POST] Background generation error:', error)
+        try {
+          const gen = await GenerationService.getGeneration(generation.id)
+          const consumedCredits = Array.isArray(gen?.metadata?.consumedCredits)
+            ? gen.metadata.consumedCredits as { packageId: string; amount: number }[]
+            : []
 
-        if (consumedCredits.length > 0) {
-          await Promise.all(consumedCredits.map(({ packageId, amount }) =>
-            CreditPackageService.refundCredits(packageId, amount)
-          ))
-          console.log(`[API POST] Refunded credits for generation ${generation.id}`)
-        } else if (gen?.credit_package_id && gen?.credits_used) {
-          await CreditPackageService.refundCredits(gen.credit_package_id, gen.credits_used)
-          console.log(`[API POST] Refunded ${gen.credits_used} credits to package ${gen.credit_package_id}`)
+          if (consumedCredits.length > 0) {
+            await Promise.all(consumedCredits.map(({ packageId, amount }) =>
+              CreditPackageService.refundCredits(packageId, amount)
+            ))
+            console.log(`[API POST] Refunded credits for generation ${generation.id}`)
+          } else if (gen?.credit_package_id && gen?.credits_used) {
+            await CreditPackageService.refundCredits(gen.credit_package_id, gen.credits_used)
+            console.log(`[API POST] Refunded ${gen.credits_used} credits to package ${gen.credit_package_id}`)
+          }
+        } catch (refundError) {
+          console.error('[API POST] Failed to refund credits:', refundError)
         }
-      } catch (refundError) {
-        console.error('[API POST] Failed to refund credits:', refundError)
-      }
-    })
-    console.log(`[API POST] Started background generation for taskId: ${generation.id}`)
+      })
+      console.log(`[API POST] Started background generation for taskId: ${generation.id}`)
+    }
 
     return NextResponse.json({
       taskId: generation.id,
@@ -148,12 +144,10 @@ export async function GET(request: Request) {
 
     if (!taskId) {
       console.log(`[API GET] Returning config (no taskId)`)
-      const mode = process.env.GENERATION_MODE?.toLowerCase()
       const hasApiKey = !!process.env.REPLICATE_API_KEY
-      const isMockMode = mode === 'mock' || (!mode && !hasApiKey)
 
       return NextResponse.json({
-        generationMode: isMockMode ? 'mock' : 'replicate',
+        generationMode: 'replicate',
         hasReplicateKey: hasApiKey,
         modelVersion: process.env.REPLICATE_MODEL_VERSION || 'f65a676869e16bc5474c291f55ba299250d979897d165810020079f9eea8f574',
         config: {
@@ -192,12 +186,12 @@ export async function GET(request: Request) {
 
     console.log(`[API GET] Found generation - id: ${generation.id}, status: ${generation.status}, progress: ${generation.progress}, outputUrls count: ${generation.output_photos?.length || 0}`)
 
-    // 添加短缓存头 - 生成状态每5秒刷新一次足够
     return NextResponse.json(
       {
         taskId: generation.id,
         status: generation.status,
         progress: generation.progress,
+        currentStep: generation.current_step,
         outputUrls: generation.output_photos,
       },
       {
@@ -214,3 +208,4 @@ export async function GET(request: Request) {
     )
   }
 }
+

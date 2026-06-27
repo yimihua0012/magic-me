@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: '#0f172a',
-          backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          backgroundImage: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
           padding: '60px',
         }}
       >
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backgroundColor: 'rgba(255, 255, 255, 0.96)',
             borderRadius: '24px',
             padding: '60px',
             width: '1000px',
@@ -39,52 +39,25 @@ export async function GET(req: NextRequest) {
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           }}
         >
-          <div
+          <h1
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '30px',
+              fontSize: '52px',
+              fontWeight: 800,
+              color: '#1d4ed8',
+              margin: '0 0 24px 0',
             }}
           >
-            <div
-              style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '16px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: '20px',
-              }}
-            >
-              <svg width="50" height="50" viewBox="0 0 100 100">
-                <circle cx="50" cy="40" r="15" fill="#ffffff" opacity="0.9"/>
-                <path d="M 25 75 Q 50 60 75 75" stroke="#ffffff" stroke-width="4" fill="none" opacity="0.9"/>
-              </svg>
-            </div>
-            <h1
-              style={{
-                fontSize: '48px',
-                fontWeight: 'bold',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                backgroundClip: 'text',
-                color: 'transparent',
-                margin: 0,
-              }}
-            >
-              {appConfig.name}
-            </h1>
-          </div>
+            {appConfig.name}
+          </h1>
 
           <h2
             style={{
               fontSize: '42px',
-              fontWeight: 'bold',
-              color: '#1e293b',
+              fontWeight: 800,
+              color: '#0f172a',
               textAlign: 'center',
               margin: '0 0 20px 0',
-              lineHeight: '1.2',
+              lineHeight: 1.2,
             }}
           >
             {title}
@@ -93,10 +66,11 @@ export async function GET(req: NextRequest) {
           <p
             style={{
               fontSize: '24px',
-              color: '#64748b',
+              color: '#475569',
               textAlign: 'center',
               margin: '0 0 40px 0',
-              maxWidth: '800px',
+              maxWidth: '820px',
+              lineHeight: 1.35,
             }}
           >
             {description}
@@ -105,23 +79,14 @@ export async function GET(req: NextRequest) {
           <div
             style={{
               display: 'flex',
-              gap: '30px',
+              gap: '28px',
               fontSize: '20px',
-              color: '#475569',
+              color: '#334155',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ marginRight: '10px', fontSize: '24px' }}>⚡</span>
-              <span>3 Minutes</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ marginRight: '10px', fontSize: '24px' }}>🎨</span>
-              <span>{PLANS.basic.credits} Headshots</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ marginRight: '10px', fontSize: '24px' }}>💰</span>
-              <span>From ${PLANS.basic.price}</span>
-            </div>
+            <span>Fast generation</span>
+            <span>{PLANS.basic.credits} credits</span>
+            <span>From ${PLANS.basic.price}</span>
           </div>
         </div>
       </div>

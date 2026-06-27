@@ -22,7 +22,7 @@ if (!global.mockCreditPackages) {
 }
 
 const mockCreditPackages = global.mockCreditPackages
-const allowMemoryFallback = process.env.NODE_ENV !== 'production'
+const allowMemoryFallback = false
 
 export class CreditPackageService {
   /**
@@ -357,7 +357,7 @@ export class CreditPackageService {
         .maybeSingle()
 
       if (error || !updatedPackage) {
-        if (!allowMemoryFallback) {
+        if (true) {
           throw error || new Error(`Concurrent credit update detected for package ${pkg.id}`)
         }
 

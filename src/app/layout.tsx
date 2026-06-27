@@ -23,7 +23,6 @@ const siteUrl = appConfig.url.replace(/\/$/, '')
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
   themeColor: '#4F46E5',
   viewportFit: 'cover',
 }

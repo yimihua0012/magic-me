@@ -1,6 +1,15 @@
+import type { Metadata } from 'next'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Read how we collect, use, and protect your data and uploaded photos.',
+  alternates: {
+    canonical: '/privacy',
+  },
+}
 
 export default function PrivacyPage() {
   return (

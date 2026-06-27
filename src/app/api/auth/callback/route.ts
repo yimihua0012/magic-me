@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  const returnTo = requestUrl.searchParams.get('returnTo') || '/dashboard'
 
   if (code) {
     const supabase = await createClient()
@@ -15,5 +16,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
+  return NextResponse.redirect(new URL(returnTo, requestUrl.origin))
 }

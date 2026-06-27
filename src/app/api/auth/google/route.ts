@@ -6,12 +6,13 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const origin = requestUrl.origin
+  const returnTo = requestUrl.searchParams.get('returnTo') || '/dashboard'
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${origin}/api/auth/callback`,
+      redirectTo: `${origin}/api/auth/callback?returnTo=${encodeURIComponent(returnTo)}`,
     },
   })
 

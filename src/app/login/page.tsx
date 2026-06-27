@@ -67,7 +67,8 @@ export default function LoginPage() {
   }
 
   const handleGoogleAuth = () => {
-    window.location.href = '/api/auth/google'
+    const target = returnTo ? `/api/auth/google?returnTo=${encodeURIComponent(returnTo)}` : '/api/auth/google'
+    window.location.href = target
   }
 
   return (
@@ -194,3 +195,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

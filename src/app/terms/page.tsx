@@ -1,7 +1,16 @@
+import type { Metadata } from 'next'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import { appConfig } from '@/lib/config'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: `Terms that govern use of ${appConfig.name}.`,
+  alternates: {
+    canonical: '/terms',
+  },
+}
 
 export default function TermsPage() {
   return (

@@ -16,7 +16,7 @@ if (!global.mockGenerations) {
 }
 
 const mockGenerations = global.mockGenerations
-const allowMemoryFallback = process.env.NODE_ENV !== 'production'
+const allowMemoryFallback = false
 
 // 内存缓存 - 用于减少频繁的数据库查询（前端轮询优化）
 interface CacheEntry {
@@ -253,6 +253,64 @@ const STYLE_CONFIGS: Record<string, StyleConfig> = {
   }
 }
 
+let cachedDbStyles: StyleConfig[] | null = null
+let cachedDbStylesAt = 0
+const STYLE_CACHE_MS = 60_000
+
+async function loadDbStyles(): Promise<StyleConfig[] | null> {
+  if (cachedDbStyles && Date.now() - cachedDbStylesAt < STYLE_CACHE_MS) {
+    return cachedDbStyles
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('headshot_styles')
+      .select('id,name,category,prompt,negative,is_active')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+
+    if (error || !data || data.length === 0) {
+      return null
+    }
+
+    cachedDbStyles = data as StyleConfig[]
+    cachedDbStylesAt = Date.now()
+    return cachedDbStyles
+  } catch (error) {
+    console.error('[GenerationService] Failed to load DB styles:', error)
+    return null
+  }
+}
+
+async function getStyleMap(): Promise<Record<string, StyleConfig>> {
+  const dbStyles = await loadDbStyles()
+  const styles = dbStyles?.length ? dbStyles : Object.values(STYLE_CONFIGS)
+  return Object.fromEntries(styles.map(style => [style.id, style]))
+}
+
+async function incrementStyleStats(styleIds: string[]): Promise<void> {
+  const uniqueStyleIds = [...new Set(styleIds)].filter(Boolean)
+  if (uniqueStyleIds.length === 0) return
+
+  const now = new Date().toISOString()
+  await Promise.all(uniqueStyleIds.map(async (styleId) => {
+    const { data: existing } = await supabaseAdmin
+      .from('headshot_styles')
+      .select('selection_count')
+      .eq('id', styleId)
+      .maybeSingle()
+
+    const nextCount = (existing?.selection_count || 0) + 1
+    await supabaseAdmin
+      .from('headshot_styles')
+      .update({
+        selection_count: nextCount,
+        last_selected_at: now,
+      })
+      .eq('id', styleId)
+  }))
+}
+
 // 带超时的 fetch 包装
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 30000): Promise<Response> {
   const controller = new AbortController()
@@ -273,6 +331,7 @@ export interface CreateGenerationRequest {
   userId: string
   faceImageUrl: string
   styleIds?: string[]
+  clientGenerationId?: string
 }
 
 export interface GenerationResponse {
@@ -281,9 +340,37 @@ export interface GenerationResponse {
   progress: number
   currentStep: string
   outputUrls: string[]
+  reused?: boolean
 }
 
 export class GenerationService {
+  private static async getGenerationByClientId(userId: string, clientGenerationId: string): Promise<Generation | null> {
+    const { data, error } = await supabaseAdmin
+      .from('generations')
+      .select('*')
+      .eq('user_id', userId)
+      .contains('metadata', { clientGenerationId })
+      .maybeSingle()
+
+    if (error) {
+      console.error('[GenerationService] Error checking idempotent generation:', error)
+      throw error
+    }
+
+    return data as Generation | null
+  }
+
+  private static toGenerationResponse(generation: Generation, reused = false): GenerationResponse {
+    return {
+      id: generation.id,
+      status: generation.status,
+      progress: generation.progress || 0,
+      currentStep: generation.current_step || 'Generating selected styles...',
+      outputUrls: generation.output_photos || [],
+      reused,
+    }
+  }
+
   static async getPendingGeneration(userId: string): Promise<Generation | null> {
     console.log(`[GenerationService] getPendingGeneration for user: ${userId}`)
     
@@ -356,10 +443,23 @@ export class GenerationService {
 
   static async createAndActivateGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
     console.log(`[GenerationService] createAndActivateGeneration called - userId: ${input.userId}`)
-    const { userId, faceImageUrl, styleIds } = input
-    const styles = styleIds || Object.keys(STYLE_CONFIGS).slice(0, 30)
+    const { userId, faceImageUrl, styleIds, clientGenerationId } = input
+    const availableStyles = await getStyleMap()
+    const styles = styleIds?.length
+      ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
+      : Object.keys(availableStyles).slice(0, 30)
     const styleCount = styles.length
     console.log(`[GenerationService] Creating generation with ${styleCount} styles`)
+
+    if (clientGenerationId) {
+      const existing = await this.getGenerationByClientId(userId, clientGenerationId)
+      if (existing) {
+        const existingGeneration = existing as Generation
+        console.log(`[GenerationService] Reusing existing generation for clientGenerationId: ${clientGenerationId}`)
+        setCachedGeneration(existingGeneration.id, existingGeneration)
+        return this.toGenerationResponse(existingGeneration, true)
+      }
+    }
 
     // 预扣信用次数
     const consumeResult = await CreditPackageService.consumeCredits(userId, styleCount)
@@ -367,6 +467,8 @@ export class GenerationService {
       console.error(`[GenerationService] Failed to consume credits: ${consumeResult.error}`)
       throw new Error(consumeResult.error || 'Failed to consume credits')
     }
+
+    await incrementStyleStats(styles)
 
     const generationData: Partial<Generation> = {
       user_id: userId,
@@ -382,6 +484,8 @@ export class GenerationService {
       credits_used: styleCount,
       metadata: {
         consumedCredits: consumeResult.consumedFrom || [],
+        styleIds: styles,
+        clientGenerationId,
       },
     }
 
@@ -392,6 +496,18 @@ export class GenerationService {
       .single()
 
     if (error) {
+      if (clientGenerationId) {
+        const existing = await this.getGenerationByClientId(userId, clientGenerationId)
+        if (existing) {
+          await Promise.all((consumeResult.consumedFrom || []).map(({ packageId, amount }) =>
+            CreditPackageService.refundCredits(packageId, amount)
+          ))
+          console.log(`[GenerationService] Refunded duplicate retry and reused generation: ${existing.id}`)
+          setCachedGeneration(existing.id, existing)
+          return this.toGenerationResponse(existing, true)
+        }
+      }
+
       if (!allowMemoryFallback) {
         await Promise.all((consumeResult.consumedFrom || []).map(({ packageId, amount }) =>
           CreditPackageService.refundCredits(packageId, amount)
@@ -419,6 +535,8 @@ export class GenerationService {
         credits_used: styleCount,
         metadata: {
           consumedCredits: consumeResult.consumedFrom || [],
+          styleIds: styles,
+          clientGenerationId,
         },
       })
       console.log(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
@@ -448,7 +566,10 @@ export class GenerationService {
   static async createGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
     console.log(`[GenerationService] createGeneration called - userId: ${input.userId}, faceImageUrl: ${input.faceImageUrl?.substring(0, 50)}...`)
     const { userId, faceImageUrl, styleIds } = input
-    const styles = styleIds || Object.keys(STYLE_CONFIGS).slice(0, 30)
+    const availableStyles = await getStyleMap()
+    const styles = styleIds?.length
+      ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
+      : Object.keys(availableStyles).slice(0, 30)
     console.log(`[GenerationService] Creating generation with ${styles.length} styles`)
     
     const generationData: Partial<Generation> = {
@@ -615,9 +736,12 @@ export class GenerationService {
       current_step: 'Initializing generation...'
     })
 
-    const maxStylesForTesting = 3
-const stylesToGenerate = Object.keys(STYLE_CONFIGS).slice(0, Math.min(generation.style_count, maxStylesForTesting))
-console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTesting} styles`)
+    const requestedStyleIds = Array.isArray(generation.metadata?.styleIds)
+      ? generation.metadata.styleIds.filter((styleId): styleId is string => typeof styleId === 'string')
+      : []
+    const stylesToGenerate = requestedStyleIds.length
+      ? requestedStyleIds
+      : Object.keys(await getStyleMap()).slice(0, generation.style_count)
     const batchSize = 5
     const batches: string[][] = []
     
@@ -704,10 +828,9 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
 
   private static isMockMode(): boolean {
     const mode = process.env.GENERATION_MODE?.toLowerCase()
-    if (mode === 'mock') return true
+    if (mode === 'mock') return false
     if (mode === 'replicate') return false
-    // Default: use mock if no API key, otherwise use replicate
-    return !process.env.REPLICATE_API_KEY
+    return false
   }
 
   private static async generateWithRetry(faceImageUrl: string, styleId: string, maxRetries: number): Promise<string> {
@@ -731,7 +854,8 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
   }
 
   private static async generateSingleStyle(faceImageUrl: string, styleId: string): Promise<string> {
-    const styleConfig = STYLE_CONFIGS[styleId]
+    const availableStyles = await getStyleMap()
+    const styleConfig = availableStyles[styleId]
     if (!styleConfig) throw new Error(`Style ${styleId} not found`)
 
     if (this.isMockMode()) {
@@ -868,10 +992,10 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
   }
 
   static getStyleConfigs(): StyleConfig[] {
-    return Object.values(STYLE_CONFIGS)
+    return cachedDbStyles?.length ? cachedDbStyles : Object.values(STYLE_CONFIGS)
   }
 
   static getStyleConfig(id: string): StyleConfig | undefined {
-    return STYLE_CONFIGS[id]
+    return cachedDbStyles?.find(style => style.id === id) || STYLE_CONFIGS[id]
   }
 }
