@@ -17,8 +17,18 @@ export async function GET(request: Request) {
   })
 
   if (error) {
+    console.error('[Google Auth] OAuth URL error:', error.message)
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
-  return NextResponse.redirect(data.url)
+  if (!data.url) {
+    console.error('[Google Auth] Supabase did not return an OAuth URL')
+    return NextResponse.json({ error: 'Failed to create Google login URL' }, { status: 500 })
+  }
+
+  const redirectUrl = data.url.startsWith('http')
+    ? data.url
+    : new URL(data.url, process.env.NEXT_PUBLIC_SUPABASE_URL).toString()
+
+  return NextResponse.redirect(redirectUrl)
 }

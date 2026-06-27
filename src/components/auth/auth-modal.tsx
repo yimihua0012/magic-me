@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Modal from '@/components/ui/modal'
 import Button from '@/components/ui/button'
-import Input from '@/components/ui/input'
 import { Camera, Mail, Lock, User, Chrome } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
@@ -65,16 +64,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
   const handleGoogleAuth = async () => {
     setIsLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback`,
-      },
-    })
-    if (error) {
-      setError(error.message)
-      setIsLoading(false)
-    }
+    const currentPath = `${window.location.pathname}${window.location.search}`
+    window.location.href = `/api/auth/google?returnTo=${encodeURIComponent(currentPath || '/dashboard')}`
   }
 
   return (
