@@ -19,11 +19,15 @@ export default function LoginPage() {
   const [returnTo, setReturnTo] = useState<string | null>(null)
 
   useEffect(() => {
-    // Get return URL from query params
     const urlParams = new URLSearchParams(window.location.search)
     const returnParam = urlParams.get('returnTo')
     if (returnParam) {
       setReturnTo(returnParam)
+    }
+
+    const authError = urlParams.get('error')
+    if (authError) {
+      setError(authErrorMessage(authError))
     }
   }, [])
 
@@ -194,5 +198,18 @@ export default function LoginPage() {
       </main>
     </div>
   )
+}
+
+function authErrorMessage(error: string) {
+  switch (error) {
+    case 'missing_code':
+      return 'Google sign-in did not return an authorization code. Please try again.'
+    case 'oauth_exchange_failed':
+      return 'Google sign-in could not be completed. Please check the authorized redirect URL in Supabase.'
+    case 'session_missing':
+      return 'Google sign-in completed, but the login session was not saved. Please try again.'
+    default:
+      return 'Google sign-in failed. Please try again.'
+  }
 }
 

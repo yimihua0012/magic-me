@@ -264,8 +264,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             {styles.map((style, i) => (
               <div key={i} className="group cursor-pointer">
-                <div className="aspect-square rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-700 group-hover:border-primary-500 transition-colors overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative aspect-square overflow-hidden rounded-xl border border-slate-700 bg-gradient-to-br from-slate-700 to-slate-800 transition-colors group-hover:border-primary-500">
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-600 rounded-full" />
                   </div>
                 </div>

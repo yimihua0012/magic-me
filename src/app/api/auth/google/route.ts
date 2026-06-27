@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getSupabaseUrl } from '@/lib/supabase/url'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
 
   const redirectUrl = data.url.startsWith('http')
     ? data.url
-    : new URL(data.url, process.env.NEXT_PUBLIC_SUPABASE_URL).toString()
+    : new URL(data.url, getSupabaseUrl()).toString()
 
   return NextResponse.redirect(redirectUrl)
 }
