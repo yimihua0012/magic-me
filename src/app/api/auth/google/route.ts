@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { appConfig } from '@/lib/config'
 import { getSupabaseUrl } from '@/lib/supabase/url'
 import { NextResponse } from 'next/server'
 
@@ -6,7 +7,9 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
-  const origin = requestUrl.origin
+  const origin = requestUrl.hostname === 'localhost' || requestUrl.hostname === '127.0.0.1'
+    ? requestUrl.origin
+    : appConfig.url
   const returnTo = requestUrl.searchParams.get('returnTo') || '/dashboard'
 
   const supabase = await createClient()

@@ -40,8 +40,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/upload?payment=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+      success_url: `${appConfig.url}/upload?payment=success`,
+      cancel_url: `${appConfig.url}/pricing`,
       customer_email: user.email,
       metadata: {
         user_id: user.id,

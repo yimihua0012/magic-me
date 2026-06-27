@@ -105,13 +105,8 @@ export async function GET(request: Request) {
 
     if (!taskId) {
       return NextResponse.json({
-        generationMode: 'replicate',
-        hasReplicateKey: !!process.env.REPLICATE_API_KEY,
-        modelVersion: process.env.REPLICATE_MODEL_VERSION || 'f65a676869e16bc5474c291f55ba299250d979897d165810020079f9eea8f574',
-        config: {
-          guidanceScale: parseFloat(process.env.REPLICATE_GUIDANCE_SCALE || '7.5'),
-          numInferenceSteps: parseInt(process.env.REPLICATE_INFERENCE_STEPS || '30'),
-        },
+        service: 'generation',
+        status: process.env.REPLICATE_API_KEY ? 'configured' : 'not_configured',
       })
     }
 

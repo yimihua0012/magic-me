@@ -52,7 +52,7 @@ export default function LoginPage() {
           password,
           options: {
             data: { full_name: name },
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+            emailRedirectTo: `${window.location.origin}/api/auth/callback`,
           },
         })
         data = result.data

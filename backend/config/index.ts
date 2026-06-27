@@ -1,3 +1,5 @@
+const normalizeUrl = (url: string) => url.replace(/\/+$/, '')
+
 // Backend Configuration
 export const config = {
   supabase: {
@@ -16,10 +18,11 @@ export const config = {
     signingSecret: process.env.LEMONSQUEEZY_WEBHOOK_SECRET!,
   },
   app: {
-    url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    url: normalizeUrl(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
     env: process.env.NODE_ENV || 'development',
   },
   email: {
+    enabled: process.env.EMAIL_ENABLED === 'true',
     resendApiKey: process.env.RESEND_API_KEY!,
     fromEmail: 'postmaster@magic-headshot.com',
     fromName: process.env.NEXT_PUBLIC_APP_NAME || 'Magic-Headshot',

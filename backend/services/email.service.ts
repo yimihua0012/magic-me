@@ -39,45 +39,75 @@ interface ExpirationReminderData {
 
 export class EmailService {
   private async sendEmail(options: EmailOptions): Promise<void> {
-    // In production, integrate with Resend
-    // const resend = new Resend(config.email.resendApiKey)
-    // await resend.emails.send({
-    //   from: options.from || `${config.email.fromName} <${config.email.fromEmail}>`,
-    //   to: options.to,
-    //   subject: options.subject,
-    //   html: options.html,
-    // })
+    if (!config.email.enabled) {
+      console.info('[Email] Email delivery is disabled; skipping email:', {
+        to: options.to,
+        subject: options.subject,
+      })
+      return
+    }
 
-    console.log('Email sent:', {
+    const apiKey = config.email.resendApiKey
+    const isConfigured = Boolean(apiKey) && apiKey !== 're_demo'
+
+    if (!isConfigured) {
+      console.warn('[Email] Resend is not configured; skipping email:', {
+        to: options.to,
+        subject: options.subject,
+      })
+      return
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: options.from || `${config.email.fromName} <${config.email.fromEmail}>`,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`Resend email failed: ${response.status} ${errorBody}`)
+    }
+
+    console.log('[Email] Email sent:', {
       to: options.to,
       subject: options.subject,
     })
   }
 
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<void> {
+    const appName = config.email.fromName
     const html = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
-          <title>Welcome to HeadshotAI</title>
+          <title>Welcome to ${appName}</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #4F46E5;">Welcome to HeadshotAI!</h1>
+            <h1 style="color: #4F46E5;">Welcome to ${appName}!</h1>
             <p>Hi ${data.name || 'there'},</p>
-            <p>Thanks for joining HeadshotAI! We're excited to help you create professional AI headshots.</p>
+            <p>Thanks for joining ${appName}. We're excited to help you create professional AI headshots.</p>
             <p>Here's what you can do next:</p>
             <ol>
               <li>Upload 1-3 selfies with good lighting</li>
               <li>Choose your preferred styles</li>
-              <li>Download your professional headshots in minutes!</li>
+              <li>Download your professional headshots in minutes</li>
             </ol>
             <a href="${config.app.url}/upload" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin-top: 20px;">
               Get Started
             </a>
             <p style="margin-top: 30px; color: #666; font-size: 12px;">
-              If you didn't create this account, please ignore this email.
+              If you did not create this account, please ignore this email.
             </p>
           </div>
         </body>
@@ -86,29 +116,30 @@ export class EmailService {
 
     await this.sendEmail({
       to: data.email,
-      subject: 'Welcome to HeadshotAI - Your AI Headshot Journey Starts Here!',
+      subject: `Welcome to ${appName} - Your AI Headshot Journey Starts Here`,
       html,
     })
   }
 
   async sendGenerationCompleteEmail(data: GenerationCompleteData): Promise<void> {
+    const appName = config.email.fromName
     const html = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
-          <title>Your Headshots Are Ready!</title>
+          <title>Your Headshots Are Ready</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #10B981;">Your Headshots Are Ready! 🎉</h1>
+            <h1 style="color: #10B981;">Your Headshots Are Ready</h1>
             <p>Hi ${data.name || 'there'},</p>
-            <p>Great news! Your AI headshots have been generated and are ready for download.</p>
-            <p>You created ${data.styleCount} different styles to choose from!</p>
+            <p>Great news. Your AI headshots have been generated and are ready for download.</p>
+            <p>You created ${data.styleCount} different style${data.styleCount === 1 ? '' : 's'} to choose from.</p>
             <a href="${config.app.url}/generate/${data.generationId}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin-top: 20px;">
               View Your Headshots
             </a>
-            <p style="margin-top: 30px;">Best regards,<br>The HeadshotAI Team</p>
+            <p style="margin-top: 30px;">Best regards,<br>The ${appName} Team</p>
           </div>
         </body>
       </html>
@@ -116,7 +147,7 @@ export class EmailService {
 
     await this.sendEmail({
       to: data.email,
-      subject: '🎉 Your AI Headshots Are Ready!',
+      subject: 'Your AI Headshots Are Ready',
       html,
     })
   }
@@ -132,9 +163,9 @@ export class EmailService {
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #10B981;">Payment Confirmed ✓</h1>
+            <h1 style="color: #10B981;">Payment Confirmed</h1>
             <p>Hi ${data.name || 'there'},</p>
-            <p>Thank you for your purchase! Your credit package is ready to use.</p>
+            <p>Thank you for your purchase. Your credit package is ready to use.</p>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p style="margin: 0;"><strong>Plan:</strong> ${plan.name}</p>
               <p style="margin: 10px 0;"><strong>Total Credits:</strong> ${data.totalCredits} headshots</p>
@@ -143,7 +174,7 @@ export class EmailService {
             </div>
             <div style="background: #fffbeb; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
               <p style="margin: 0; color: #92400e;">
-                <strong>💡 Important:</strong> Your validity period starts from your <strong>first generation</strong>, not from the purchase date. Your credits remain safe until you begin using them.
+                <strong>Important:</strong> Your validity period starts from your <strong>first generation</strong>, not from the purchase date. Your credits remain safe until you begin using them.
               </p>
             </div>
             <p>Ready to create your professional headshots?</p>
@@ -172,14 +203,14 @@ export class EmailService {
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #f59e0b;">⏰ Your Credits Expire Soon!</h1>
+            <h1 style="color: #f59e0b;">Your Credits Expire Soon</h1>
             <p>Hi ${data.name || 'there'},</p>
             <p>Just a friendly reminder that your credit package will expire in <strong>${data.daysRemaining} day${data.daysRemaining > 1 ? 's' : ''}</strong>.</p>
             <div style="background: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
               <p style="margin: 0;"><strong>Remaining Credits:</strong> ${data.remainingCredits} headshots</p>
               <p style="margin: 10px 0 0;"><strong>Expiration Date:</strong> ${new Date(data.expiresAt).toLocaleDateString()}</p>
             </div>
-            <p>Unused credits will become void after the expiration date. Make sure to use them before they expire!</p>
+            <p>Unused credits will become void after the expiration date. Make sure to use them before they expire.</p>
             <a href="${config.app.url}/upload" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin-top: 20px;">
               Use Your Credits Now
             </a>
@@ -193,12 +224,13 @@ export class EmailService {
 
     await this.sendEmail({
       to: data.email,
-      subject: `⏰ Reminder: Your Credits Expire in ${data.daysRemaining} Day${data.daysRemaining > 1 ? 's' : ''}`,
+      subject: `Reminder: Your Credits Expire in ${data.daysRemaining} Day${data.daysRemaining > 1 ? 's' : ''}`,
       html,
     })
   }
 
   async sendExpiredEmail(data: ExpirationReminderData): Promise<void> {
+    const appName = config.email.fromName
     const html = `
       <!DOCTYPE html>
       <html>
@@ -230,7 +262,7 @@ export class EmailService {
 
     await this.sendEmail({
       to: data.email,
-      subject: 'Your HeadshotAI Credits Have Expired',
+      subject: `Your ${appName} Credits Have Expired`,
       html,
     })
   }

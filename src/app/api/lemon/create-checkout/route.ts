@@ -50,7 +50,7 @@ export async function POST(request: Request) {
               },
             },
             checkout_options: {
-              redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/upload?payment=success`,
+              redirect_url: `${appConfig.url}/upload?payment=success`,
             },
             product_options: {
               name: `${appConfig.name} ${plan.name}`,
