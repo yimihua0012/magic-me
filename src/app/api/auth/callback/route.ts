@@ -28,7 +28,11 @@ export async function GET(request: Request) {
     return redirectToLogin(requestUrl, returnTo, 'session_missing')
   }
 
-  return redirectAndClear(new URL(returnTo, requestUrl.origin))
+  const completeUrl = new URL('/auth/complete', requestUrl.origin)
+  completeUrl.searchParams.set('returnTo', returnTo)
+  completeUrl.searchParams.set('access_token', data.session.access_token)
+  completeUrl.searchParams.set('refresh_token', data.session.refresh_token)
+  return redirectAndClear(completeUrl)
 }
 
 function safeReturnTo(value: string | null): string {
