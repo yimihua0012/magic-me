@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@backend/config/supabase'
 import { CreditPackageService } from '@backend/services'
+import { getBearerUser } from '@/lib/auth/server'
 import {
   capturePayPalOrder,
   expectedPayPalAmount,
@@ -9,20 +9,9 @@ import {
 
 export const dynamic = 'force-dynamic'
 
-async function getCurrentUser(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null
-  }
-
-  const token = authHeader.substring(7)
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-  return error ? null : user
-}
-
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser(request)
+    const user = await getBearerUser(request)
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }

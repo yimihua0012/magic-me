@@ -18,7 +18,6 @@ import {
   Loader2,
   Sparkles,
   ChevronRight,
-  BadgeInfo,
   Coins,
   CheckCircle2,
 } from 'lucide-react'
@@ -92,7 +91,6 @@ function UploadContent() {
   const [selectedStyleIds, setSelectedStyleIds] = useState<string[]>([])
   const [stylesLoadFailed, setStylesLoadFailed] = useState(false)
   const hasShownNoCreditsModalRef = useRef(false)
-  const stylesSectionRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -770,7 +768,7 @@ function UploadContent() {
                 </div>
               </Card>
 
-              <Card ref={stylesSectionRef} className="p-5 sm:p-6">
+              <Card className="p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-600 text-white text-xs font-semibold">2</span>
                   <h2 className="font-semibold text-slate-900">Choose styles</h2>

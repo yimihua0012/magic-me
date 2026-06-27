@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@backend/config/supabase'
-import { Generation, GenerationStatus, StyleConfig, CreateGenerationInput } from '@backend/types'
+import { Generation, GenerationStatus, StyleConfig } from '@backend/types'
 import { CreditPackageService } from './credit-package.service'
 import { emailService } from './email.service'
 import { userRepository } from '@backend/db/repositories'
@@ -17,6 +17,13 @@ if (!global.mockGenerations) {
 
 const mockGenerations = global.mockGenerations
 const allowMemoryFallback = false
+const generationDebugEnabled = process.env.GENERATION_DEBUG === 'true'
+
+function logGenerationDebug(...args: unknown[]): void {
+  if (generationDebugEnabled) {
+    console.log(...args)
+  }
+}
 
 // 内存缓存 - 用于减少频繁的数据库查询（前端轮询优化）
 interface CacheEntry {
@@ -372,7 +379,7 @@ export class GenerationService {
   }
 
   static async getPendingGeneration(userId: string): Promise<Generation | null> {
-    console.log(`[GenerationService] getPendingGeneration for user: ${userId}`)
+    logGenerationDebug(`[GenerationService] getPendingGeneration for user: ${userId}`)
     
     const { data, error } = await supabaseAdmin
       .from('generations')
@@ -392,7 +399,7 @@ export class GenerationService {
   }
 
   static async activateGeneration(generationId: string, faceImageUrl: string, styleIds?: string[]): Promise<GenerationResponse> {
-    console.log(`[GenerationService] activateGeneration called - id: ${generationId}`)
+    logGenerationDebug(`[GenerationService] activateGeneration called - id: ${generationId}`)
     
     const { data: existing } = await supabaseAdmin
       .from('generations')
@@ -429,7 +436,7 @@ export class GenerationService {
       throw error
     }
 
-    console.log(`[GenerationService] Activated generation: ${generationId}, styles: ${styles.length}`)
+    logGenerationDebug(`[GenerationService] Activated generation: ${generationId}, styles: ${styles.length}`)
     setCachedGeneration(generationId, data as Generation)
 
     return {
@@ -442,20 +449,20 @@ export class GenerationService {
   }
 
   static async createAndActivateGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
-    console.log(`[GenerationService] createAndActivateGeneration called - userId: ${input.userId}`)
+    logGenerationDebug(`[GenerationService] createAndActivateGeneration called - userId: ${input.userId}`)
     const { userId, faceImageUrl, styleIds, clientGenerationId } = input
     const availableStyles = await getStyleMap()
     const styles = styleIds?.length
       ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
       : Object.keys(availableStyles).slice(0, 30)
     const styleCount = styles.length
-    console.log(`[GenerationService] Creating generation with ${styleCount} styles`)
+    logGenerationDebug(`[GenerationService] Creating generation with ${styleCount} styles`)
 
     if (clientGenerationId) {
       const existing = await this.getGenerationByClientId(userId, clientGenerationId)
       if (existing) {
         const existingGeneration = existing as Generation
-        console.log(`[GenerationService] Reusing existing generation for clientGenerationId: ${clientGenerationId}`)
+        logGenerationDebug(`[GenerationService] Reusing existing generation for clientGenerationId: ${clientGenerationId}`)
         setCachedGeneration(existingGeneration.id, existingGeneration)
         return this.toGenerationResponse(existingGeneration, true)
       }
@@ -502,7 +509,7 @@ export class GenerationService {
           await Promise.all((consumeResult.consumedFrom || []).map(({ packageId, amount }) =>
             CreditPackageService.refundCredits(packageId, amount)
           ))
-          console.log(`[GenerationService] Refunded duplicate retry and reused generation: ${existing.id}`)
+          logGenerationDebug(`[GenerationService] Refunded duplicate retry and reused generation: ${existing.id}`)
           setCachedGeneration(existing.id, existing)
           return this.toGenerationResponse(existing, true)
         }
@@ -515,7 +522,7 @@ export class GenerationService {
         throw error
       }
 
-      console.log(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
+      logGenerationDebug(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
       // 内存降级
       const fallbackId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
       mockGenerations.set(fallbackId, {
@@ -539,7 +546,7 @@ export class GenerationService {
           clientGenerationId,
         },
       })
-      console.log(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
+      logGenerationDebug(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
       setCachedGeneration(fallbackId, mockGenerations.get(fallbackId)!)
       return {
         id: fallbackId,
@@ -551,7 +558,7 @@ export class GenerationService {
     }
 
     const generationId = data.id
-    console.log(`[GenerationService] Successfully stored in database: ${generationId}`)
+    logGenerationDebug(`[GenerationService] Successfully stored in database: ${generationId}`)
     setCachedGeneration(generationId, data as Generation)
 
     return {
@@ -564,13 +571,13 @@ export class GenerationService {
   }
 
   static async createGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
-    console.log(`[GenerationService] createGeneration called - userId: ${input.userId}, faceImageUrl: ${input.faceImageUrl?.substring(0, 50)}...`)
+    logGenerationDebug(`[GenerationService] createGeneration called - userId: ${input.userId}, faceImageUrl: ${input.faceImageUrl?.substring(0, 50)}...`)
     const { userId, faceImageUrl, styleIds } = input
     const availableStyles = await getStyleMap()
     const styles = styleIds?.length
       ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
       : Object.keys(availableStyles).slice(0, 30)
-    console.log(`[GenerationService] Creating generation with ${styles.length} styles`)
+    logGenerationDebug(`[GenerationService] Creating generation with ${styles.length} styles`)
     
     const generationData: Partial<Generation> = {
       user_id: userId,
@@ -594,7 +601,7 @@ export class GenerationService {
         throw error
       }
 
-      console.log(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
+      logGenerationDebug(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
       const fallbackId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
       mockGenerations.set(fallbackId, {
         id: fallbackId,
@@ -609,7 +616,7 @@ export class GenerationService {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
-      console.log(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
+      logGenerationDebug(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
       return {
         id: fallbackId,
         status: 'processing',
@@ -620,7 +627,7 @@ export class GenerationService {
     }
 
     const generationId = data.id
-    console.log(`[GenerationService] Successfully stored in database: ${generationId}`)
+    logGenerationDebug(`[GenerationService] Successfully stored in database: ${generationId}`)
     setCachedGeneration(generationId, data as Generation)
 
     return {
@@ -633,12 +640,12 @@ export class GenerationService {
   }
 
   static async getGeneration(id: string): Promise<Generation | null> {
-    console.log(`[GenerationService] getGeneration called for id: ${id}`)
+    logGenerationDebug(`[GenerationService] getGeneration called for id: ${id}`)
 
     // 先查内存缓存
     const cached = getCachedGeneration(id)
     if (cached) {
-      console.log(`[GenerationService] Cache hit for id: ${id}, status: ${cached.status}`)
+      logGenerationDebug(`[GenerationService] Cache hit for id: ${id}, status: ${cached.status}`)
       return cached
     }
 
@@ -649,28 +656,28 @@ export class GenerationService {
       .single()
 
     if (!error && data) {
-      console.log(`[GenerationService] Found in database - id: ${id}, status: ${data.status}, progress: ${data.progress}`)
+      logGenerationDebug(`[GenerationService] Found in database - id: ${id}, status: ${data.status}, progress: ${data.progress}`)
       const gen = data as Generation
       setCachedGeneration(id, gen)
       return gen
     }
 
     if (error) {
-      console.log(`[GenerationService] Database query error for id ${id}: ${error.message || error}`)
+      logGenerationDebug(`[GenerationService] Database query error for id ${id}: ${error.message || error}`)
     }
 
     const mockGeneration = mockGenerations.get(id)
     if (mockGeneration) {
-      console.log(`[GenerationService] Found in memory - id: ${id}, status: ${mockGeneration.status}, progress: ${mockGeneration.progress}`)
+      logGenerationDebug(`[GenerationService] Found in memory - id: ${id}, status: ${mockGeneration.status}, progress: ${mockGeneration.progress}`)
       return mockGeneration
     }
 
-    console.log(`[GenerationService] Generation NOT FOUND for id: ${id}`)
+    logGenerationDebug(`[GenerationService] Generation NOT FOUND for id: ${id}`)
     return null
   }
 
   static async updateGeneration(id: string, updates: Partial<Generation>): Promise<void> {
-    console.log(`[GenerationService] updateGeneration called for id: ${id}, updates:`, JSON.stringify(updates))
+    logGenerationDebug(`[GenerationService] updateGeneration called for id: ${id}, updates:`, JSON.stringify(updates))
 
     // 更新数据库时清除缓存，下次查询会重新加载
     generationCache.delete(id)
@@ -685,7 +692,7 @@ export class GenerationService {
         throw error
       }
 
-      console.log(`[GenerationService] Database update error for id ${id}: ${error.message || error}, falling back to memory`)
+      logGenerationDebug(`[GenerationService] Database update error for id ${id}: ${error.message || error}, falling back to memory`)
       const mockGeneration = mockGenerations.get(id)
       if (mockGeneration) {
         const updated = {
@@ -694,12 +701,12 @@ export class GenerationService {
           updated_at: new Date().toISOString()
         }
         mockGenerations.set(id, updated)
-        console.log(`[GenerationService] Successfully updated memory for id: ${id}, new status: ${updated.status}, progress: ${updated.progress}`)
+        logGenerationDebug(`[GenerationService] Successfully updated memory for id: ${id}, new status: ${updated.status}, progress: ${updated.progress}`)
       } else {
-        console.log(`[GenerationService] Could not find generation in memory for id: ${id}`)
+        logGenerationDebug(`[GenerationService] Could not find generation in memory for id: ${id}`)
       }
     } else {
-      console.log(`[GenerationService] Successfully updated database for id: ${id}`)
+      logGenerationDebug(`[GenerationService] Successfully updated database for id: ${id}`)
     }
   }
 
@@ -722,13 +729,13 @@ export class GenerationService {
   }
 
   static async generateHeadshots(generationId: string): Promise<void> {
-    console.log(`[GenerationService] generateHeadshots started for id: ${generationId}`)
+    logGenerationDebug(`[GenerationService] generateHeadshots started for id: ${generationId}`)
     const generation = await this.getGeneration(generationId)
     if (!generation) {
-      console.log(`[GenerationService] generateHeadshots FAILED - generation not found: ${generationId}`)
+      logGenerationDebug(`[GenerationService] generateHeadshots FAILED - generation not found: ${generationId}`)
       throw new Error('Generation not found')
     }
-    console.log(`[GenerationService] Found generation - style_count: ${generation.style_count}`)
+    logGenerationDebug(`[GenerationService] Found generation - style_count: ${generation.style_count}`)
 
     await this.updateGeneration(generationId, { 
       status: 'processing',
@@ -749,7 +756,7 @@ export class GenerationService {
       batches.push(stylesToGenerate.slice(i, i + batchSize))
     }
 
-    console.log(`[GenerationService] Generating ${stylesToGenerate.length} styles in ${batches.length} batches`)
+    logGenerationDebug(`[GenerationService] Generating ${stylesToGenerate.length} styles in ${batches.length} batches`)
 
     const outputUrls: string[] = []
     const maxRetries = 1
@@ -758,7 +765,7 @@ export class GenerationService {
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex]
-      console.log(`[GenerationService] Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} styles)`)
+      logGenerationDebug(`[GenerationService] Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} styles)`)
       
       await this.updateGeneration(generationId, { 
         current_step: `Generating batch ${batchIndex + 1}/${batches.length}...`
@@ -774,14 +781,14 @@ export class GenerationService {
       completedStyles += batch.length
 
       const progress = Math.round((completedStyles / totalStyles) * 100)
-      console.log(`[GenerationService] Batch ${batchIndex + 1} completed - progress: ${progress}%, total outputs: ${outputUrls.length}`)
+      logGenerationDebug(`[GenerationService] Batch ${batchIndex + 1} completed - progress: ${progress}%, total outputs: ${outputUrls.length}`)
       await this.updateGeneration(generationId, { 
         progress, 
         output_photos: outputUrls 
       })
     }
 
-    console.log(`[GenerationService] Generation completed for id: ${generationId}, total outputs: ${outputUrls.length}`)
+    logGenerationDebug(`[GenerationService] Generation completed for id: ${generationId}, total outputs: ${outputUrls.length}`)
     await this.updateGeneration(generationId, { 
       status: 'completed', 
       progress: 100,
@@ -820,7 +827,7 @@ export class GenerationService {
         styleCount,
       })
 
-      console.log(`[GenerationService] Completion email sent to ${user.email}`)
+      logGenerationDebug(`[GenerationService] Completion email sent to ${user.email}`)
     } catch (err) {
       console.error('[GenerationService] Error sending completion email:', err)
     }
@@ -865,7 +872,7 @@ export class GenerationService {
       return this.generateMockImage(styleId)
     }
 
-    console.log(`[GenerationService] Generating ${styleId} with Replicate API...`)
+    logGenerationDebug(`[GenerationService] Generating ${styleId} with Replicate API...`)
     
     const prompt = `${styleConfig.prompt}, ${QUALITY_SUFFIX}`
 
@@ -876,8 +883,8 @@ export class GenerationService {
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`[GenerationService] Calling Replicate API for ${styleId} (attempt ${attempt}/${maxRetries})...`)
-        console.log(`[GenerationService] Using model: ${modelName}`)
+        logGenerationDebug(`[GenerationService] Calling Replicate API for ${styleId} (attempt ${attempt}/${maxRetries})...`)
+        logGenerationDebug(`[GenerationService] Using model: ${modelName}`)
         
         // 使用官方模型端点（30秒超时）
         const response = await fetchWithTimeout(
@@ -901,7 +908,7 @@ export class GenerationService {
           30000
         )
 
-        console.log(`[GenerationService] Replicate API response status: ${response.status}`)
+        logGenerationDebug(`[GenerationService] Replicate API response status: ${response.status}`)
         
         if (response.status === 429) {
           const retryAfter = parseInt(response.headers.get('Retry-After') || '10')
@@ -912,7 +919,7 @@ export class GenerationService {
         }
 
         const data = await response.json()
-        console.log(`[GenerationService] Replicate API response data:`, JSON.stringify(data).substring(0, 500))
+        logGenerationDebug(`[GenerationService] Replicate API response data:`, JSON.stringify(data).substring(0, 500))
         
         if (response.status === 422) {
           console.error(`[GenerationService] Request validation failed (422) for ${styleId}:`, JSON.stringify(data))
@@ -929,13 +936,13 @@ export class GenerationService {
           return this.fallbackGenerationImage(styleId, 'No prediction ID returned')
         }
 
-        console.log(`[GenerationService] Prediction ID: ${data.id}, status: ${data.status}`)
+        logGenerationDebug(`[GenerationService] Prediction ID: ${data.id}, status: ${data.status}`)
 
         let result = data
         let pollCount = 0
         while (result.status !== 'succeeded' && result.status !== 'failed') {
           pollCount++
-          console.log(`[GenerationService] Polling ${styleId} - attempt ${pollCount}, status: ${result.status}`)
+          logGenerationDebug(`[GenerationService] Polling ${styleId} - attempt ${pollCount}, status: ${result.status}`)
           await new Promise(resolve => setTimeout(resolve, 2000))
           const statusResponse = await fetchWithTimeout(
             `https://api.replicate.com/v1/predictions/${result.id}`,
@@ -955,7 +962,7 @@ export class GenerationService {
           result = await statusResponse.json()
         }
 
-        console.log(`[GenerationService] ${styleId} completed with status: ${result.status}`)
+        logGenerationDebug(`[GenerationService] ${styleId} completed with status: ${result.status}`)
         if (result.status === 'failed') {
           return this.fallbackGenerationImage(styleId, result.error || 'Prediction failed')
         }
@@ -965,7 +972,7 @@ export class GenerationService {
         console.error(`[GenerationService] Exception generating ${styleId} (attempt ${attempt}):`, error)
         if (attempt < maxRetries) {
           const waitTime = Math.pow(2, attempt) * 1000
-          console.log(`[GenerationService] Retrying ${styleId} in ${waitTime/1000}s...`)
+          logGenerationDebug(`[GenerationService] Retrying ${styleId} in ${waitTime/1000}s...`)
           await new Promise(resolve => setTimeout(resolve, waitTime))
         }
       }

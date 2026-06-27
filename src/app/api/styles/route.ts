@@ -1,25 +1,8 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@backend/config/supabase'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
-
-async function getCurrentUser(request: Request) {
-  try {
-    const authHeader = request.headers.get('authorization')
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-      if (!error && user) return user
-    }
-
-    const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    return session?.user || null
-  } catch {
-    return null
-  }
-}
 
 export async function GET(request: Request) {
   try {
@@ -30,7 +13,7 @@ export async function GET(request: Request) {
 
     let { data, error } = await supabaseAdmin
       .from('headshot_styles')
-      .select('id,name,category,prompt,negative,sort_order,category_order,style_order,selection_count,last_selected_at,is_active')
+      .select('id,name,category,category_order,style_order,selection_count,last_selected_at')
       .eq('is_active', true)
       .order('category_order', { ascending: true })
       .order('style_order', { ascending: true })
@@ -38,7 +21,7 @@ export async function GET(request: Request) {
     if (error) {
       const fallback = await supabaseAdmin
         .from('headshot_styles')
-        .select('id,name,category,prompt,negative,sort_order,is_active')
+        .select('id,name,category,sort_order,selection_count,last_selected_at')
         .eq('is_active', true)
         .order('sort_order', { ascending: true })
 
@@ -56,9 +39,16 @@ export async function GET(request: Request) {
       throw error
     }
 
-    return NextResponse.json({
-      styles: data || [],
-    })
+    return NextResponse.json(
+      {
+        styles: data || [],
+      },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+        },
+      }
+    )
   } catch (error) {
     console.error('[Styles] Error:', error)
     return NextResponse.json({ error: 'Failed to fetch styles' }, { status: 500 })

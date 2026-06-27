@@ -1,27 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@backend/config/supabase'
+import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
-
-async function getCurrentUser(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.substring(7)
-    try {
-      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-      if (!error && user) {
-        return user
-      }
-    } catch (e) {
-      console.error('[Generation Detail] Error verifying bearer token:', e)
-    }
-  }
-
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.user || null
-}
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -33,7 +14,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const { id } = await params
     const { data: generation, error } = await supabaseAdmin
       .from('generations')
-      .select('*')
+      .select('id,status,plan_type,style_count,output_photos,progress,current_step,created_at,updated_at,completed_at,metadata')
       .eq('id', id)
       .eq('user_id', user.id)
       .maybeSingle()

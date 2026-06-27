@@ -1,25 +1,8 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@backend/config/supabase'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
-
-async function getCurrentUser(request: Request) {
-  try {
-    const authHeader = request.headers.get('authorization')
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-      if (!error && user) return user
-    }
-
-    const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    return session?.user || null
-  } catch {
-    return null
-  }
-}
 
 export async function GET(request: Request) {
   try {
@@ -36,9 +19,16 @@ export async function GET(request: Request) {
 
     if (error) throw error
 
-    return NextResponse.json({
-      styles: data || [],
-    })
+    return NextResponse.json(
+      {
+        styles: data || [],
+      },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+        },
+      }
+    )
   } catch (error) {
     console.error('[Styles Stats] Error:', error)
     return NextResponse.json({ error: 'Failed to fetch style stats' }, { status: 500 })

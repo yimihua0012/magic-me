@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { config } from './index'
+import { getSupabaseUrl } from '../../src/lib/supabase/url'
 
 // Admin client with service role key (bypasses RLS)
 export const supabaseAdmin = createClient(
-  config.supabase.url,
+  getSupabaseUrl(),
   config.supabase.serviceRoleKey,
   {
     auth: {
@@ -15,7 +16,7 @@ export const supabaseAdmin = createClient(
 
 // Client for browser use
 export const supabaseClient = createClient(
-  config.supabase.url,
+  getSupabaseUrl(),
   config.supabase.anonKey
 )
 

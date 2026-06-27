@@ -1,54 +1,24 @@
-﻿import { NextResponse } from 'next/server'
-import { GenerationService } from '@backend/services'
-import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
+import { CreditPackageService, GenerationService } from '@backend/services'
 import { supabaseAdmin } from '@backend/config/supabase'
-import { CreditPackageService } from '@backend/services'
+import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
 
-async function getCurrentUser(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.substring(7)
-    try {
-      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-      if (!error && user) {
-        return user
-      }
-    } catch (e) {
-      console.error('[Auth] Error verifying bearer token:', e)
-    }
-  }
-  
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.user || null
-}
-
 export async function POST(request: Request) {
   try {
-    console.log('[API POST] Request received')
-    
     const user = await getCurrentUser(request)
-    console.log('[API POST] Auth check completed, user:', user?.id || 'none')
-    
     if (!user) {
-      console.warn('[API POST] Authentication required')
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       )
     }
 
-    console.log('[API POST] Parsing request body...')
     const body = await request.json()
-    console.log('[API POST] Request body parsed successfully')
-    
     const { faceImageUrl, styleIds, clientGenerationId } = body
-    console.log(`[API POST] faceImageUrl: ${faceImageUrl?.substring(0, 50)}..., styleIds count: ${styleIds?.length || 0}`)
 
     if (!faceImageUrl) {
-      console.log('[API POST] Error: faceImageUrl is required')
       return NextResponse.json(
         { error: 'faceImageUrl is required' },
         { status: 400 }
@@ -70,8 +40,6 @@ export async function POST(request: Request) {
     }
 
     const styleCount = styleIds.length
-    console.log(`[API POST] Credits needed: ${styleCount}`)
-
     if (styleCount < 1 || styleCount > 120) {
       return NextResponse.json(
         { error: 'Invalid style count' },
@@ -85,13 +53,10 @@ export async function POST(request: Request) {
       styleIds,
       clientGenerationId,
     })
-    console.log(`[API POST] Created and activated generation: ${generation.id}`)
 
     if (!generation.reused) {
-      GenerationService.generateHeadshots(generation.id).then(() => {
-        console.log(`[API POST] Generation completed for taskId: ${generation.id}`)
-      }).catch(async (error) => {
-        console.error('[API POST] Background generation error:', error)
+      GenerationService.generateHeadshots(generation.id).catch(async (error) => {
+        console.error('[GenerateHeadshots] Background generation error:', error)
         try {
           const gen = await GenerationService.getGeneration(generation.id)
           const consumedCredits = Array.isArray(gen?.metadata?.consumedCredits)
@@ -102,25 +67,22 @@ export async function POST(request: Request) {
             await Promise.all(consumedCredits.map(({ packageId, amount }) =>
               CreditPackageService.refundCredits(packageId, amount)
             ))
-            console.log(`[API POST] Refunded credits for generation ${generation.id}`)
           } else if (gen?.credit_package_id && gen?.credits_used) {
             await CreditPackageService.refundCredits(gen.credit_package_id, gen.credits_used)
-            console.log(`[API POST] Refunded ${gen.credits_used} credits to package ${gen.credit_package_id}`)
           }
         } catch (refundError) {
-          console.error('[API POST] Failed to refund credits:', refundError)
+          console.error('[GenerateHeadshots] Failed to refund credits:', refundError)
         }
       })
-      console.log(`[API POST] Started background generation for taskId: ${generation.id}`)
     }
 
     return NextResponse.json({
       taskId: generation.id,
       status: 'processing',
-      estimatedTime: 180
+      estimatedTime: 180,
     })
   } catch (error) {
-    console.error('[API POST] Error creating generation:', error)
+    console.error('[GenerateHeadshots] Error creating generation:', error)
     const message = error instanceof Error ? error.message : ''
     if (message.includes('Insufficient credits') || message.includes('Concurrent credit update')) {
       return NextResponse.json(
@@ -140,20 +102,16 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const taskId = searchParams.get('taskId')
-    console.log(`[API GET] Request received - taskId: ${taskId || 'none'}`)
 
     if (!taskId) {
-      console.log(`[API GET] Returning config (no taskId)`)
-      const hasApiKey = !!process.env.REPLICATE_API_KEY
-
       return NextResponse.json({
         generationMode: 'replicate',
-        hasReplicateKey: hasApiKey,
+        hasReplicateKey: !!process.env.REPLICATE_API_KEY,
         modelVersion: process.env.REPLICATE_MODEL_VERSION || 'f65a676869e16bc5474c291f55ba299250d979897d165810020079f9eea8f574',
         config: {
           guidanceScale: parseFloat(process.env.REPLICATE_GUIDANCE_SCALE || '7.5'),
-          numInferenceSteps: parseInt(process.env.REPLICATE_INFERENCE_STEPS || '30')
-        }
+          numInferenceSteps: parseInt(process.env.REPLICATE_INFERENCE_STEPS || '30'),
+        },
       })
     }
 
@@ -165,26 +123,26 @@ export async function GET(request: Request) {
       )
     }
 
-    console.log(`[API GET] Looking up generation for taskId: ${taskId}`)
-    const generation = await GenerationService.getGeneration(taskId)
-    
-    if (!generation) {
-      console.log(`[API GET] Generation NOT FOUND for taskId: ${taskId}`)
+    const { data: generation, error } = await supabaseAdmin
+      .from('generations')
+      .select('id,user_id,status,progress,current_step,output_photos')
+      .eq('id', taskId)
+      .maybeSingle()
+
+    if (error) {
+      console.error('[GenerateHeadshots] Error querying generation:', error)
+      return NextResponse.json(
+        { error: 'Failed to get generation' },
+        { status: 500 }
+      )
+    }
+
+    if (!generation || generation.user_id !== user.id) {
       return NextResponse.json(
         { error: 'Generation not found' },
         { status: 404 }
       )
     }
-
-    if (generation.user_id !== user.id) {
-      console.warn(`[API GET] Forbidden generation access - user: ${user.id}, generation: ${generation.id}`)
-      return NextResponse.json(
-        { error: 'Generation not found' },
-        { status: 404 }
-      )
-    }
-
-    console.log(`[API GET] Found generation - id: ${generation.id}, status: ${generation.status}, progress: ${generation.progress}, outputUrls count: ${generation.output_photos?.length || 0}`)
 
     return NextResponse.json(
       {
@@ -201,11 +159,10 @@ export async function GET(request: Request) {
       }
     )
   } catch (error) {
-    console.error('[API GET] Error getting generation:', error)
+    console.error('[GenerateHeadshots] Error getting generation:', error)
     return NextResponse.json(
       { error: 'Failed to get generation' },
       { status: 500 }
     )
   }
 }
-

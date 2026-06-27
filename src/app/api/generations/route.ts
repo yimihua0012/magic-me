@@ -1,27 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@backend/config/supabase'
+import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
-
-async function getCurrentUser(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.substring(7)
-    try {
-      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-      if (!error && user) {
-        return user
-      }
-    } catch (e) {
-      console.error('[Generations] Error verifying bearer token:', e)
-    }
-  }
-
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.user || null
-}
 
 export async function GET(request: Request) {
   try {
@@ -38,7 +19,7 @@ export async function GET(request: Request) {
     const [{ data: generations, error }, { count, error: countError }] = await Promise.all([
       supabaseAdmin
         .from('generations')
-        .select('*')
+        .select('id,status,plan_type,style_count,output_photos,created_at,updated_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1),
@@ -84,7 +65,7 @@ export async function POST(request: Request) {
         style_count: plan_type === 'pro' ? 100 : 30,
         input_photos: [],
       })
-      .select()
+      .select('id,status,plan_type,style_count,output_photos,created_at,updated_at')
       .single()
 
     if (error) {

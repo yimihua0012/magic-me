@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Menu, X, Camera, User } from 'lucide-react'
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { Camera, Menu, User, X } from 'lucide-react'
 import Button from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import { appConfig } from '@/lib/config'
@@ -23,16 +24,14 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<SupabaseUser | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
     let ticking = false
 
     const handleScroll = () => {
-      if (ticking) {
-        return
-      }
+      if (ticking) return
 
       ticking = true
       window.requestAnimationFrame(() => {
@@ -43,22 +42,21 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
         ticking = false
       })
     }
-    
+
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   useEffect(() => {
-    // 初始化时同步获取一次会话状态，避免延迟
     const initAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
     }
-    initAuth()
 
-    // 监听认证状态变化
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    void initAuth()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
 
@@ -79,6 +77,8 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
     setShowAuthModal(true)
   }
 
+  const closeMenu = () => setIsOpen(false)
+
   return (
     <>
       {showAuthModal && (
@@ -92,144 +92,156 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
         />
       )}
 
-      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 safe-top ${
+      <nav className={`fixed left-0 right-0 top-0 z-40 safe-top transition-all duration-300 ${
         isScrolled
-          ? 'bg-white/80 backdrop-blur-navbar shadow-sm border-b border-slate-200/50'
+          ? 'border-b border-slate-200/50 bg-white/80 shadow-sm backdrop-blur-navbar'
           : 'bg-transparent'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
-            <Link href="/" className="flex items-center gap-2 touch-target">
-              <Image src="/logo.svg" alt={appConfig.name} width={32} height={32} className="rounded-lg sm:rounded-xl sm:w-10 sm:h-10" priority />
-              <span className="text-lg sm:text-xl font-bold text-slate-900">{appConfig.name}</span>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-14 items-center justify-between sm:h-16 lg:h-20">
+            <Link href="/" className="flex touch-target items-center gap-2" onClick={closeMenu}>
+              <Image
+                src="/logo.svg"
+                alt={appConfig.name}
+                width={32}
+                height={32}
+                className="rounded-lg sm:h-10 sm:w-10 sm:rounded-xl"
+                priority
+              />
+              <span className="text-lg font-bold text-slate-900 sm:text-xl">{appConfig.name}</span>
             </Link>
 
-          <div className="hidden lg:flex items-center gap-8">
-            <Link href="/#features" className="text-slate-600 hover:text-slate-900 font-medium transition-colors" prefetch={false}>
-              Features
-            </Link>
-            <Link href="/pricing" className="text-slate-600 hover:text-slate-900 font-medium transition-colors" prefetch={true}>
-              Pricing
-            </Link>
-            <Link href="/#testimonials" className="text-slate-600 hover:text-slate-900 font-medium transition-colors" prefetch={false}>
-              Testimonials
-            </Link>
-          </div>
+            <div className="hidden items-center gap-8 lg:flex">
+              <Link href="/#features" className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
+                Features
+              </Link>
+              <Link href="/pricing" className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                Pricing
+              </Link>
+              <Link href="/#testimonials" className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
+                Testimonials
+              </Link>
+            </div>
 
-          <div className="hidden lg:flex items-center gap-4">
-            {user ? (
-              <>
-                <Link href="/dashboard" className="text-slate-600 hover:text-slate-900 font-medium transition-colors flex items-center gap-2" prefetch={true}>
-                  <User className="w-4 h-4" />
-                  Dashboard
-                </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <button 
-                  onClick={handleOpenAuth}
-                  className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
-                >
-                  Sign In
-                </button>
-                <Button variant="primary" size="sm" onClick={() => router.push('/upload')}>
-                  <Camera className="w-4 h-4 mr-2" />
-                  Generate Headshots
-                </Button>
-              </>
-            )}
-          </div>
-
-          <button 
-            onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors touch-target"
-            aria-label={isOpen ? 'Close menu' : 'Open menu'}
-          >
-            {isOpen ? (
-              <X className="w-6 h-6 text-slate-900" />
-            ) : (
-              <Menu className="w-6 h-6 text-slate-900" />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {isOpen && (
-        <div className="lg:hidden bg-white border-t border-slate-100 shadow-lg max-h-[80vh] overflow-y-auto animate-slide-up">
-          <div className="px-4 py-4 space-y-1">
-            <Link 
-              href="/#features" 
-              className="block text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium rounded-xl px-4 py-3 touch-target"
-              onClick={() => setIsOpen(false)}
-            >
-              Features
-            </Link>
-            <Link 
-              href="/pricing" 
-              className="block text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium rounded-xl px-4 py-3 touch-target"
-              onClick={() => setIsOpen(false)}
-            >
-              Pricing
-            </Link>
-            <Link 
-              href="/#testimonials" 
-              className="block text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium rounded-xl px-4 py-3 touch-target"
-              onClick={() => setIsOpen(false)}
-            >
-              Testimonials
-            </Link>
-            <hr className="border-slate-100 my-2" />
-            {user ? (
-              <>
-                <Link 
-                  href="/dashboard" 
-                  className="block text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium rounded-xl px-4 py-3 touch-target"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <User className="w-4 h-4 inline mr-2" />
-                  Dashboard
-                </Link>
-                <button 
-                  onClick={() => {
-                    setIsOpen(false)
-                    handleLogout()
-                  }}
-                  className="block text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium rounded-xl px-4 py-3 w-full text-left touch-target"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <button 
-                  onClick={() => {
-                    setIsOpen(false)
-                    handleOpenAuth()
-                  }}
-                  className="block text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium rounded-xl px-4 py-3 w-full text-left touch-target"
-                >
-                  Sign In
-                </button>
-                <div className="block pt-2">
-                  <Button className="w-full" size="lg" onClick={() => {
-                    setIsOpen(false)
-                    router.push('/upload')
-                  }}>
-                    <Camera className="w-4 h-4 mr-2" />
+            <div className="hidden items-center gap-4 lg:flex">
+              {user ? (
+                <>
+                  <Link href="/dashboard" className="flex items-center gap-2 font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                    <User className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="font-medium text-slate-600 transition-colors hover:text-slate-900"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={handleOpenAuth}
+                    className="font-medium text-slate-600 transition-colors hover:text-slate-900"
+                  >
+                    Sign In
+                  </button>
+                  <Button variant="primary" size="sm" onClick={() => router.push('/upload')}>
+                    <Camera className="mr-2 h-4 w-4" />
                     Generate Headshots
                   </Button>
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
+
+            <button
+              onClick={() => setIsOpen((current) => !current)}
+              className="touch-target rounded-lg p-2 transition-colors hover:bg-slate-100 lg:hidden"
+              aria-label={isOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isOpen}
+            >
+              {isOpen ? (
+                <X className="h-6 w-6 text-slate-900" />
+              ) : (
+                <Menu className="h-6 w-6 text-slate-900" />
+              )}
+            </button>
           </div>
         </div>
-      )}
+
+        {isOpen && (
+          <div className="max-h-[80vh] overflow-y-auto border-t border-slate-100 bg-white shadow-lg animate-slide-up lg:hidden">
+            <div className="space-y-1 px-4 py-4">
+              <Link
+                href="/#features"
+                className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                onClick={closeMenu}
+              >
+                Features
+              </Link>
+              <Link
+                href="/pricing"
+                className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                onClick={closeMenu}
+              >
+                Pricing
+              </Link>
+              <Link
+                href="/#testimonials"
+                className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                onClick={closeMenu}
+              >
+                Testimonials
+              </Link>
+              <hr className="my-2 border-slate-100" />
+              {user ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    onClick={closeMenu}
+                  >
+                    <User className="mr-2 inline h-4 w-4" />
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      closeMenu()
+                      void handleLogout()
+                    }}
+                    className="block w-full touch-target rounded-xl px-4 py-3 text-left font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      closeMenu()
+                      handleOpenAuth()
+                    }}
+                    className="block w-full touch-target rounded-xl px-4 py-3 text-left font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  >
+                    Sign In
+                  </button>
+                  <div className="pt-2">
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      onClick={() => {
+                        closeMenu()
+                        router.push('/upload')
+                      }}
+                    >
+                      <Camera className="mr-2 h-4 w-4" />
+                      Generate Headshots
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </nav>
     </>
   )

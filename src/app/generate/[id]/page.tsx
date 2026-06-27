@@ -85,7 +85,6 @@ export default function GenerationPage() {
       const storedStyleIds = localStorage.getItem('pending_generation_style_ids')
       
       if (photosBase64) {
-        console.log('[Generation] Found pending photos, starting new generation')
         try {
           const photos = JSON.parse(photosBase64)
           if (!photos.length) {
@@ -135,7 +134,6 @@ export default function GenerationPage() {
           setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'Failed to start generation' }))
         }
       } else if (generationId) {
-        console.log('[Generation] No pending photos, checking existing task:', generationId)
         try {
             const authHeaders = await getAuthHeaders()
             const response = await fetch(`/api/generate-headshots?taskId=${generationId}`, {
@@ -144,7 +142,6 @@ export default function GenerationPage() {
           const data = await response.json()
           
           if (data.error || !data.taskId) {
-            console.log('[Generation] Task not found on server, restarting generation')
             setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'Task not found, please restart' }))
             return
           }
@@ -166,21 +163,16 @@ export default function GenerationPage() {
 
     const pollGenerationStatus = (taskId: string) => {
       if (pollIntervalRef.current) {
-        console.log('[Polling] Clearing existing poll before starting new one')
         clearInterval(pollIntervalRef.current)
       }
       
-      console.log(`[Polling] Starting poll for taskId: ${taskId}`)
       const intervalId = setInterval(async () => {
         try {
-          console.log(`[Polling] Fetching status for taskId: ${taskId}`)
             const authHeaders = await getAuthHeaders()
             const response = await fetch(`/api/generate-headshots?taskId=${taskId}`, {
               headers: authHeaders,
             })
-          console.log(`[Polling] Response status: ${response.status}`)
           const data = await response.json()
-          console.log(`[Polling] Response data:`, JSON.stringify(data))
 
           if (response.status === 401) {
             clearInterval(intervalId)
@@ -190,7 +182,6 @@ export default function GenerationPage() {
           }
 
           if (data.status === 'completed') {
-            console.log(`[Polling] Task completed! outputUrls count: ${data.outputUrls?.length || 0}`)
             clearInterval(intervalId)
             pollIntervalRef.current = null
             if (progressIntervalRef.current) {
@@ -205,7 +196,6 @@ export default function GenerationPage() {
             setPendingCompletion({ progress: data.progress, outputUrls: data.outputUrls || [] })
             setShowCompletionModal(true)
           } else if (data.status === 'failed') {
-            console.log(`[Polling] Task failed`)
             clearInterval(intervalId)
             pollIntervalRef.current = null
             if (progressIntervalRef.current) {
@@ -218,7 +208,6 @@ export default function GenerationPage() {
               currentStep: 'Generation failed. Please try again.',
             }))
           } else {
-            console.log(`[Polling] Task in progress - status: ${data.status}, progress: ${data.progress}`)
             setGeneration(prev => ({
               ...prev,
               progress: Math.max(prev.progress, data.progress || 0),
@@ -250,7 +239,6 @@ export default function GenerationPage() {
       }
 
       return () => {
-        console.log('[Polling] Cleaning up poll')
         clearInterval(intervalId)
         pollIntervalRef.current = null
         if (progressIntervalRef.current) {
@@ -291,7 +279,6 @@ export default function GenerationPage() {
     return () => {
       mounted = false
       if (typeof cleanupPolling === 'function') {
-        console.log('[Polling] Cleaning up polling on component unmount')
         cleanupPolling()
       }
     }

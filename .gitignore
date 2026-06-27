@@ -12,10 +12,12 @@
 
 # production
 /build
+/false/
 
 # misc
 .DS_Store
 *.pem
+build*.log
 
 # debug
 npm-debug.log*
