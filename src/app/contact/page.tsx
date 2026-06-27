@@ -37,10 +37,10 @@ export default function ContactPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Contact Us
+              Contact Magic-Headshot AI Headshot Support
             </h1>
             <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-              Have questions about {appConfig.name}? We&apos;re here to help. Reach out to us and we&apos;ll respond as soon as possible.
+              Have questions about {appConfig.name}, AI headshot generation, professional photos, LinkedIn photo results, billing, refunds, or your account? Reach out and we&apos;ll respond as soon as possible.
             </p>
           </div>
 

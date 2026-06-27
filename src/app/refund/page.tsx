@@ -4,8 +4,20 @@ import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 
 export const metadata: Metadata = {
-  title: 'Refund Policy',
-  description: 'Read Magic-Headshot refund eligibility, processing times, and how to request support.',
+  title: 'Magic-Headshot Refund Policy for AI Headshots and Professional Photos',
+  description: 'Read Magic-Headshot refund eligibility, AI headshot credit handling, processing times, and how to request support.',
+  keywords: [
+    'Magic-Headshot',
+    'AI headshot',
+    'professional photos',
+    'LinkedIn photo',
+    'AI portrait',
+    'headshot generator',
+    'AI headshot refund policy',
+    'AI headshot money back guarantee',
+    'professional headshot refund',
+    'AI portrait refund support',
+  ],
   alternates: {
     canonical: '/refund',
   },
@@ -18,7 +30,7 @@ export default function RefundPage() {
 
       <main className="pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-8 text-3xl font-bold text-slate-900">Refund Policy</h1>
+          <h1 className="mb-8 text-3xl font-bold text-slate-900">Magic-Headshot AI Headshot Refund Policy</h1>
 
           <div className="space-y-6 text-slate-600">
             <Card className="p-6">

@@ -264,6 +264,15 @@ function UploadContent() {
     for (let i = 0; i < files.length && photos.length + newPhotos.length < 3; i++) {
       const file = files[i]
       if (!file.type.startsWith('image/')) continue
+      if (file.size > 10 * 1024 * 1024) {
+        newPhotos.push({
+          file,
+          preview: URL.createObjectURL(file),
+          status: 'invalid',
+          error: 'Image is too large. Use a photo under 10MB.',
+        })
+        continue
+      }
 
       const preview = URL.createObjectURL(file)
       newPhotos.push({
@@ -277,6 +286,10 @@ function UploadContent() {
 
     for (let i = 0; i < newPhotos.length; i++) {
       const index = photos.length + i
+      if (newPhotos[i].status === 'invalid') {
+        continue
+      }
+
       setPhotos(prev => prev.map((p, idx) => (idx === index ? { ...p, status: 'validating' } : p)))
 
       const validation = await validateImage(newPhotos[i].file)
@@ -641,13 +654,13 @@ function UploadContent() {
               <Card className="p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-600 text-white text-xs font-semibold">1</span>
-                  <h2 className="font-semibold text-slate-900">Upload your photo</h2>
+                  <h2 className="font-semibold text-slate-900">Upload your photos</h2>
                 </div>
 
                 <p className="text-sm text-slate-600 mb-4">
-                  Start with one clear selfie, add up to 3 more for variety.{' '}
+                  Upload 1-3 clear selfies of the same person for better likeness.{' '}
                   <span className="font-medium text-blue-700">Works best for profile pics, but other uses may vary.</span>{' '}
-                  Your images are not stored or shared.
+                  More photos can improve consistency, but analysis and generation may take longer.
                 </p>
 
                 <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
@@ -677,13 +690,13 @@ function UploadContent() {
                             <Upload className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
                           </div>
                           <p className="text-slate-900 font-medium mb-1 text-sm sm:text-base">
-                            Drag & drop your selfie here
+                            Drag & drop your selfies here
                           </p>
                           <p className="text-slate-500 text-xs sm:text-sm mb-4">
                             or click to browse
                           </p>
                           <p className="text-xs text-slate-400">
-                            JPG, PNG up to 10MB each
+                            JPG, PNG, or WebP. Up to 3 photos, 10MB each.
                           </p>
                         </div>
                       </div>
@@ -706,9 +719,9 @@ function UploadContent() {
                         Pro Tip
                       </h3>
                       <p className="text-sm text-yellow-800">
-                        Front-facing, clear lighting, face fully visible.{' '}
+                        Use the same person in every photo with clear lighting and a fully visible face.{' '}
                         <span className="font-semibold text-red-700">Avoid side angles, sunglasses, masks, or group photos.</span>{' '}
-                        Take your selfie near a window during daytime for the best lighting.
+                        Take your selfies near a window during daytime for the best lighting.
                       </p>
                     </div>
 
@@ -864,7 +877,7 @@ function UploadContent() {
                   <h2 className="font-semibold text-slate-900">Generate</h2>
                 </div>
                 <p className="text-sm text-slate-600 mb-4">
-                  Review your photo and style count, then generate. Credits are deducted only for the styles you selected.
+                  Review your photos and style count, then generate. Credits are deducted only for the styles you selected.
                 </p>
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 mb-4">

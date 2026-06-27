@@ -4,8 +4,20 @@ import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy',
-  description: 'Read how Magic-Headshot collects, uses, stores, and protects account data, uploaded photos, and generated headshots.',
+  title: 'Magic-Headshot Privacy Policy for AI Headshots, Professional Photos, and AI Portraits',
+  description: 'Read how Magic-Headshot collects, uses, stores, and protects account data, uploaded photos, generated AI headshots, and payment metadata.',
+  keywords: [
+    'Magic-Headshot',
+    'AI headshot',
+    'professional photos',
+    'LinkedIn photo',
+    'AI portrait',
+    'headshot generator',
+    'AI headshot privacy policy',
+    'uploaded photo privacy',
+    'AI generated headshot data',
+    'professional headshot photo storage',
+  ],
   alternates: {
     canonical: '/privacy',
   },
@@ -18,7 +30,7 @@ export default function PrivacyPage() {
 
       <main className="pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-8 text-3xl font-bold text-slate-900">Privacy Policy</h1>
+          <h1 className="mb-8 text-3xl font-bold text-slate-900">Magic-Headshot AI Headshot Privacy Policy</h1>
 
           <div className="space-y-6 text-slate-600">
             <Card className="p-6">

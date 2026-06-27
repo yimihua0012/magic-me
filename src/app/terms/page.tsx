@@ -5,8 +5,20 @@ import Card from '@/components/ui/card'
 import { appConfig } from '@/lib/config'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service',
-  description: `Terms that govern use of ${appConfig.name}.`,
+  title: 'Magic-Headshot Terms for AI Headshots, Professional Photos, and LinkedIn Photos',
+  description: `Terms that govern use of ${appConfig.name}, including AI headshot generation, uploaded photos, payments, refunds, and commercial use rights.`,
+  keywords: [
+    'Magic-Headshot',
+    'AI headshot',
+    'professional photos',
+    'LinkedIn photo',
+    'AI portrait',
+    'headshot generator',
+    'AI headshot terms of service',
+    'AI generated headshot commercial use',
+    'professional headshot generator terms',
+    'AI portrait usage rights',
+  ],
   alternates: {
     canonical: '/terms',
   },
@@ -19,7 +31,7 @@ export default function TermsPage() {
 
       <main className="pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-8">Terms of Service</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-8">Magic-Headshot AI Headshot Terms of Service</h1>
           
           <div className="space-y-6 text-slate-600">
             <Card className="p-6">

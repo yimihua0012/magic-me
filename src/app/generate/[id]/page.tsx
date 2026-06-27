@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   Loader2,
   Grid3X3,
-  Share2,
   AlertCircle
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
@@ -87,7 +86,11 @@ export default function GenerationPage() {
       if (photosBase64) {
         try {
           const photos = JSON.parse(photosBase64)
-          if (!photos.length) {
+          const inputPhotos = Array.isArray(photos)
+            ? photos.filter((photo): photo is string => typeof photo === 'string' && photo.trim().length > 0).slice(0, 3)
+            : []
+
+          if (!inputPhotos.length) {
             setGeneration(prev => ({ ...prev, status: 'failed', currentStep: 'No photos uploaded' }))
             return
           }
@@ -99,14 +102,14 @@ export default function GenerationPage() {
           localStorage.removeItem('pending_generation_id')
           localStorage.removeItem('pending_generation_style_ids')
 
-          setGeneration(prev => ({ ...prev, currentStep: 'Preparing generation...', progress: 5, styleCount: styleIds.length }))
+          setGeneration(prev => ({ ...prev, currentStep: 'Preparing your reference photos...', progress: 5, styleCount: styleIds.length }))
           
           const authHeaders = await getAuthHeaders()
           const response = await fetch('/api/generate-headshots', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ 
-              faceImageUrl: photos[0],
+              faceImageUrls: inputPhotos,
               styleIds,
               clientGenerationId: generationId,
             })
@@ -211,13 +214,13 @@ export default function GenerationPage() {
             setGeneration(prev => ({
               ...prev,
               progress: Math.max(prev.progress, data.progress || 0),
-              currentStep: data.currentStep || prev.currentStep || 'Generating selected styles...',
+              currentStep: data.currentStep || prev.currentStep || 'Rendering your portrait styles...',
             }))
           }
         } catch (error) {
           console.error('[Polling] Error:', error)
         }
-      }, 3000)
+      }, 5000)
 
       pollIntervalRef.current = intervalId
 
@@ -227,12 +230,14 @@ export default function GenerationPage() {
             if (prev.status !== 'processing') return prev
             const nextProgress = Math.min(95, Math.max(prev.progress + 1, Math.ceil(prev.progress * 1.04)))
             const currentStep = nextProgress >= 85
-              ? 'Finalizing your headshots...'
-              : nextProgress >= 55
-                ? 'Generating selected styles...'
-                : nextProgress >= 25
-                  ? 'Analyzing your photo...'
-                  : 'Preparing generation...'
+              ? 'Finalizing detail and preparing your results...'
+              : nextProgress >= 65
+                ? 'Polishing lighting, expression, and portrait detail...'
+                : nextProgress >= 45
+                  ? 'Rendering your selected portrait styles...'
+                  : nextProgress >= 25
+                    ? 'Matching your reference photos to each style...'
+                    : 'Analyzing your reference photos...'
             return { ...prev, progress: nextProgress, currentStep }
           })
         }, 2500)
@@ -383,7 +388,7 @@ export default function GenerationPage() {
             </h1>
             <p className="text-slate-600">
               {generation.status === 'completed' 
-                ? 'Download your favorites and share your new professional look'
+                ? 'Review and download your favorite professional headshots'
                 : 'This usually takes about 3 minutes'}
             </p>
           </div>
@@ -467,10 +472,6 @@ export default function GenerationPage() {
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download Selected ({selectedPhotos.size})
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
                   </Button>
                 </div>
               </div>

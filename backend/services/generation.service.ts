@@ -345,12 +345,25 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
   }
 }
 
-const QUALITY_SUFFIX = '4k, highly detailed, professional photography, sharp focus, beautiful lighting, masterpiece'
-const DEFAULT_NEGATIVE = 'worst quality, low quality, blurry, distorted face, extra fingers, fused fingers, bad anatomy, ugly, deformed, disfigured, watermark, text, logo'
+const QUALITY_SUFFIX = 'professional headshot, upper-body portrait, clean background, natural skin texture, realistic lighting, sharp focus, high detail, LinkedIn-ready'
+const DEFAULT_NEGATIVE = 'worst quality, low quality, blurry, distorted face, extra fingers, fused fingers, bad anatomy, ugly, deformed, disfigured, watermark, text, logo, multiple people, side profile, cropped face'
+const MAX_INPUT_PHOTOS = 3
+const GENERATION_ATTEMPTS = 3
+const POLL_INTERVAL_MS = 5000
+
+function generationStepForProgress(progress: number): string {
+  if (progress >= 95) return 'Preparing your finished headshots...'
+  if (progress >= 80) return 'Polishing lighting, detail, and skin tones...'
+  if (progress >= 60) return 'Rendering your selected portrait styles...'
+  if (progress >= 35) return 'Matching your reference photos to each style...'
+  if (progress >= 15) return 'Analyzing your reference photos...'
+  return 'Preparing your generation...'
+}
 
 export interface CreateGenerationRequest {
   userId: string
-  faceImageUrl: string
+  faceImageUrl?: string
+  faceImageUrls?: string[]
   styleIds?: string[]
   clientGenerationId?: string
 }
@@ -365,6 +378,26 @@ export interface GenerationResponse {
 }
 
 export class GenerationService {
+  private static normalizeInputPhotos(input: CreateGenerationRequest): string[] {
+    const photos = Array.isArray(input.faceImageUrls)
+      ? input.faceImageUrls
+      : input.faceImageUrl
+        ? [input.faceImageUrl]
+        : []
+
+    const normalized = photos
+      .filter((photo): photo is string => typeof photo === 'string')
+      .map(photo => photo.trim())
+      .filter(Boolean)
+      .slice(0, MAX_INPUT_PHOTOS)
+
+    if (normalized.length === 0) {
+      throw new Error('At least one input photo is required')
+    }
+
+    return normalized
+  }
+
   private static async getGenerationByClientId(userId: string, clientGenerationId: string): Promise<Generation | null> {
     const { data, error } = await supabaseAdmin
       .from('generations')
@@ -386,7 +419,7 @@ export class GenerationService {
       id: generation.id,
       status: generation.status,
       progress: generation.progress || 0,
-      currentStep: generation.current_step || 'Generating selected styles...',
+      currentStep: generation.current_step || 'Rendering your portrait styles...',
       outputUrls: generation.output_photos || [],
       reused,
     }
@@ -425,6 +458,8 @@ export class GenerationService {
       throw new Error('Generation not found')
     }
 
+    const inputPhotos = this.normalizeInputPhotos({ userId: existing.user_id, faceImageUrl })
+
     const styles = styleIds?.length 
       ? styleIds.slice(0, existing.style_count || 30)
       : Object.keys(STYLE_CONFIGS).slice(0, existing.style_count || 30)
@@ -433,7 +468,7 @@ export class GenerationService {
       status: 'processing',
       progress: 0,
       current_step: 'Initializing...',
-      input_photos: [faceImageUrl],
+      input_photos: inputPhotos,
       output_photos: [],
       started_at: new Date().toISOString(),
     }
@@ -464,7 +499,8 @@ export class GenerationService {
 
   static async createAndActivateGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
     logGenerationDebug(`[GenerationService] createAndActivateGeneration called - userId: ${input.userId}`)
-    const { userId, faceImageUrl, styleIds, clientGenerationId } = input
+    const { userId, styleIds, clientGenerationId } = input
+    const inputPhotos = this.normalizeInputPhotos(input)
     const availableStyles = await getStyleMap()
     const styles = styleIds?.length
       ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
@@ -495,7 +531,7 @@ export class GenerationService {
       user_id: userId,
       plan_type: 'basic',
       style_count: styleCount,
-      input_photos: [faceImageUrl],
+      input_photos: inputPhotos,
       output_photos: [],
       status: 'processing',
       progress: 0,
@@ -544,7 +580,7 @@ export class GenerationService {
         user_id: userId,
         plan_type: 'basic',
         style_count: styleCount,
-        input_photos: [faceImageUrl],
+        input_photos: inputPhotos,
         output_photos: [],
         status: 'processing',
         progress: 0,
@@ -585,8 +621,9 @@ export class GenerationService {
   }
 
   static async createGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
-    logGenerationDebug(`[GenerationService] createGeneration called - userId: ${input.userId}, faceImageUrl: ${input.faceImageUrl?.substring(0, 50)}...`)
-    const { userId, faceImageUrl, styleIds } = input
+    logGenerationDebug(`[GenerationService] createGeneration called - userId: ${input.userId}, inputPhotoCount: ${this.normalizeInputPhotos(input).length}`)
+    const { userId, styleIds } = input
+    const inputPhotos = this.normalizeInputPhotos(input)
     const availableStyles = await getStyleMap()
     const styles = styleIds?.length
       ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
@@ -597,7 +634,7 @@ export class GenerationService {
       user_id: userId,
       plan_type: 'basic',
       style_count: styles.length,
-      input_photos: [faceImageUrl],
+      input_photos: inputPhotos,
       output_photos: [],
       status: 'processing',
       progress: 0,
@@ -622,7 +659,7 @@ export class GenerationService {
         user_id: userId,
         plan_type: 'basic',
         style_count: styles.length,
-        input_photos: [faceImageUrl],
+        input_photos: inputPhotos,
         output_photos: [],
         status: 'processing',
         progress: 0,
@@ -754,7 +791,7 @@ export class GenerationService {
     await this.updateGeneration(generationId, { 
       status: 'processing',
       started_at: new Date().toISOString(),
-      current_step: 'Initializing generation...'
+      current_step: generationStepForProgress(5)
     })
 
     const requestedStyleIds = Array.isArray(generation.metadata?.styleIds)
@@ -773,7 +810,6 @@ export class GenerationService {
     logGenerationDebug(`[GenerationService] Generating ${stylesToGenerate.length} styles in ${batches.length} batches`)
 
     const outputUrls: string[] = []
-    const maxRetries = 1
     const totalStyles = stylesToGenerate.length
     const storageFolderName = this.createStorageFolderName()
     let completedStyles = 0
@@ -782,15 +818,15 @@ export class GenerationService {
       const batch = batches[batchIndex]
       logGenerationDebug(`[GenerationService] Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} styles)`)
       
-      await this.updateGeneration(generationId, { 
-        current_step: `Generating batch ${batchIndex + 1}/${batches.length}...`
+      const batchStartProgress = Math.round((completedStyles / totalStyles) * 100)
+      await this.updateGeneration(generationId, {
+        current_step: generationStepForProgress(batchStartProgress),
       })
 
       const batchPromises = batch.map((styleId, batchItemIndex) => 
         this.generateWithRetry(
-          generation.input_photos[0],
+          generation.input_photos.slice(0, MAX_INPUT_PHOTOS),
           styleId,
-          maxRetries,
           {
             userId: generation.user_id,
             generationId,
@@ -809,7 +845,8 @@ export class GenerationService {
       logGenerationDebug(`[GenerationService] Batch ${batchIndex + 1} completed - progress: ${progress}%, total outputs: ${outputUrls.length}`)
       await this.updateGeneration(generationId, { 
         progress, 
-        output_photos: outputUrls 
+        output_photos: outputUrls,
+        current_step: generationStepForProgress(progress),
       })
     }
 
@@ -827,7 +864,7 @@ export class GenerationService {
       input_photos: archivedInputPhotos.length ? archivedInputPhotos : generation.input_photos,
       output_photos: outputUrls,
       completed_at: new Date().toISOString(),
-      current_step: 'Generation complete!'
+      current_step: 'Your headshots are ready to review.'
     })
 
     // 发送生成完成邮件
@@ -874,32 +911,20 @@ export class GenerationService {
   }
 
   private static async generateWithRetry(
-    faceImageUrl: string,
+    faceImageUrls: string[],
     styleId: string,
-    maxRetries: number,
     storageContext: OutputPhotoStorageContext
   ): Promise<string> {
-    let attempts = 0
-    let lastError: Error | undefined
-
-    while (attempts <= maxRetries) {
-      try {
-        return await this.generateSingleStyle(faceImageUrl, styleId, storageContext)
-      } catch (error) {
-        lastError = error as Error
-        attempts++
-        if (attempts <= maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 2000))
-        }
-      }
+    try {
+      return await this.generateSingleStyle(faceImageUrls, styleId, storageContext)
+    } catch (error) {
+      console.error(`Failed to generate ${styleId} after ${GENERATION_ATTEMPTS} attempts:`, error)
+      return this.fallbackGenerationImage(styleId, error instanceof Error ? error.message : 'Retry limit reached')
     }
-
-    console.error(`Failed to generate ${styleId} after ${maxRetries + 1} attempts:`, lastError)
-    return this.fallbackGenerationImage(styleId, lastError?.message || 'Retry limit reached')
   }
 
   private static async generateSingleStyle(
-    faceImageUrl: string,
+    faceImageUrls: string[],
     styleId: string,
     storageContext: OutputPhotoStorageContext
   ): Promise<string> {
@@ -916,16 +941,14 @@ export class GenerationService {
 
     logGenerationDebug(`[GenerationService] Generating ${styleId} with Replicate API...`)
     
-    const prompt = `${styleConfig.prompt}, ${QUALITY_SUFFIX}`
+    const prompt = `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Output should be a polished LinkedIn-ready headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
 
     const replicateApiKey = process.env.REPLICATE_API_KEY
     const modelName = process.env.REPLICATE_MODEL_NAME || 'google/nano-banana-2'
 
-    const maxRetries = 5
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    for (let attempt = 1; attempt <= GENERATION_ATTEMPTS; attempt++) {
       try {
-        logGenerationDebug(`[GenerationService] Calling Replicate API for ${styleId} (attempt ${attempt}/${maxRetries})...`)
+        logGenerationDebug(`[GenerationService] Calling Replicate API for ${styleId} (attempt ${attempt}/${GENERATION_ATTEMPTS})...`)
         logGenerationDebug(`[GenerationService] Using model: ${modelName}`)
         
         // 使用官方模型端点（30秒超时）
@@ -941,8 +964,9 @@ export class GenerationService {
             body: JSON.stringify({
               input: {
                 prompt,
-                image_input: [faceImageUrl],
-                aspect_ratio: 'match_input_image',
+                negative_prompt: `${styleConfig.negative}, ${DEFAULT_NEGATIVE}`,
+                image_input: faceImageUrls.slice(0, MAX_INPUT_PHOTOS),
+                aspect_ratio: '1:1',
                 output_format: 'jpg',
               },
             }),
@@ -985,7 +1009,7 @@ export class GenerationService {
         while (result.status !== 'succeeded' && result.status !== 'failed') {
           pollCount++
           logGenerationDebug(`[GenerationService] Polling ${styleId} - attempt ${pollCount}, status: ${result.status}`)
-          await new Promise(resolve => setTimeout(resolve, 2000))
+          await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
           const statusResponse = await fetchWithTimeout(
             `https://api.replicate.com/v1/predictions/${result.id}`,
             {
@@ -1017,7 +1041,7 @@ export class GenerationService {
         return await this.persistOutputPhoto(outputUrl, styleId, storageContext)
       } catch (error) {
         console.error(`[GenerationService] Exception generating ${styleId} (attempt ${attempt}):`, error)
-        if (attempt < maxRetries) {
+        if (attempt < GENERATION_ATTEMPTS) {
           const waitTime = Math.pow(2, attempt) * 1000
           logGenerationDebug(`[GenerationService] Retrying ${styleId} in ${waitTime/1000}s...`)
           await new Promise(resolve => setTimeout(resolve, waitTime))
@@ -1025,7 +1049,7 @@ export class GenerationService {
       }
     }
 
-    console.error(`[GenerationService] Failed to generate ${styleId} after ${maxRetries} attempts`)
+    console.error(`[GenerationService] Failed to generate ${styleId} after ${GENERATION_ATTEMPTS} attempts`)
     return this.fallbackGenerationImage(styleId, 'Generation attempts exhausted')
   }
 

@@ -42,10 +42,10 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6 sm:mb-12">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2 sm:mb-4">
-              AI Headshot Pricing for Realistic Portraits
+              AI Headshot Generator Pricing for LinkedIn and Resume Photos
             </h1>
             <p className="text-sm sm:text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto">
-              One-time pricing for realistic, high-likeness AI headshots. Choose a plan, pay with PayPal, and get your photos in minutes.
+              One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages.
             </p>
           </div>
 
@@ -220,7 +220,7 @@ export default function PricingPage() {
                 },
                 {
                   q: 'What happens to my photos after generation?',
-                  a: 'Your uploaded photos are automatically deleted after the generation process is complete. We never store your selfies.'
+                  a: 'Your uploaded photos are handled only to provide your requested headshots. Input photos may be stored securely for processing, troubleshooting, abuse prevention, and support, and you can request deletion.'
                 },
                 {
                   q: 'How long does it take to generate my headshots?',

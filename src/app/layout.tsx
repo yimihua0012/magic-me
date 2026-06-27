@@ -19,6 +19,19 @@ const inter = Inter({
 })
 
 const siteUrl = appConfig.url.replace(/\/$/, '')
+const seoKeywords = [
+  'realistic AI headshot generator',
+  'AI headshots for LinkedIn',
+  'AI resume photo generator',
+  'professional profile photo maker',
+  'business portrait AI generator',
+  'high likeness AI portraits',
+  'professional headshots without photographer',
+  'LinkedIn profile photo maker',
+  'virtual headshot generator',
+  'team photos online',
+  'fast headshot generation',
+]
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -36,14 +49,7 @@ export const metadata: Metadata = {
   description: `${appConfig.description}. Fast AI headshots for LinkedIn, resumes, and profile photos with a dedicated portrait model and high likeness.`,
   keywords: [
     ...appConfig.keywords.split(','),
-    'AI headshot generator',
-    'professional headshots without photographer',
-    'LinkedIn profile photo maker',
-    'AI business portrait',
-    'virtual headshot generator',
-    'team photos online',
-    'realistic AI portraits',
-    'fast headshot generation',
+    ...seoKeywords,
   ],
   authors: [{ name: appConfig.name }],
   creator: appConfig.name,
@@ -104,7 +110,7 @@ export default function RootLayout({
     url: siteUrl,
     applicationCategory: 'DesignApplication',
     operatingSystem: 'Web',
-    keywords: 'AI headshot generator, LinkedIn profile photo maker, professional headshots without photographer, AI business portrait, virtual headshot generator, realistic AI portraits, fast headshot generation',
+    keywords: seoKeywords.join(', '),
     offers: [
       {
         '@type': 'Offer',
@@ -156,7 +162,7 @@ export default function RootLayout({
         name: 'Do you offer professional headshots for team photos online?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes. Our Enterprise plan includes team management features for consistent, high-quality headshots for remote teams.',
+          text: 'Yes. Teams can use our AI headshot generator to create consistent professional portraits for remote teams, company pages, and profile photos.',
         },
       },
     ],

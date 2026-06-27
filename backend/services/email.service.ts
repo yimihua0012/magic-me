@@ -99,7 +99,7 @@ export class EmailService {
             <p>Thanks for joining ${appName}. We're excited to help you create professional AI headshots.</p>
             <p>Here's what you can do next:</p>
             <ol>
-              <li>Upload 1-3 selfies with good lighting</li>
+              <li>Upload 1-3 clear selfies of the same person with good lighting</li>
               <li>Choose your preferred styles</li>
               <li>Download your professional headshots in minutes</li>
             </ol>

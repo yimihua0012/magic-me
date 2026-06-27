@@ -16,11 +16,23 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { faceImageUrl, styleIds, clientGenerationId } = body
+    const { faceImageUrl, faceImageUrls, styleIds, clientGenerationId } = body
+    const inputPhotoUrls = Array.isArray(faceImageUrls)
+      ? faceImageUrls
+      : typeof faceImageUrl === 'string'
+        ? [faceImageUrl]
+        : []
 
-    if (!faceImageUrl) {
+    if (inputPhotoUrls.length === 0) {
       return NextResponse.json(
-        { error: 'faceImageUrl is required' },
+        { error: 'At least one face image is required' },
+        { status: 400 }
+      )
+    }
+
+    if (inputPhotoUrls.length > 3 || inputPhotoUrls.some((url) => typeof url !== 'string' || !url.trim())) {
+      return NextResponse.json(
+        { error: 'faceImageUrls must contain 1-3 image strings' },
         { status: 400 }
       )
     }
@@ -49,7 +61,7 @@ export async function POST(request: Request) {
 
     const generation = await GenerationService.createAndActivateGeneration({
       userId: user.id,
-      faceImageUrl,
+      faceImageUrls: inputPhotoUrls,
       styleIds,
       clientGenerationId,
     })

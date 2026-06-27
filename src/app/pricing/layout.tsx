@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'AI Headshot Pricing for LinkedIn and Resume Photos',
+  title: 'AI Headshot Generator Pricing for LinkedIn, Resume, and Business Portraits',
   description: 'Compare AI headshot pricing for realistic portraits, fast generation, and high likeness. One-time PayPal checkout, starting at $12.90.',
   keywords: [
     'AI headshot generator pricing',

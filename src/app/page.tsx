@@ -22,8 +22,19 @@ import { appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {
-  title: 'AI Headshot Generator for LinkedIn, Resume, and Profile Photos',
+  title: 'Realistic AI Headshot Generator for LinkedIn, Resume, and Profile Photos',
   description: appConfig.description,
+  keywords: [
+    'realistic AI headshot generator',
+    'AI headshots for LinkedIn',
+    'AI resume photo generator',
+    'professional profile photo maker',
+    'business portrait AI generator',
+    'high likeness AI portraits',
+    'professional headshots without photographer',
+    'LinkedIn profile photo maker',
+    'fast headshot generation',
+  ],
   alternates: {
     canonical: '/',
   },
@@ -54,7 +65,7 @@ const features = [
   {
     icon: <Shield className="w-6 h-6" />,
     title: 'Privacy First',
-    description: 'Your photos are deleted after generation. Your data stays yours.',
+    description: 'Your photos stay yours and are handled only to create your requested headshots.',
   },
   {
     icon: <Download className="w-6 h-6" />,
@@ -127,7 +138,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               </div>
               
               <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-tight">
-                Realistic AI Headshots{' '}
+                Realistic AI Headshots for LinkedIn{' '}
                 <span className="gradient-text">in Minutes</span>
               </h1>
               
@@ -206,8 +217,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
           <div className="grid md:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
             {[
-              { step: '1', icon: <Sparkles className="w-8 h-8" />, title: 'Upload Your Selfie', desc: 'Take or upload 1-3 selfies with good lighting and a clear view of your face.' },
-              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'Portrait Model Works', desc: `Our dedicated portrait model generates ${PLANS.pro.credits} realistic headshots with strong likeness in minutes.` },
+              { step: '1', icon: <Sparkles className="w-8 h-8" />, title: 'Upload Your Selfies', desc: 'Take or upload 1-3 clear selfies of the same person with good lighting and a clear view of your face.' },
+              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'Portrait Model Works', desc: 'Our dedicated portrait model generates your selected realistic headshots with strong likeness in minutes.' },
               { step: '3', icon: <Download className="w-8 h-8" />, title: 'Download & Save', desc: 'Pick your favorites and download in high resolution for any platform.' },
             ].map((item, i) => (
               <div key={i} className="relative">
