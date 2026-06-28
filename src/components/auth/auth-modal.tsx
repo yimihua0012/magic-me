@@ -68,6 +68,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     window.location.href = `/api/auth/google?returnTo=${encodeURIComponent(currentPath || '/dashboard')}`
   }
 
+  const handleXAuth = async () => {
+    setIsLoading(true)
+    const currentPath = `${window.location.pathname}${window.location.search}`
+    window.location.href = `/api/auth/x?returnTo=${encodeURIComponent(currentPath || '/dashboard')}`
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={mode === 'login' ? 'Welcome Back' : 'Create Account'}>
       <div className="space-y-6">
@@ -89,6 +95,15 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         >
           <Chrome className="w-5 h-5" />
           Continue with Google
+        </button>
+
+        <button
+          onClick={handleXAuth}
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-medium text-slate-700 min-h-[48px] touch-target"
+        >
+          <span className="text-base font-bold leading-none text-slate-900">X</span>
+          Continue with X
         </button>
 
         <div className="relative">

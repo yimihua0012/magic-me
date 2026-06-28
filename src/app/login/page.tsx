@@ -75,6 +75,11 @@ export default function LoginPage() {
     window.location.href = target
   }
 
+  const handleXAuth = () => {
+    const target = returnTo ? `/api/auth/x?returnTo=${encodeURIComponent(returnTo)}` : '/api/auth/x'
+    window.location.href = target
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
@@ -97,10 +102,18 @@ export default function LoginPage() {
             <button
               onClick={handleGoogleAuth}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-medium text-slate-700 mb-6"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-medium text-slate-700"
             >
               <Chrome className="w-5 h-5" />
               Continue with Google
+            </button>
+            <button
+              onClick={handleXAuth}
+              disabled={isLoading}
+              className="mt-3 w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-medium text-slate-700 mb-6"
+            >
+              <span className="text-base font-bold leading-none text-slate-900">X</span>
+              Continue with X
             </button>
 
             <div className="relative mb-6">
@@ -203,13 +216,13 @@ export default function LoginPage() {
 function authErrorMessage(error: string) {
   switch (error) {
     case 'missing_code':
-      return 'Google sign-in did not return an authorization code. Please try again.'
+      return 'Social sign-in did not return an authorization code. Please try again.'
     case 'oauth_exchange_failed':
-      return 'Google sign-in could not be completed. Please check the authorized redirect URL in Supabase.'
+      return 'Social sign-in could not be completed. Please check the authorized redirect URL in Supabase.'
     case 'session_missing':
-      return 'Google sign-in completed, but the login session was not saved. Please try again.'
+      return 'Social sign-in completed, but the login session was not saved. Please try again.'
     default:
-      return 'Google sign-in failed. Please try again.'
+      return 'Social sign-in failed. Please try again.'
   }
 }
 
