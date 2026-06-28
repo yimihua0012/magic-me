@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { CreditPackageService } from '@backend/services'
+import { CreditPackageService, isDailyLimitError } from '@backend/services'
 import { getBearerUser } from '@/lib/auth/server'
 import {
   capturePayPalOrder,
@@ -67,6 +67,18 @@ export async function POST(request: Request) {
       credits: creditPackage.total_credits,
     })
   } catch (error) {
+    if (isDailyLimitError(error)) {
+      return NextResponse.json(
+        {
+          error: 'Daily credit package limit reached. Please try again tomorrow.',
+          limit: error.limit,
+          used: error.used,
+          resetAt: error.resetAt,
+        },
+        { status: 429 }
+      )
+    }
+
     console.error('[PayPal] Capture order error:', error)
     return NextResponse.json({ error: 'Failed to capture PayPal order' }, { status: 500 })
   }

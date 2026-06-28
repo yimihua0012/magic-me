@@ -9,6 +9,7 @@ import {
   PlanType,
 } from '@backend/types'
 import { emailService } from './email.service'
+import { DailyLimitService } from './daily-limit.service'
 import { userRepository } from '@backend/db/repositories'
 
 // 内存存储作为数据库降级方案
@@ -73,6 +74,8 @@ export class CreditPackageService {
         return existing as CreditPackage
       }
     }
+
+    await DailyLimitService.enforceCreditPackage(input.user_id)
 
     const packageData: Partial<CreditPackage> = {
       user_id: input.user_id,

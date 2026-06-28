@@ -18,6 +18,11 @@ interface NavbarProps {
   onOpenAuthModal?: () => void
 }
 
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number
+  cancelIdleCallback?: (handle: number) => void
+}
+
 export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
@@ -49,6 +54,9 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   useEffect(() => {
     let isMounted = true
     let subscription: { unsubscribe: () => void } | undefined
+    const idleWindow = window as IdleWindow
+    let idleHandle: number | undefined
+    let timeoutHandle: number | undefined
 
     const initAuth = async () => {
       try {
@@ -78,10 +86,24 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
       }
     }
 
-    void initAuth()
+    if (idleWindow.requestIdleCallback) {
+      idleHandle = idleWindow.requestIdleCallback(() => {
+        void initAuth()
+      }, { timeout: 1500 })
+    } else {
+      timeoutHandle = window.setTimeout(() => {
+        void initAuth()
+      }, 500)
+    }
 
     return () => {
       isMounted = false
+      if (idleHandle !== undefined) {
+        idleWindow.cancelIdleCallback?.(idleHandle)
+      }
+      if (timeoutHandle !== undefined) {
+        window.clearTimeout(timeoutHandle)
+      }
       subscription?.unsubscribe()
     }
   }, [])

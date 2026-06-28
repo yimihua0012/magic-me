@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { PLANS } from '@backend/config/plans'
 import { PlanType } from '@backend/config/plans'
 import { appConfig } from '@/lib/config'
+import { DailyLimitService, isDailyLimitError } from '@backend/services'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     }
 
     const plan = PLANS[plan_type as PlanType]
+    await DailyLimitService.enforceCreditPackage(user.id)
 
     // Create checkout using Lemon Squeezy API (20s timeout)
     const controller = new AbortController()
@@ -88,6 +90,18 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: checkoutUrl })
   } catch (error) {
+    if (isDailyLimitError(error)) {
+      return NextResponse.json(
+        {
+          error: 'Daily credit package limit reached. Please try again tomorrow.',
+          limit: error.limit,
+          used: error.used,
+          resetAt: error.resetAt,
+        },
+        { status: 429 }
+      )
+    }
+
     console.error('Lemon Squeezy checkout error:', error)
     return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 })
   }

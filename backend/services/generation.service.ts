@@ -414,6 +414,10 @@ export class GenerationService {
     return data as Generation | null
   }
 
+  static async findByClientGenerationId(userId: string, clientGenerationId: string): Promise<Generation | null> {
+    return this.getGenerationByClientId(userId, clientGenerationId)
+  }
+
   private static toGenerationResponse(generation: Generation, reused = false): GenerationResponse {
     return {
       id: generation.id,

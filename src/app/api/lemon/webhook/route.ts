@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import crypto from 'crypto'
-import { CreditPackageService } from '@backend/services'
+import { CreditPackageService, isDailyLimitError } from '@backend/services'
 import { PLANS } from '@backend/config/plans'
 
 export const dynamic = 'force-dynamic'
@@ -89,6 +89,17 @@ export async function POST(request: Request) {
 
         console.log(`[Lemon Webhook] Created credit package for user: ${userId}, plan: ${planType}`)
       } catch (dbError) {
+        if (isDailyLimitError(dbError)) {
+          console.error('[Lemon Webhook] Daily credit package limit reached:', {
+            userId,
+            planType,
+            limit: dbError.limit,
+            used: dbError.used,
+            resetAt: dbError.resetAt,
+          })
+          return NextResponse.json({ error: 'Daily credit package limit reached' }, { status: 429 })
+        }
+
         console.error('[Lemon Webhook] Error creating credit package:', dbError)
         return NextResponse.json({ error: 'Failed to create credit package' }, { status: 500 })
       }

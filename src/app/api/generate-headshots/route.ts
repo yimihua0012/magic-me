@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { CreditPackageService, GenerationService } from '@backend/services'
+import { CreditPackageService, DailyLimitService, GenerationService, isDailyLimitError } from '@backend/services'
 import { supabaseAdmin } from '@backend/config/supabase'
 import { getCurrentUser } from '@/lib/auth/server'
 
@@ -59,6 +59,20 @@ export async function POST(request: Request) {
       )
     }
 
+    if (clientGenerationId) {
+      const existing = await GenerationService.findByClientGenerationId(user.id, clientGenerationId)
+      if (existing) {
+        return NextResponse.json({
+          taskId: existing.id,
+          status: existing.status,
+          estimatedTime: existing.status === 'processing' ? 180 : 0,
+          reused: true,
+        })
+      }
+    }
+
+    await DailyLimitService.enforceGeneration(user.id)
+
     const generation = await GenerationService.createAndActivateGeneration({
       userId: user.id,
       faceImageUrls: inputPhotoUrls,
@@ -100,6 +114,18 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'No available credits. Please purchase a plan first.' },
         { status: 402 }
+      )
+    }
+
+    if (isDailyLimitError(error)) {
+      return NextResponse.json(
+        {
+          error: 'Daily generation limit reached. Please try again tomorrow.',
+          limit: error.limit,
+          used: error.used,
+          resetAt: error.resetAt,
+        },
+        { status: 429 }
       )
     }
 

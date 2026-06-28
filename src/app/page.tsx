@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
+import OAuthCodeRedirect from '@/components/auth/oauth-code-redirect'
 import HeroHeadshotGallery from '@/components/home/hero-headshot-gallery'
 import { buttonStyles } from '@/components/ui/button'
 import TrackedLink from '@/components/ui/tracked-link'
@@ -149,15 +149,10 @@ const heroHeadshots = [
   },
 ]
 
-export default async function HomePage({ searchParams }: { searchParams?: Promise<{ code?: string; returnTo?: string }> }) {
-  const params = await searchParams
-  if (params?.code) {
-    const returnTo = params.returnTo || '/dashboard'
-    redirect(`/api/auth/callback?code=${encodeURIComponent(params.code)}&returnTo=${encodeURIComponent(returnTo)}`)
-  }
-
+export default function HomePage() {
   return (
     <main className="min-h-screen bg-white">
+      <OAuthCodeRedirect />
       <Navbar />
 
       {/* Hero Section */}

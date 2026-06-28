@@ -22,7 +22,6 @@ import {
   Coins,
   CheckCircle2,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 
 const AuthModal = dynamic(() => import('@/components/auth/auth-modal'), {
   loading: () => null,
@@ -67,6 +66,20 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const CATEGORY_ORDER = ['professional', 'lifestyle', 'artistic', 'seasonal']
 
+function isUsableCreditPackage(pkg: CreditPackageSummaryItem) {
+  const expiresAt = pkg.expires_at ? new Date(pkg.expires_at).getTime() : null
+  return (
+    pkg.remaining_credits > 0 &&
+    pkg.status !== 'expired' &&
+    (pkg.status === 'inactive' || pkg.status === 'active') &&
+    (!expiresAt || expiresAt > Date.now())
+  )
+}
+
+function hasUsableCredits(availableCredits: number, packages: CreditPackageSummaryItem[]) {
+  return availableCredits > 0 && packages.some(isUsableCreditPackage)
+}
+
 function UploadLoading() {
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -89,7 +102,7 @@ function UploadContent() {
   const [creditPackages, setCreditPackages] = useState<CreditPackageSummaryItem[]>([])
   const [styles, setStyles] = useState<HeadshotStyle[]>([])
   const [isLoadingStyles, setIsLoadingStyles] = useState(true)
-  const [isLoadingCredits, setIsLoadingCredits] = useState(false)
+  const [isLoadingCredits, setIsLoadingCredits] = useState(true)
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false)
   const [showStyleLimitModal, setShowStyleLimitModal] = useState(false)
@@ -105,6 +118,75 @@ function UploadContent() {
       setShowPaymentSuccess(true)
     }
   }, [searchParams])
+
+  const applyCreditsData = useCallback((data: {
+    availableCredits?: number
+    nearestExpiresAt?: string | null
+    packages?: CreditPackageSummaryItem[]
+  }) => {
+    const nextAvailableCredits = data.availableCredits || 0
+    const nextPackages = Array.isArray(data.packages) ? data.packages : []
+
+    setAvailableCredits(nextAvailableCredits)
+    setNearestExpiresAt(data.nearestExpiresAt || null)
+    setCreditPackages(nextPackages)
+
+    if (!hasUsableCredits(nextAvailableCredits, nextPackages) && !hasShownNoCreditsModalRef.current) {
+      hasShownNoCreditsModalRef.current = true
+      setShowNoCreditsModal(true)
+    }
+  }, [])
+
+  const loadStyles = useCallback(async () => {
+    try {
+      setIsLoadingStyles(true)
+      setStylesLoadFailed(false)
+
+      const res = await fetch('/api/styles')
+      if (res.ok) {
+        const data = await res.json()
+        setStyles(Array.isArray(data.styles) ? data.styles : [])
+      } else {
+        setStyles([])
+        setStylesLoadFailed(true)
+      }
+    } catch (error) {
+      console.error('Failed to load styles:', error)
+      setStylesLoadFailed(true)
+    } finally {
+      setIsLoadingStyles(false)
+    }
+  }, [])
+
+  const fetchCredits = useCallback(async (accessToken?: string) => {
+    try {
+      setIsLoadingCredits(true)
+      let token = accessToken
+
+      if (!token) {
+        const { supabase } = await import('@/lib/supabase/client')
+        const { data: { session } } = await supabase.auth.getSession()
+        token = session?.access_token
+      }
+
+      if (!token) {
+        return
+      }
+
+      const res = await fetch('/api/credits', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        applyCreditsData(data)
+      }
+    } catch (e) {
+      console.error('Failed to fetch credits:', e)
+    } finally {
+      setIsLoadingCredits(false)
+    }
+  }, [applyCreditsData])
 
   useEffect(() => {
     if (!showPaymentSuccess || !isAuthenticated) {
@@ -123,115 +205,66 @@ function UploadContent() {
     }, 2000)
 
     return () => window.clearInterval(interval)
-  }, [showPaymentSuccess, isAuthenticated])
+  }, [fetchCredits, showPaymentSuccess, isAuthenticated])
 
   useEffect(() => {
-    const loadStyles = async () => {
+    let isMounted = true
+    let subscription: { unsubscribe: () => void } | undefined
+
+    const initUpload = async () => {
+      void loadStyles()
+
       try {
-        setIsLoadingStyles(true)
-        setStylesLoadFailed(false)
+        const { supabase } = await import('@/lib/supabase/client')
         const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.access_token) {
-          setStyles([])
-          setStylesLoadFailed(true)
+
+        if (!isMounted) {
           return
         }
 
-        const res = await fetch('/api/styles', {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          setStyles(Array.isArray(data.styles) ? data.styles : [])
-        } else if (res.status === 401) {
-          setStyles([])
-          setStylesLoadFailed(true)
-        }
-      } catch (error) {
-        console.error('Failed to load styles:', error)
-        setStylesLoadFailed(true)
-      } finally {
-        setIsLoadingStyles(false)
-      }
-    }
-
-    void loadStyles()
-  }, [])
-
-  const hasActiveCredits = availableCredits > 0 && creditPackages.some((pkg) => {
-    const expiresAt = pkg.expires_at ? new Date(pkg.expires_at).getTime() : null
-    return pkg.remaining_credits > 0 && pkg.status !== 'expired' && (pkg.status === 'inactive' || pkg.status === 'active') && (!expiresAt || expiresAt > Date.now())
-  })
-
-  const fetchCredits = async () => {
-    try {
-      setIsLoadingCredits(true)
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) return
-
-      const res = await fetch('/api/credits', {
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
-      })
-
-      if (res.ok) {
-        const data = await res.json()
-        setAvailableCredits(data.availableCredits || 0)
-        setNearestExpiresAt(data.nearestExpiresAt || null)
-        setCreditPackages(Array.isArray(data.packages) ? data.packages : [])
-
-        const active = (data.availableCredits || 0) > 0 && (Array.isArray(data.packages) ? data.packages : []).some((pkg: CreditPackageSummaryItem) => {
-          const expiresAt = pkg.expires_at ? new Date(pkg.expires_at).getTime() : null
-          return pkg.remaining_credits > 0 && pkg.status !== 'expired' && (pkg.status === 'inactive' || pkg.status === 'active') && (!expiresAt || expiresAt > Date.now())
-        })
-
-        if (!active && !hasShownNoCreditsModalRef.current) {
-          hasShownNoCreditsModalRef.current = true
-          setShowNoCreditsModal(true)
-        }
-      }
-    } catch (e) {
-      console.error('Failed to fetch credits:', e)
-    } finally {
-      setIsLoadingCredits(false)
-    }
-  }
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
+        if (session?.user && session.access_token) {
           setIsAuthenticated(true)
           setShowAuthModal(false)
           setShowAuthRequired(false)
-          void fetchCredits()
+          void fetchCredits(session.access_token)
         } else {
           setShowAuthModal(true)
+          setIsLoadingCredits(false)
         }
+
+        const authState = supabase.auth.onAuthStateChange((_event, session) => {
+          if (session?.user && session.access_token) {
+            setIsAuthenticated(true)
+            setShowAuthModal(false)
+            setShowAuthRequired(false)
+            void fetchCredits(session.access_token)
+          } else {
+            setIsAuthenticated(false)
+          }
+        })
+
+        subscription = authState.data.subscription
       } catch {
-        setShowAuthModal(true)
+        if (isMounted) {
+          setShowAuthModal(true)
+          setIsLoadingCredits(false)
+        }
       } finally {
-        setIsCheckingAuth(false)
+        if (isMounted) {
+          setIsCheckingAuth(false)
+        }
       }
     }
 
-    void checkAuth()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setIsAuthenticated(true)
-        setShowAuthModal(false)
-        setShowAuthRequired(false)
-        void fetchCredits()
-      }
-    })
+    void initUpload()
 
     return () => {
-      subscription.unsubscribe()
+      isMounted = false
+      subscription?.unsubscribe()
     }
-  }, [])
+  }, [fetchCredits, loadStyles])
+
+  const hasActiveCredits = hasUsableCredits(availableCredits, creditPackages)
 
   const validateImage = async (file: File): Promise<{ valid: boolean; error?: string }> => {
     return new Promise((resolve) => {
@@ -383,6 +416,16 @@ function UploadContent() {
     .filter(group => group.items.length > 0)
   const canGenerate = isAuthenticated && canProceed && hasActiveCredits && selectedStyleCount > 0 && !isLoadingCredits
   const shouldShowBuyCredits = isAuthenticated && !hasActiveCredits && !isLoadingCredits
+  const creditStatusTitle = isLoadingCredits
+    ? 'Checking credits...'
+    : hasActiveCredits
+      ? `${availableCredits} credits ready`
+      : 'No active credits'
+  const creditStatusLabel = isLoadingCredits
+    ? 'Checking...'
+    : hasActiveCredits
+      ? `${availableCredits} images available`
+      : 'Need credits'
   const expirationLabel = nearestExpiresAt
     ? new Date(nearestExpiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : 'No active package'
@@ -717,7 +760,7 @@ function UploadContent() {
                     Credit status
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-blue-950">
-                    {hasActiveCredits ? `${availableCredits} credits ready` : 'No active credits'}
+                    {creditStatusTitle}
                   </h1>
                   <p className="mt-2 text-sm sm:text-base text-slate-600">
                     Upload a photo, choose styles, then generate and deduct by selection.
@@ -726,7 +769,7 @@ function UploadContent() {
                 <div className="grid grid-cols-2 gap-3 sm:min-w-[360px]">
                   <div className="rounded-xl bg-blue-50 p-3">
                     <p className="text-xs text-blue-600 mb-1">Status</p>
-                    <p className="font-semibold text-blue-950">{hasActiveCredits ? `${availableCredits} images available` : 'Need credits'}</p>
+                    <p className="font-semibold text-blue-950">{creditStatusLabel}</p>
                   </div>
                   <div className="rounded-xl bg-blue-50 p-3">
                     <p className="text-xs text-blue-600 mb-1">Expires</p>
@@ -757,7 +800,13 @@ function UploadContent() {
 
                   <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
                     <div>
-                      {hasActiveCredits ? (
+                      {isLoadingCredits ? (
+                        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-6 text-center">
+                          <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-3" />
+                          <h3 className="text-lg font-semibold text-slate-900 mb-2">Checking your credits</h3>
+                          <p className="text-slate-600">Your upload area will unlock as soon as your credits are confirmed.</p>
+                        </div>
+                      ) : hasActiveCredits ? (
                         <div
                           className={`border-2 border-dashed rounded-2xl min-h-[360px] p-6 sm:p-8 text-center transition-all duration-200 flex items-center justify-center ${
                             isDragging

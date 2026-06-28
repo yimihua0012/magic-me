@@ -18,7 +18,6 @@ import {
   Coins,
   AlertCircle,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 
 interface Generation {
   id: string
@@ -38,6 +37,16 @@ interface CreditPackageSummaryItem {
   validity_days?: number
 }
 
+function isUsableCreditPackage(pkg: CreditPackageSummaryItem) {
+  const expiresAt = pkg.expires_at ? new Date(pkg.expires_at).getTime() : null
+  return (
+    pkg.remaining_credits > 0 &&
+    pkg.status !== 'expired' &&
+    (pkg.status === 'inactive' || pkg.status === 'active') &&
+    (!expiresAt || expiresAt > Date.now())
+  )
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [generations, setGenerations] = useState<Generation[]>([])
@@ -49,6 +58,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const initDashboard = async () => {
+      const { supabase } = await import('@/lib/supabase/client')
       const sessionPromise = supabase.auth.getSession()
 
       let localRecords: Generation[] = []
@@ -73,12 +83,17 @@ export default function DashboardPage() {
       }
 
       try {
-        const res = await fetch('/api/generations?limit=20', {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        })
+        const [generationsRes, creditsRes] = await Promise.all([
+          fetch('/api/generations?limit=20', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          }),
+          fetch('/api/credits', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          }),
+        ])
 
-        if (res.ok) {
-          const data = await res.json()
+        if (generationsRes.ok) {
+          const data = await generationsRes.json()
           const apiRecords: Generation[] = data.generations || []
           const apiIds = new Set(apiRecords.map((record) => record.id))
           const merged = [...apiRecords]
@@ -92,25 +107,16 @@ export default function DashboardPage() {
           merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           setGenerations(merged)
         }
+
+        if (creditsRes.ok) {
+          const creditData = await creditsRes.json()
+          setAvailableCredits(creditData.availableCredits || 0)
+          setNearestExpiresAt(creditData.nearestExpiresAt || null)
+          setCreditPackages(Array.isArray(creditData.packages) ? creditData.packages : [])
+        }
       } catch {
       } finally {
         setIsLoading(false)
-      }
-
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.access_token) {
-          const creditRes = await fetch('/api/credits', {
-            headers: { Authorization: `Bearer ${session.access_token}` },
-          })
-          if (creditRes.ok) {
-            const creditData = await creditRes.json()
-            setAvailableCredits(creditData.availableCredits || 0)
-            setNearestExpiresAt(creditData.nearestExpiresAt || null)
-            setCreditPackages(Array.isArray(creditData.packages) ? creditData.packages : [])
-          }
-        }
-      } catch {
       }
     }
 
@@ -127,6 +133,7 @@ export default function DashboardPage() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this generation?')) {
+      const { supabase } = await import('@/lib/supabase/client')
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
         router.push('/login?returnTo=/dashboard')
@@ -157,10 +164,7 @@ export default function DashboardPage() {
     }
   }
 
-  const hasActiveCredits = availableCredits > 0 && creditPackages.some((pkg) => {
-    const expiresAt = pkg.expires_at ? new Date(pkg.expires_at).getTime() : null
-    return pkg.remaining_credits > 0 && pkg.status !== 'expired' && (pkg.status === 'inactive' || pkg.status === 'active') && (!expiresAt || expiresAt > Date.now())
-  })
+  const hasActiveCredits = availableCredits > 0 && creditPackages.some(isUsableCreditPackage)
 
   const expirationLabel = nearestExpiresAt
     ? new Date(nearestExpiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })

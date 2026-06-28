@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/navbar'
 import Button from '@/components/ui/button'
 import { Camera, Mail, Lock, User, Chrome } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -37,6 +36,7 @@ export default function LoginPage() {
     setError('')
 
     try {
+      const { supabase } = await import('@/lib/supabase/client')
       let data
       
       if (isLogin) {

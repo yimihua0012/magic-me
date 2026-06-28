@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { headers } from 'next/headers'
-import { CreditPackageService } from '@backend/services'
+import { CreditPackageService, isDailyLimitError } from '@backend/services'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,11 +29,10 @@ export async function POST(request: Request) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object
+    const userId = session.metadata?.user_id
+    const planType = session.metadata?.plan_type
     
     try {
-      const userId = session.metadata?.user_id
-      const planType = session.metadata?.plan_type
-      
       if (!userId || !planType) {
         console.error('Missing user_id or plan_type in session metadata')
         return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
@@ -55,6 +54,17 @@ export async function POST(request: Request) {
 
       console.log(`[Stripe Webhook] Created credit package for user: ${userId}, plan: ${planType}`)
     } catch (error) {
+      if (isDailyLimitError(error)) {
+        console.error('[Stripe Webhook] Daily credit package limit reached:', {
+          userId,
+          planType,
+          limit: error.limit,
+          used: error.used,
+          resetAt: error.resetAt,
+        })
+        return NextResponse.json({ error: 'Daily credit package limit reached' }, { status: 429 })
+      }
+
       console.error('[Stripe Webhook] Error creating credit package:', error)
       return NextResponse.json({ error: 'Failed to create credit package' }, { status: 500 })
     }

@@ -1,16 +1,10 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@backend/config/supabase'
-import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   try {
-    const user = await getCurrentUser(request)
-    if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-
     let { data, error } = await supabaseAdmin
       .from('headshot_styles')
       .select('id,name,category,category_order,style_order,selection_count,last_selected_at')
@@ -45,7 +39,7 @@ export async function GET(request: Request) {
       },
       {
         headers: {
-          'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
         },
       }
     )
