@@ -117,7 +117,7 @@ export async function createPayPalOrder(userId: string, planType: PlanType) {
         },
       ],
       application_context: {
-        brand_name: process.env.NEXT_PUBLIC_APP_NAME || 'HeadshotAI',
+        brand_name: process.env.NEXT_PUBLIC_APP_NAME || 'Magic-Headshot',
         user_action: 'PAY_NOW',
         shipping_preference: 'NO_SHIPPING',
       },

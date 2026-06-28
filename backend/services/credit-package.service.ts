@@ -23,6 +23,7 @@ if (!global.mockCreditPackages) {
 
 const mockCreditPackages = global.mockCreditPackages
 const allowMemoryFallback = false
+const ORDER_SUCCESS_NOTIFICATION_EMAIL = '896783781@qq.com'
 
 export class CreditPackageService {
   /**
@@ -134,11 +135,79 @@ export class CreditPackageService {
         created_at: new Date().toISOString(),
       }
       mockCreditPackages.set(fallbackId, fallbackPackage)
+      this.sendPaymentConfirmation(fallbackPackage).catch(err => {
+        console.error('[CreditPackage] Failed to send fallback payment confirmation:', err)
+      })
+      this.sendOrderSuccessNotification(fallbackPackage).catch(err => {
+        console.error('[CreditPackage] Failed to send fallback order success notification:', err)
+      })
       return fallbackPackage
     }
 
-    console.log(`[CreditPackage] Created package: ${data.id}, credits: ${plan.credits}, validity: ${plan.validityDays} days`)
-    return data as CreditPackage
+    const createdPackage = data as CreditPackage
+    console.log(`[CreditPackage] Created package: ${createdPackage.id}, credits: ${plan.credits}, validity: ${plan.validityDays} days`)
+    this.sendPaymentConfirmation(createdPackage).catch(err => {
+      console.error('[CreditPackage] Failed to send payment confirmation:', err)
+    })
+    this.sendOrderSuccessNotification(createdPackage).catch(err => {
+      console.error('[CreditPackage] Failed to send order success notification:', err)
+    })
+    return createdPackage
+  }
+
+  private static paymentProviderForPackage(pkg: CreditPackage): { provider: string; paymentId?: string } {
+    if (pkg.stripe_payment_id) {
+      return { provider: 'Stripe', paymentId: pkg.stripe_payment_id }
+    }
+
+    if (pkg.lemon_order_id) {
+      return { provider: 'Lemon Squeezy', paymentId: pkg.lemon_order_id }
+    }
+
+    if (pkg.paypal_order_id) {
+      return { provider: 'PayPal', paymentId: pkg.paypal_order_id }
+    }
+
+    return { provider: 'Unknown' }
+  }
+
+  private static async sendOrderSuccessNotification(pkg: CreditPackage): Promise<void> {
+    const user = await userRepository.findById(pkg.user_id)
+    const payment = this.paymentProviderForPackage(pkg)
+
+    await emailService.sendOrderSuccessNotificationEmail({
+      email: ORDER_SUCCESS_NOTIFICATION_EMAIL,
+      customerEmail: user?.email,
+      customerName: user?.full_name,
+      packageId: pkg.id,
+      userId: pkg.user_id,
+      planType: pkg.plan_type,
+      totalCredits: pkg.total_credits,
+      validityDays: pkg.validity_days,
+      amountPaid: pkg.amount_paid,
+      currency: pkg.currency,
+      paymentProvider: payment.provider,
+      paymentId: payment.paymentId,
+    })
+  }
+
+  private static async sendPaymentConfirmation(pkg: CreditPackage): Promise<void> {
+    const user = await userRepository.findById(pkg.user_id)
+    if (!user?.email) {
+      console.log(`[CreditPackage] No email found for user ${pkg.user_id}, skipping payment confirmation email`)
+      return
+    }
+
+    await emailService.sendPaymentConfirmationEmail({
+      email: user.email,
+      name: user.full_name || undefined,
+      planType: pkg.plan_type,
+      totalCredits: pkg.total_credits,
+      validityDays: pkg.validity_days,
+      amountPaid: pkg.amount_paid,
+    })
+
+    console.log(`[CreditPackage] Payment confirmation email sent to ${user.email}`)
   }
 
   /**
@@ -272,16 +341,15 @@ export class CreditPackageService {
         return
       }
 
-      await emailService.sendPaymentConfirmationEmail({
+      await emailService.sendCreditPackageActivationEmail({
         email: user.email,
         name: user.full_name || undefined,
         planType: pkg.plan_type,
-        totalCredits: pkg.total_credits,
-        validityDays: pkg.validity_days,
-        amountPaid: pkg.amount_paid,
+        remainingCredits: pkg.remaining_credits,
+        expiresAt: pkg.expires_at || new Date(Date.now() + pkg.validity_days * 24 * 60 * 60 * 1000).toISOString(),
       })
 
-      console.log(`[CreditPackage] Activation email sent to ${user.email}`)
+      console.log(`[CreditPackage] Credit validity activation email sent to ${user.email}`)
     } catch (err) {
       console.error('[CreditPackage] Error sending activation email:', err)
     }

@@ -108,7 +108,7 @@ export default function TermsPage() {
             <Card className="p-6">
               <h2 className="text-xl font-semibold text-slate-900 mb-3">8. Contact</h2>
               <p>
-                For questions about these Terms, please contact us at: postmaster@magic-headshot.com
+                For questions about these Terms, please contact us at: support@mail.magic-headshot.com
               </p>
             </Card>
 

@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
-import Button from '@/components/ui/button'
+import HeroHeadshotGallery from '@/components/home/hero-headshot-gallery'
+import { buttonStyles } from '@/components/ui/button'
 import TrackedLink from '@/components/ui/tracked-link'
 import { 
   Zap, 
@@ -106,12 +108,45 @@ const testimonials = [
 ]
 
 const styles = [
-  { name: 'Corporate Professional', category: 'Business' },
-  { name: 'Creative Studio', category: 'Artistic' },
-  { name: 'Warm Natural', category: 'Lifestyle' },
-  { name: 'Bold & Modern', category: 'Contemporary' },
-  { name: 'Classic Portrait', category: 'Traditional' },
-  { name: 'Urban Edge', category: 'Street' },
+  {
+    name: 'Corporate Office',
+    src: '/home-pages/sample/professional%20headshots%20for%20team%20photos%20.jpeg',
+  },
+  {
+    name: 'Executive Portrait',
+    src: '/home-pages/sample/headshot-executive-portrait.jpg',
+  },
+  {
+    name: 'Vintage Film',
+    src: '/home-pages/sample/high-likeness%20ai%20headshots.jpg',
+  },
+  {
+    name: 'Business Casual',
+    src: '/home-pages/sample/Perfect%20AI%20business%20portrait.jpg',
+  },
+  {
+    name: 'Cinematic Portrait',
+    src: '/home-pages/sample/perfect%20for%20my%20resume.jpg',
+  },
+  {
+    name: 'Coffee Shop',
+    src: '/home-pages/sample/AI%20Headshot%20Clean%20Luxury%20Social.jpeg',
+  },
+]
+
+const heroHeadshots = [
+  {
+    src: '/home-pages/headshot-linkedin-professional1.jpeg',
+    alt: 'Professional LinkedIn AI headshot example',
+  },
+  {
+    src: '/home-pages/headshot-linkedin-professional2.jpeg',
+    alt: 'Corporate AI headshot example',
+  },
+  {
+    src: '/home-pages/headshot-linkedin-professional3.jpg',
+    alt: 'Business profile AI headshot example',
+  },
 ]
 
 export default async function HomePage({ searchParams }: { searchParams?: Promise<{ code?: string; returnTo?: string }> }) {
@@ -126,7 +161,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
+      <section className="relative overflow-hidden pb-10 pt-20 sm:pb-12 sm:pt-24 lg:pb-16 lg:pt-28">
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-accent-50 pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -146,28 +181,24 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
                 Pay once to add credits, choose the styles you want, then generate and deduct only the styles you selected.
               </p>
               
-              <div className="mt-5 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start relative z-10">
+              <div className="relative z-10 mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4 sm:justify-center lg:justify-start">
                 <TrackedLink
                   href="/pricing?plan=basic#plans"
-                  className="w-full sm:w-auto"
+                  className={buttonStyles({ size: 'lg', className: 'w-full text-center sm:w-auto' })}
                   buttonType="primary_cta"
                   source="home_hero_view_pricing"
                   metadata={{ plan: 'basic', price: PLANS.basic.price }}
                 >
-                  <Button size="lg" className="w-full">
-                    Generate Headshots
-                  </Button>
+                  Generate Headshots
                 </TrackedLink>
                 <TrackedLink
                   href="#examples"
                   prefetch={false}
-                  className="w-full sm:w-auto"
+                  className={buttonStyles({ variant: 'secondary', size: 'lg', className: 'w-full text-center leading-snug sm:w-auto' })}
                   buttonType="secondary_cta"
                   source="home_hero_view_examples"
                 >
-                  <Button variant="secondary" size="lg" className="w-full">
-                    View Headshot Style Examples
-                  </Button>
+                  View Style Examples
                 </TrackedLink>
               </div>
               
@@ -183,23 +214,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               </div>
             </div>
 
-            <div className="relative max-w-sm mx-auto w-full hidden sm:block">
-              <div className="relative z-10">
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                  {['bg-gradient-to-br from-blue-400 to-blue-600', 'bg-gradient-to-br from-purple-400 to-purple-600', 'bg-gradient-to-br from-pink-400 to-pink-600'].map((bg, i) => (
-                    <div 
-                      key={i}
-                      className={`aspect-square rounded-xl sm:rounded-2xl ${bg} shadow-xl`}
-                    />
-                  ))}
-                </div>
-                <div className="absolute -bottom-3 -right-2 sm:-bottom-4 sm:-right-4 bg-white rounded-xl shadow-lg p-2 sm:p-3 flex items-center gap-2">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-accent-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Check className="w-4 h-4 text-accent-600" />
-                  </div>
-                  <span className="text-xs sm:text-sm font-medium text-slate-700">{PLANS.basic.credits} Headshots Ready</span>
-                </div>
-              </div>
+            <div className="relative mx-auto hidden w-full max-w-xl pb-12 sm:block">
+              <HeroHeadshotGallery images={heroHeadshots} />
             </div>
           </div>
         </div>
@@ -275,13 +291,16 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             {styles.map((style, i) => (
               <div key={i} className="group cursor-pointer">
-                <div className="relative aspect-square overflow-hidden rounded-xl border border-slate-700 bg-gradient-to-br from-slate-700 to-slate-800 transition-colors group-hover:border-primary-500">
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-600 rounded-full" />
-                  </div>
+                <div className="relative aspect-square overflow-hidden rounded-xl border border-slate-700 bg-slate-800 transition-colors group-hover:border-primary-500">
+                  <Image
+                    src={style.src}
+                    alt={`${style.name} AI headshot style example`}
+                    fill
+                    sizes="(min-width: 1024px) 180px, (min-width: 640px) 30vw, 45vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
                 </div>
                 <p className="mt-2 text-xs sm:text-sm font-medium text-center">{style.name}</p>
-                <p className="text-xs text-slate-500 text-center hidden sm:block">{style.category}</p>
               </div>
             ))}
           </div>
@@ -289,14 +308,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           <div className="text-center mt-8 sm:mt-12">
             <TrackedLink
               href="/pricing?plan=basic#plans"
-              className="inline-flex w-full sm:w-auto"
+              className={buttonStyles({ size: 'lg', className: 'w-full text-center sm:w-auto' })}
               buttonType="primary_cta"
               source="home_style_examples_view_pricing"
               metadata={{ plan: 'basic', price: PLANS.basic.price }}
             >
-              <Button size="lg" className="w-full">
-                Try Basic {PLANS.basic.credits} Headshots
-              </Button>
+              Try Basic {PLANS.basic.credits} Headshots
             </TrackedLink>
           </div>
         </div>
@@ -378,12 +395,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               </ul>
               <TrackedLink
                 href="/pricing?plan=basic#plans"
-                className="block"
+                className={buttonStyles({ className: 'w-full text-center' })}
                 buttonType="pricing_preview_cta"
                 source="home_pricing_preview"
                 metadata={{ plan: 'basic', price: PLANS.basic.price }}
               >
-                <Button className="w-full">Get Started</Button>
+                Choose {PLANS.basic.name}
               </TrackedLink>
             </Card>
 
@@ -424,12 +441,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               </ul>
               <TrackedLink
                 href="/pricing?plan=pro#plans"
-                className="block"
+                className={buttonStyles({ className: 'w-full text-center' })}
                 buttonType="pricing_preview_cta"
                 source="home_pricing_preview"
                 metadata={{ plan: 'pro', price: PLANS.pro.price }}
               >
-                <Button className="w-full">Go Pro</Button>
+                Choose {PLANS.pro.name}
               </TrackedLink>
             </Card>
 
@@ -467,19 +484,19 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               </ul>
               <TrackedLink
                 href="/pricing?plan=premium#plans"
-                className="block"
+                className={buttonStyles({ className: 'w-full text-center' })}
                 buttonType="pricing_preview_cta"
                 source="home_pricing_preview"
                 metadata={{ plan: 'premium', price: PLANS.premium.price }}
               >
-                <Button className="w-full">Go Premium</Button>
+                Choose {PLANS.premium.name}
               </TrackedLink>
             </Card>
           </div>
 
           <p className="text-center text-slate-500 mt-8 text-sm sm:text-base">
             <Link href="/pricing" className="text-primary-600 hover:underline" prefetch={true}>
-              Compare all features on our pricing page
+              View all plans on our pricing page
             </Link>
           </p>
         </div>
@@ -497,31 +514,20 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <TrackedLink
               href="/pricing"
-              className="w-full sm:w-auto"
+              className={buttonStyles({ size: 'lg', className: 'w-full bg-white text-primary-600 shadow-xl hover:bg-primary-50 sm:w-auto' })}
               buttonType="primary_cta"
               source="home_bottom_cta_view_pricing"
             >
-              <Button
-                size="lg"
-                className="bg-white text-primary-600 hover:bg-primary-50 shadow-xl w-full"
-              >
-                <Camera className="w-5 h-5 mr-2" />
-                Generate Headshots Now
-              </Button>
+              <Camera className="mr-2 h-5 w-5" />
+              Generate Headshots Now
             </TrackedLink>
             <TrackedLink
               href="/pricing"
-              className="w-full sm:w-auto"
+              className={buttonStyles({ variant: 'ghost', size: 'lg', className: 'w-full bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 sm:w-auto' })}
               buttonType="secondary_cta"
               source="home_bottom_cta_view_pricing"
             >
-              <Button
-                size="lg"
-                variant="ghost"
-                className="bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm w-full"
-              >
-                View Pricing
-              </Button>
+              View Pricing
             </TrackedLink>
           </div>
         </div>

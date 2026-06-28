@@ -534,7 +534,7 @@ export default function GenerationPage() {
                   </p>
                   <div className="flex flex-col sm:flex-row justify-center gap-3">
                     <Link href="/pricing?plan=pro" className="w-full sm:w-auto">
-                      <Button className="w-full">Buy Pro Credits - $19.90</Button>
+                      <Button className="w-full">Buy {PLANS.pro.name} Credits - ${PLANS.pro.price}</Button>
                     </Link>
                     <Link href="/upload" className="w-full sm:w-auto">
                       <Button variant="secondary" className="w-full">Create New Headshot Generation</Button>

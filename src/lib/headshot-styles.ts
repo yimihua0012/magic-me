@@ -36,4 +36,3 @@ export const HEADSHOT_STYLES: HeadshotStyle[] = [
   { id: 'royal_portrait', name: 'Royal Portrait', category: 'artistic' },
   { id: 'astronaut_space', name: 'Astronaut Space', category: 'artistic' },
 ]
-

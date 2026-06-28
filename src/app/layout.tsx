@@ -1,12 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
-import { Analytics } from '@vercel/analytics/next'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
-import CookieConsent from '@/components/layout/cookie-consent'
-import BackToTop from '@/components/layout/back-to-top'
-import { ToastProvider } from '@/components/ui/toast'
+import ButtonClickTracker from '@/components/ui/button-click-tracker'
+import DeferredPageEffects from '@/components/layout/deferred-page-effects'
 import { appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
 
@@ -114,17 +110,24 @@ export default function RootLayout({
     offers: [
       {
         '@type': 'Offer',
-        name: 'Basic Plan',
+        name: PLANS.basic.name,
         price: PLANS.basic.price.toString(),
         priceCurrency: 'USD',
         description: `${PLANS.basic.credits} AI headshots at ${PLANS.basic.resolution} resolution - Perfect AI headshot for resume and CV`,
       },
       {
         '@type': 'Offer',
-        name: 'Pro Plan',
+        name: PLANS.pro.name,
         price: PLANS.pro.price.toString(),
         priceCurrency: 'USD',
         description: `${PLANS.pro.credits} AI headshots at ${PLANS.pro.resolution} resolution - Best AI headshot generator for LinkedIn profile with business attire`,
+      },
+      {
+        '@type': 'Offer',
+        name: PLANS.premium.name,
+        price: PLANS.premium.price.toString(),
+        priceCurrency: 'USD',
+        description: `${PLANS.premium.credits} AI headshots at ${PLANS.premium.resolution} resolution with priority processing and dedicated support`,
       },
     ],
     aggregateRating: {
@@ -171,40 +174,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <head>
-        {/* Preload critical resources - highest priority */}
-        <link rel="preload" href="/logo.svg" as="image" fetchPriority="high" />
-        
-        {/* Preconnect critical origins */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
-        
-        {/* Google Analytics - Load after page is interactive */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-1JFS76C362"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-1JFS76C362');
-          `}
-        </Script>
-        {/* JSON-LD Schema - Critical for SEO */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body className={`min-h-screen bg-white ${inter.className}`}>
-        <ToastProvider>
-          {children}
-        </ToastProvider>
-        <Analytics />
-        <SpeedInsights />
-        <CookieConsent />
-        <BackToTop />
+        {children}
+        <ButtonClickTracker />
+        <DeferredPageEffects />
       </body>
     </html>
   )

@@ -42,7 +42,7 @@ export default function RefundPage() {
 
             <Card className="p-6">
               <h2 className="mb-3 text-xl font-semibold text-slate-900">How to Request a Refund</h2>
-              <p className="mb-3">To request a refund, email us at postmaster@magic-headshot.com and include:</p>
+              <p className="mb-3">To request a refund, email us at support@mail.magic-headshot.com and include:</p>
               <ol className="list-decimal space-y-2 pl-6">
                 <li>The email address used for your Magic-Headshot account.</li>
                 <li>Your order ID, PayPal transaction ID, Stripe receipt, or other payment reference.</li>
@@ -99,7 +99,7 @@ export default function RefundPage() {
             <Card className="p-6">
               <h2 className="mb-3 text-xl font-semibold text-slate-900">Contact Us</h2>
               <p>
-                Email: postmaster@magic-headshot.com<br />
+                Email: support@mail.magic-headshot.com<br />
                 Support hours: Monday-Friday, 9 AM-6 PM EST
               </p>
             </Card>

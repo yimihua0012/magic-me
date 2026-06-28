@@ -24,7 +24,8 @@ export const config = {
   email: {
     enabled: process.env.EMAIL_ENABLED === 'true',
     resendApiKey: process.env.RESEND_API_KEY!,
-    fromEmail: 'postmaster@magic-headshot.com',
+    resendInboundWebhookSecret: process.env.RESEND_INBOUND_WEBHOOK_SECRET!,
+    fromEmail: 'support@mail.magic-headshot.com',
     fromName: process.env.NEXT_PUBLIC_APP_NAME || 'Magic-Headshot',
   },
 } as const

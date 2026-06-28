@@ -54,7 +54,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">Email</h3>
-                    <p className="text-slate-600 text-sm">postmaster@magic-headshot.com</p>
+                    <p className="text-slate-600 text-sm">support@mail.magic-headshot.com</p>
                     <p className="text-slate-500 text-xs mt-1">We&apos;ll respond within 24 hours</p>
                   </div>
                 </div>

@@ -8,6 +8,7 @@ import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Modal from '@/components/ui/modal'
+import { PLANS, PlanType } from '@backend/config/plans'
 import {
   Upload,
   X,
@@ -37,10 +38,15 @@ interface PhotoValidation {
 
 interface CreditPackageSummaryItem {
   id: string
+  plan_type?: string
+  total_credits?: number
   remaining_credits: number
   status: 'inactive' | 'active' | 'expired' | 'depleted'
+  purchased_at?: string
+  activated_at?: string
   expires_at?: string
   validity_days: number
+  created_at?: string
 }
 
 interface HeadshotStyle {
@@ -92,13 +98,32 @@ function UploadContent() {
   const [stylesLoadFailed, setStylesLoadFailed] = useState(false)
   const hasShownNoCreditsModalRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadSectionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (searchParams.get('payment') === 'success') {
       setShowPaymentSuccess(true)
-      setTimeout(() => setShowPaymentSuccess(false), 5000)
     }
   }, [searchParams])
+
+  useEffect(() => {
+    if (!showPaymentSuccess || !isAuthenticated) {
+      return
+    }
+
+    let attempts = 0
+    const maxAttempts = 6
+    const interval = window.setInterval(() => {
+      attempts += 1
+      void fetchCredits()
+
+      if (attempts >= maxAttempts) {
+        window.clearInterval(interval)
+      }
+    }, 2000)
+
+    return () => window.clearInterval(interval)
+  }, [showPaymentSuccess, isAuthenticated])
 
   useEffect(() => {
     const loadStyles = async () => {
@@ -347,7 +372,7 @@ function UploadContent() {
   const validPhotos = photos.filter(p => p.status === 'valid')
   const canProceed = validPhotos.length >= 1
   const selectedStyles = styles.filter(style => selectedStyleIds.includes(style.id))
-  const selectedStyleCount = selectedStyles.length
+  const selectedStyleCount = selectedStyleIds.length
   const canPickStyles = hasActiveCredits && canProceed
   const styleGroups = CATEGORY_ORDER
     .map(category => ({
@@ -364,6 +389,28 @@ function UploadContent() {
   const daysUntilExpiration = nearestExpiresAt
     ? Math.max(0, Math.ceil((new Date(nearestExpiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
     : null
+  const latestCreditPackage = creditPackages
+    .slice()
+    .sort((a, b) => {
+      const aTime = new Date(a.purchased_at || a.created_at || 0).getTime()
+      const bTime = new Date(b.purchased_at || b.created_at || 0).getTime()
+      return bTime - aTime
+    })[0]
+  const successCreditCount = latestCreditPackage?.remaining_credits || availableCredits
+  const successTotalCredits = latestCreditPackage?.total_credits || successCreditCount
+  const successValidityDays = latestCreditPackage?.validity_days
+  const successPlanType = latestCreditPackage?.plan_type as PlanType | undefined
+  const successPlanName = successPlanType && PLANS[successPlanType] ? PLANS[successPlanType].name : 'Credit Plan'
+  const successTimerMessage = latestCreditPackage?.status === 'active' && latestCreditPackage.expires_at
+    ? `该套餐已开始计时，将于 ${new Date(latestCreditPackage.expires_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })} 到期。`
+    : successValidityDays
+      ? `${successValidityDays} 天有效期会在首次生成开始后才开始计时。`
+      : '有效期会在首次生成开始后才开始计时。'
+  const handleStartExperience = () => {
+    setShowPaymentSuccess(false)
+    uploadSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    window.setTimeout(() => fileInputRef.current?.focus(), 300)
+  }
 
   const handleProceed = () => {
     if (!isAuthenticated) {
@@ -602,18 +649,62 @@ function UploadContent() {
       <main className="pt-24 pb-12 sm:pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {showPaymentSuccess && (
-            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-emerald-500" />
-              <div>
-                <p className="text-emerald-700 font-medium">Payment successful!</p>
-                <p className="text-emerald-600 text-sm">Your credits are now available.</p>
+            <div className="mb-6 overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 shadow-sm">
+              <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+                      支付成功
+                    </p>
+                    <h2 className="mt-1 text-xl font-bold text-emerald-950 sm:text-2xl">
+                      {successCreditCount > 0
+                        ? `已获得 ${successCreditCount} 个信用`
+                        : '正在同步你的信用'}
+                    </h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-emerald-800">
+                      {successCreditCount > 0
+                        ? `${successPlanName} 套餐已到账：共 ${successTotalCredits} 个信用，当前可用 ${successCreditCount} 个。${successTimerMessage}`
+                        : '我们正在同步支付结果，信用到账后会自动显示在这里。若稍后仍未显示，可以刷新页面查看。'}
+                    </p>
+                    <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+                      <div className="rounded-xl bg-white/70 px-3 py-2">
+                        <p className="text-xs text-emerald-700">获得信用</p>
+                        <p className="font-bold text-emerald-950">{successCreditCount || availableCredits}</p>
+                      </div>
+                      <div className="rounded-xl bg-white/70 px-3 py-2">
+                        <p className="text-xs text-emerald-700">有效期</p>
+                        <p className="font-bold text-emerald-950">
+                          {successValidityDays ? `${successValidityDays} 天` : '首次生成后开始'}
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-white/70 px-3 py-2">
+                        <p className="text-xs text-emerald-700">计时状态</p>
+                        <p className="font-bold text-emerald-950">
+                          {latestCreditPackage?.status === 'active' ? '已开始' : '未开始'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
+                  <Button
+                    className="w-full sm:w-auto"
+                    onClick={handleStartExperience}
+                  >
+                    开始体验
+                  </Button>
+                  <button
+                    onClick={() => setShowPaymentSuccess(false)}
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
+                  >
+                    关闭
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => setShowPaymentSuccess(false)}
-                className="ml-auto text-emerald-400 hover:text-emerald-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
           )}
 
@@ -651,135 +742,137 @@ function UploadContent() {
             </Card>
 
             <div className="space-y-6">
-              <Card className="p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-600 text-white text-xs font-semibold">1</span>
-                  <h2 className="font-semibold text-slate-900">Upload your photos</h2>
-                </div>
-
-                <p className="text-sm text-slate-600 mb-4">
-                  Upload 1-3 clear selfies of the same person for better likeness.{' '}
-                  <span className="font-medium text-blue-700">Works best for profile pics, but other uses may vary.</span>{' '}
-                  More photos can improve consistency, but analysis and generation may take longer.
-                </p>
-
-                <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-                  <div>
-                    {hasActiveCredits ? (
-                      <div
-                        className={`border-2 border-dashed rounded-2xl min-h-[360px] p-6 sm:p-8 text-center transition-all duration-200 flex items-center justify-center ${
-                          isDragging
-                            ? 'border-primary-500 bg-primary-50'
-                            : 'border-slate-300 hover:border-primary-400 hover:bg-slate-50'
-                        }`}
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                      >
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          className="hidden"
-                          onChange={(e) => e.target.files && void handleFiles(e.target.files)}
-                        />
-
-                        <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <Upload className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
-                          </div>
-                          <p className="text-slate-900 font-medium mb-1 text-sm sm:text-base">
-                            Drag & drop your selfies here
-                          </p>
-                          <p className="text-slate-500 text-xs sm:text-sm mb-4">
-                            or click to browse
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            JPG, PNG, or WebP. Up to 3 photos, 10MB each.
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
-                        <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
-                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Generation is unavailable</h3>
-                        <p className="text-slate-600 mb-4">Your credits are empty or expired. Please purchase a new package to continue.</p>
-                        <Button onClick={() => router.push('/pricing')}>
-                          Buy Credits
-                        </Button>
-                      </div>
-                    )}
+              <div ref={uploadSectionRef}>
+                <Card className="p-5 sm:p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-600 text-white text-xs font-semibold">1</span>
+                    <h2 className="font-semibold text-slate-900">Upload your photos</h2>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="rounded-xl bg-yellow-50 p-4">
-                      <h3 className="font-semibold text-yellow-800 mb-1 flex items-center gap-2">
-                        <Lightbulb className="w-4 h-4 text-yellow-600" />
-                        Pro Tip
-                      </h3>
-                      <p className="text-sm text-yellow-800">
-                        Use the same person in every photo with clear lighting and a fully visible face.{' '}
-                        <span className="font-semibold text-red-700">Avoid side angles, sunglasses, masks, or group photos.</span>{' '}
-                        Take your selfies near a window during daytime for the best lighting.
-                      </p>
-                    </div>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Upload 1-3 clear selfies of the same person for better likeness.{' '}
+                    <span className="font-medium text-blue-700">Works best for profile pics, but other uses may vary.</span>{' '}
+                    More photos can improve consistency, but analysis and generation may take longer.
+                  </p>
 
+                  <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
                     <div>
-                      <div className="flex items-center justify-between text-sm text-slate-600 mb-2">
-                        <span>Preview</span>
-                        <span>{photos.length}/3 photos</span>
-                      </div>
-                      {photos.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-400 text-center">
-                          Your uploaded photos will appear here.
+                      {hasActiveCredits ? (
+                        <div
+                          className={`border-2 border-dashed rounded-2xl min-h-[360px] p-6 sm:p-8 text-center transition-all duration-200 flex items-center justify-center ${
+                            isDragging
+                              ? 'border-primary-500 bg-primary-50'
+                              : 'border-slate-300 hover:border-primary-400 hover:bg-slate-50'
+                          }`}
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                        >
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => e.target.files && void handleFiles(e.target.files)}
+                          />
+
+                          <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                              <Upload className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
+                            </div>
+                            <p className="text-slate-900 font-medium mb-1 text-sm sm:text-base">
+                              Drag & drop your selfies here
+                            </p>
+                            <p className="text-slate-500 text-xs sm:text-sm mb-4">
+                              or click to browse
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              JPG, PNG, or WebP. Up to 3 photos, 10MB each.
+                            </p>
+                          </div>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-                          {photos.map((photo, index) => (
-                            <div key={index} className="relative">
-                              <div className="aspect-square rounded-xl overflow-hidden bg-slate-200">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={photo.preview}
-                                  alt={`Upload ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-
-                              {photo.status === 'validating' && (
-                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
-                                  <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
-                                </div>
-                              )}
-
-                              {photo.status === 'valid' && (
-                                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-accent-500 rounded-full flex items-center justify-center shadow-lg animate-bounce-in">
-                                  <Check className="w-4 h-4 text-white" />
-                                </div>
-                              )}
-
-                              {photo.status === 'invalid' && (
-                                <div className="absolute inset-0 bg-red-50/90 flex flex-col items-center justify-center p-2 rounded-xl">
-                                  <AlertCircle className="w-6 h-6 text-red-500 mb-1" />
-                                  <p className="text-xs text-red-600 text-center">{photo.error}</p>
-                                </div>
-                              )}
-
-                              <button
-                                onClick={() => removePhoto(index)}
-                                className="absolute -top-2 -right-2 w-6 h-6 bg-slate-900 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
-                              >
-                                <X className="w-4 h-4 text-white" />
-                              </button>
-                            </div>
-                          ))}
+                        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+                          <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+                          <h3 className="text-lg font-semibold text-slate-900 mb-2">Generation is unavailable</h3>
+                          <p className="text-slate-600 mb-4">Your credits are empty or expired. Please purchase a new package to continue.</p>
+                          <Button onClick={() => router.push('/pricing')}>
+                            Buy Credits
+                          </Button>
                         </div>
                       )}
                     </div>
+
+                    <div className="space-y-4">
+                      <div className="rounded-xl bg-yellow-50 p-4">
+                        <h3 className="font-semibold text-yellow-800 mb-1 flex items-center gap-2">
+                          <Lightbulb className="w-4 h-4 text-yellow-600" />
+                          Pro Tip
+                        </h3>
+                        <p className="text-sm text-yellow-800">
+                          Use the same person in every photo with clear lighting and a fully visible face.{' '}
+                          <span className="font-semibold text-red-700">Avoid side angles, sunglasses, masks, or group photos.</span>{' '}
+                          Take your selfies near a window during daytime for the best lighting.
+                        </p>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between text-sm text-slate-600 mb-2">
+                          <span>Preview</span>
+                          <span>{photos.length}/3 photos</span>
+                        </div>
+                        {photos.length === 0 ? (
+                          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-400 text-center">
+                            Your uploaded photos will appear here.
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                            {photos.map((photo, index) => (
+                              <div key={index} className="relative">
+                                <div className="aspect-square rounded-xl overflow-hidden bg-slate-200">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={photo.preview}
+                                    alt={`Upload ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+
+                                {photo.status === 'validating' && (
+                                  <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                  </div>
+                                )}
+
+                                {photo.status === 'valid' && (
+                                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-accent-500 rounded-full flex items-center justify-center shadow-lg animate-bounce-in">
+                                    <Check className="w-4 h-4 text-white" />
+                                  </div>
+                                )}
+
+                                {photo.status === 'invalid' && (
+                                  <div className="absolute inset-0 bg-red-50/90 flex flex-col items-center justify-center p-2 rounded-xl">
+                                    <AlertCircle className="w-6 h-6 text-red-500 mb-1" />
+                                    <p className="text-xs text-red-600 text-center">{photo.error}</p>
+                                  </div>
+                                )}
+
+                                <button
+                                  onClick={() => removePhoto(index)}
+                                  className="absolute -top-2 -right-2 w-6 h-6 bg-slate-900 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
+                                >
+                                  <X className="w-4 h-4 text-white" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </div>
 
               <Card className="p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-3">
@@ -813,46 +906,41 @@ function UploadContent() {
                   )}
                 </div>
 
-                {isLoadingStyles ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {[...Array(8)].map((_, i) => (
-                      <div key={i} className="h-20 rounded-xl bg-slate-100 animate-pulse" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className={`${canPickStyles ? '' : 'opacity-60'}`}>
-                    <div className="mb-3 flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3 border border-blue-200">
-                      <div>
-                        <p className="text-sm font-semibold text-blue-900">Selected styles</p>
-                        <p className="text-xs text-blue-700">Use the Select styles button to choose or change styles.</p>
-                      </div>
-                      <p className="text-sm font-semibold text-blue-900">{selectedStyleCount} selected</p>
+                <div className={`${canPickStyles ? '' : 'opacity-60'}`}>
+                  <div className="mb-3 flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3 border border-blue-200">
+                    <div>
+                      <p className="text-sm font-semibold text-blue-900">Selected styles</p>
+                      <p className="text-xs text-blue-700">Remove styles here or use the Select styles button to change them.</p>
                     </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-4">
-                      {selectedStyles.length === 0 ? (
-                        <p className="text-sm text-slate-500">
-                          No styles selected yet.
-                        </p>
-                      ) : (
-                        <div className="flex flex-wrap gap-2">
-                          {selectedStyles.slice(0, 8).map((style) => (
-                            <span
-                              key={style.id}
-                              className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                    <p className="text-sm font-semibold text-blue-900">{selectedStyleCount} selected</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    {selectedStyles.length === 0 ? (
+                      <p className="text-sm text-slate-500">
+                        No styles selected yet.
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedStyles.map((style) => (
+                          <span
+                            key={style.id}
+                            className="inline-flex min-h-[36px] items-center gap-2 rounded-full bg-blue-50 py-1 pl-3 pr-1 text-xs font-medium text-blue-700"
+                          >
+                            {style.name}
+                            <button
+                              type="button"
+                              onClick={() => setSelectedStyleIds((prev) => prev.filter((styleId) => styleId !== style.id))}
+                              className="flex h-7 w-7 items-center justify-center rounded-full text-blue-500 transition-colors hover:bg-blue-100 hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                              aria-label={`Remove ${style.name}`}
                             >
-                              {style.name}
-                            </span>
-                          ))}
-                          {selectedStyles.length > 8 && (
-                            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                              +{selectedStyles.length - 8} more
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
 
                 <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
                   <span className="text-slate-700">

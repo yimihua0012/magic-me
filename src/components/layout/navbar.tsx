@@ -5,10 +5,8 @@ import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { Camera, Menu, User, X } from 'lucide-react'
 import Button from '@/components/ui/button'
-import { supabase } from '@/lib/supabase/client'
 import { appConfig } from '@/lib/config'
 
 const AuthModal = dynamic(() => import('@/components/auth/auth-modal'), {
@@ -24,7 +22,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [user, setUser] = useState<SupabaseUser | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
@@ -49,21 +47,47 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   }, [])
 
   useEffect(() => {
+    let isMounted = true
+    let subscription: { unsubscribe: () => void } | undefined
+
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
+      try {
+        const { supabase } = await import('@/lib/supabase/client')
+        const { getSessionSafely } = await import('@/lib/supabase/auth-session')
+        const session = await getSessionSafely(supabase)
+
+        if (!isMounted) {
+          return
+        }
+
+        setIsAuthenticated(Boolean(session?.user))
+
+        const authState = supabase.auth.onAuthStateChange((_event, nextSession) => {
+          setIsAuthenticated(Boolean(nextSession?.user))
+        })
+
+        subscription = authState.data.subscription
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('[Navbar] Auth session check failed:', error)
+        }
+
+        if (isMounted) {
+          setIsAuthenticated(false)
+        }
+      }
     }
 
     void initAuth()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription?.unsubscribe()
+    }
   }, [])
 
   const handleLogout = async () => {
+    const { supabase } = await import('@/lib/supabase/client')
     await supabase.auth.signOut()
     window.location.href = '/'
   }
@@ -106,7 +130,6 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
                 width={32}
                 height={32}
                 className="rounded-lg sm:h-10 sm:w-10 sm:rounded-xl"
-                priority
               />
               <span className="text-lg font-bold text-slate-900 sm:text-xl">{appConfig.name}</span>
             </Link>
@@ -124,7 +147,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
             </div>
 
             <div className="hidden items-center gap-4 lg:flex">
-              {user ? (
+              {isAuthenticated ? (
                 <>
                   <Link href="/dashboard" className="flex items-center gap-2 font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
                     <User className="h-4 w-4" />
@@ -193,7 +216,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
                 Testimonials
               </Link>
               <hr className="my-2 border-slate-100" />
-              {user ? (
+              {isAuthenticated ? (
                 <>
                   <Link
                     href="/dashboard"

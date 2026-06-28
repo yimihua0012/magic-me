@@ -2,7 +2,7 @@
 const normalizeUrl = (url: string) => url.replace(/\/+$/, '')
 
 export const appConfig = {
-  name: process.env.NEXT_PUBLIC_APP_NAME || 'HeadshotAI',
+  name: process.env.NEXT_PUBLIC_APP_NAME || 'Magic-Headshot',
   description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'AI headshot generator trained for realistic portraits, fast generation, and high likeness for LinkedIn, resumes, and profile photos',
   url: normalizeUrl(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: process.env.NEXT_PUBLIC_APP_TITLE || 'AI Headshot Generator for LinkedIn - Fast, High-Likeness Portraits',

@@ -46,7 +46,7 @@ export default function PlanPaymentCta({
       variant={highlighted ? 'primary' : 'secondary'}
       onClick={() => setIsReady(true)}
     >
-      Pay ${price} with PayPal
+      {label} - ${price}
     </Button>
   )
 }

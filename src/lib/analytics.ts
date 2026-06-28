@@ -1,6 +1,7 @@
 'use client'
 
 import { supabase } from '@/lib/supabase/client'
+import { getSessionSafely } from '@/lib/supabase/auth-session'
 
 type ButtonClickPayload = {
   buttonType: string
@@ -10,7 +11,7 @@ type ButtonClickPayload = {
 
 export async function trackButtonClick({ buttonType, source, metadata }: ButtonClickPayload) {
   try {
-    const { data: { session } } = await supabase.auth.getSession()
+    const session = await getSessionSafely(supabase)
 
     await fetch('/api/analytics/button-click', {
       method: 'POST',
@@ -30,4 +31,3 @@ export async function trackButtonClick({ buttonType, source, metadata }: ButtonC
     console.error('[Analytics] Failed to track button click:', error)
   }
 }
-

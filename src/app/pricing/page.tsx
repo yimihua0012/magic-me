@@ -20,9 +20,9 @@ const PAYPAL_BUTTONS = {
 } as const
 
 const PAYPAL_LABELS = {
-  basic: 'Get Started',
-  pro: 'Go Pro',
-  premium: 'Go Premium',
+  basic: 'Choose Basic Plan',
+  pro: 'Choose Pro Plan',
+  premium: 'Choose Premium Plan',
 } as const
 
 const plans = Object.values(pricingConfig).map((plan) => ({
@@ -58,12 +58,6 @@ export default function PricingPage() {
           <div id="plans" className="scroll-mt-24 grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8 max-w-5xl mx-auto">
             {plans.map((plan) => {
               const paypal = PAYPAL_BUTTONS[plan.id as keyof typeof PAYPAL_BUTTONS]
-              const keyFeatures = plan.features.filter((feature) => (
-                feature.includes('headshots') ||
-                feature.includes('days validity') ||
-                feature.includes('resolution') ||
-                feature.includes('Commercial use')
-              ))
               return (
               <Card 
                 key={plan.id}
@@ -100,7 +94,7 @@ export default function PricingPage() {
                 </div>
 
                 <div className="space-y-2 mb-5 sm:space-y-3 sm:mb-8">
-                  {keyFeatures.map((feature, i) => {
+                  {plan.features.map((feature, i) => {
                     const isHighlight = feature.includes('headshots') || feature.includes('days validity')
                     return (
                       <div key={i} className="flex items-start gap-3">
@@ -138,64 +132,6 @@ export default function PricingPage() {
               </Card>
               )
             })}
-          </div>
-
-          {/* Comparison Table - hidden on mobile */}
-          <div className="hidden md:block mt-12 sm:mt-16">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center mb-6 sm:mb-8">
-              Compare Plans
-            </h2>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <thead>
-                  <tr className="bg-slate-50">
-                    <th className="px-6 py-4 text-left font-semibold text-slate-900">Feature</th>
-                    <th className="px-6 py-4 text-center font-semibold text-slate-900">Basic</th>
-                    <th className="px-6 py-4 text-center font-semibold text-primary-600 bg-primary-50">Pro</th>
-                    <th className="px-6 py-4 text-center font-semibold text-slate-900">Premium</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr>
-                    <td className="px-6 py-4 text-slate-600">Headshots</td>
-                    <td className="px-6 py-4 text-center font-semibold text-primary-600">{PLANS.basic.credits}</td>
-                    <td className="px-6 py-4 text-center font-semibold text-primary-600 bg-primary-50/50">{PLANS.pro.credits}</td>
-                    <td className="px-6 py-4 text-center font-semibold text-primary-600">{PLANS.premium.credits}</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-slate-600">Validity Period</td>
-                    <td className="px-6 py-4 text-center font-semibold text-primary-600">{PLANS.basic.validityDays} days</td>
-                    <td className="px-6 py-4 text-center font-semibold text-primary-600 bg-primary-50/50">{PLANS.pro.validityDays} days</td>
-                    <td className="px-6 py-4 text-center font-semibold text-primary-600">{PLANS.premium.validityDays} days</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-slate-600">Resolution</td>
-                    <td className="px-6 py-4 text-center text-slate-900">1024x1024</td>
-                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">1024x1024 HD</td>
-                    <td className="px-6 py-4 text-center text-slate-900">1024x1024 Ultra HD</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-slate-600">Processing</td>
-                    <td className="px-6 py-4 text-center text-slate-900">Standard</td>
-                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">Priority</td>
-                    <td className="px-6 py-4 text-center text-slate-900">Priority</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-slate-600">Downloads</td>
-                    <td className="px-6 py-4 text-center text-slate-900">Unlimited</td>
-                    <td className="px-6 py-4 text-center text-slate-900 bg-primary-50/50">Unlimited</td>
-                    <td className="px-6 py-4 text-center text-slate-900">Unlimited</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-slate-600">Commercial Use</td>
-                    <td className="px-6 py-4 text-center"><Check className="w-5 h-5 text-accent-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center bg-primary-50/50"><Check className="w-5 h-5 text-accent-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-5 h-5 text-accent-500 mx-auto" /></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
           </div>
 
           {/* FAQ */}

@@ -1,28 +1,28 @@
 export const PLANS = {
   basic: {
     id: 'basic',
-    name: 'Basic',
+    name: 'Basic Plan',
     price: 19,
-    credits: 20, // 总次数
-    validityDays: 30, // 有效期（从第一次生成开始）
+    credits: 20,
+    validityDays: 30,
     resolution: '1024x1024',
-    priceId: 'prod_Ul3eCiU0C6mCCx', // Set in Stripe dashboard
+    priceId: 'prod_Ul3eCiU0C6mCCx',
   },
   pro: {
     id: 'pro',
-    name: 'Pro',
+    name: 'Pro Plan',
     price: 39,
-    credits: 60, // 总次数
-    validityDays: 45, // 有效期（从第一次生成开始）
+    credits: 60,
+    validityDays: 45,
     resolution: '1024x1024',
     priceId: 'prod_Ul3iGVN0rrs1NW',
   },
   premium: {
     id: 'premium',
-    name: 'Premium',
+    name: 'Premium Plan',
     price: 69,
-    credits: 120, // 总次数
-    validityDays: 60, // 有效期（从第一次生成开始）
+    credits: 120,
+    validityDays: 60,
     resolution: '1024x1024',
     priceId: 'prod_Ul3l0JbDSnkjbS',
   },

@@ -1,13 +1,9 @@
-'use client'
-
 import Link from 'next/link'
 import type { LinkProps } from 'next/link'
-import type { ReactNode } from 'react'
-import { trackButtonClick } from '@/lib/analytics'
+import type { AnchorHTMLAttributes, ReactNode } from 'react'
 
-interface TrackedLinkProps extends LinkProps {
+interface TrackedLinkProps extends LinkProps, Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> {
   children: ReactNode
-  className?: string
   buttonType: string
   source: string
   metadata?: Record<string, unknown>
@@ -25,16 +21,12 @@ export default function TrackedLink({
     <Link
       {...props}
       className={className}
-      onClick={() => {
-        void trackButtonClick({
-          buttonType,
-          source,
-          metadata,
-        })
-      }}
+      data-track-button="true"
+      data-track-button-type={buttonType}
+      data-track-source={source}
+      data-track-metadata={metadata ? JSON.stringify(metadata) : undefined}
     >
       {children}
     </Link>
   )
 }
-

@@ -345,8 +345,8 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
   }
 }
 
-const QUALITY_SUFFIX = 'professional headshot, upper-body portrait, clean background, natural skin texture, realistic lighting, sharp focus, high detail, LinkedIn-ready'
-const DEFAULT_NEGATIVE = 'worst quality, low quality, blurry, distorted face, extra fingers, fused fingers, bad anatomy, ugly, deformed, disfigured, watermark, text, logo, multiple people, side profile, cropped face'
+const QUALITY_SUFFIX = 'professional headshot, upper-body portrait, clean background, natural skin texture, realistic lighting, sharp focus, crisp eyes, high detail, 4K resolution, ultra high definition, premium studio photography, LinkedIn-ready'
+const DEFAULT_NEGATIVE = 'worst quality, low quality, low resolution, blurry, pixelated, jpeg artifacts, distorted face, extra fingers, fused fingers, bad anatomy, ugly, deformed, disfigured, watermark, text, logo, multiple people, side profile, cropped face'
 const MAX_INPUT_PHOTOS = 3
 const GENERATION_ATTEMPTS = 3
 const POLL_INTERVAL_MS = 5000
@@ -890,11 +890,17 @@ export class GenerationService {
         return
       }
 
+      const creditSummary = await CreditPackageService.getTotalRemaining(generation.user_id)
+      const creditsUsed = generation.credits_used || styleCount
+
       await emailService.sendGenerationCompleteEmail({
         email: user.email,
         name: user.full_name || undefined,
         generationId: generation.id,
         styleCount,
+        creditsUsed,
+        remainingCredits: creditSummary.totalRemaining,
+        nearestExpiresAt: creditSummary.nearestExpiresAt,
       })
 
       logGenerationDebug(`[GenerationService] Completion email sent to ${user.email}`)
@@ -941,7 +947,7 @@ export class GenerationService {
 
     logGenerationDebug(`[GenerationService] Generating ${styleId} with Replicate API...`)
     
-    const prompt = `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Output should be a polished LinkedIn-ready headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
+    const prompt = `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
 
     const replicateApiKey = process.env.REPLICATE_API_KEY
     const modelName = process.env.REPLICATE_MODEL_NAME || 'google/nano-banana-2'

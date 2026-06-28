@@ -36,7 +36,7 @@ export class PaymentService {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `HeadshotAI ${plan.name}`,
+              name: `${config.email.fromName} ${plan.name}`,
               description: `${plan.credits} headshots, ${plan.validityDays} days validity, ${plan.resolution} resolution`,
               images: [`${config.app.url}/og-image.png`],
             },
