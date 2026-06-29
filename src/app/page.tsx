@@ -27,15 +27,10 @@ export const metadata: Metadata = {
   title: 'Realistic AI Headshot Generator for LinkedIn, Resume, and Profile Photos',
   description: appConfig.description,
   keywords: [
-    'realistic AI headshot generator',
+    'AI headshot generator',
     'AI headshots for LinkedIn',
     'AI resume photo generator',
-    'professional profile photo maker',
-    'business portrait AI generator',
-    'high likeness AI portraits',
-    'professional headshots without photographer',
-    'LinkedIn profile photo maker',
-    'fast headshot generation',
+    'professional profile photo',
   ],
   alternates: {
     canonical: '/',

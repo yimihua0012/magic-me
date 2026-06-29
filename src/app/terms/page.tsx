@@ -6,18 +6,12 @@ import { appConfig } from '@/lib/config'
 
 export const metadata: Metadata = {
   title: 'Magic-Headshot Terms for AI Headshots, Professional Photos, and LinkedIn Photos',
-  description: `Terms that govern use of ${appConfig.name}, including AI headshot generation, uploaded photos, payments, refunds, and commercial use rights.`,
+  description:
+    'Review Magic-Headshot terms for AI headshot generation, uploaded photos, payments, refunds, commercial use rights, account rules, and acceptable use.',
   keywords: [
-    'Magic-Headshot',
-    'AI headshot',
-    'professional photos',
-    'LinkedIn photo',
-    'AI portrait',
-    'headshot generator',
-    'AI headshot terms of service',
-    'AI generated headshot commercial use',
-    'professional headshot generator terms',
-    'AI portrait usage rights',
+    'Magic-Headshot terms',
+    'AI headshot terms',
+    'commercial use rights',
   ],
   alternates: {
     canonical: '/terms',

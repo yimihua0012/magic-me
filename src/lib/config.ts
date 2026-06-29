@@ -1,12 +1,21 @@
 // App Configuration
 const normalizeUrl = (url: string) => url.replace(/\/+$/, '')
+const defaultDescription =
+  'Create realistic AI headshots for LinkedIn, resumes, and business profiles in minutes with high-likeness portraits and one-time credit packs'
+const defaultKeywords =
+  'Magic-Headshot, AI headshots for LinkedIn, high likeness AI portraits, fast headshot generation'
+const envDescription = process.env.NEXT_PUBLIC_APP_DESCRIPTION?.trim()
+const envKeywords = process.env.NEXT_PUBLIC_APP_KEYWORDS?.trim()
 
 export const appConfig = {
   name: process.env.NEXT_PUBLIC_APP_NAME || 'Magic-Headshot',
-  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'AI headshot generator trained for realistic portraits, fast generation, and high likeness for LinkedIn, resumes, and profile photos',
+  description:
+    envDescription && envDescription.length >= 80 && envDescription.length <= 160
+      ? envDescription
+      : defaultDescription,
   url: normalizeUrl(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: process.env.NEXT_PUBLIC_APP_TITLE || 'AI Headshot Generator for LinkedIn - Fast, High-Likeness Portraits',
-  keywords: process.env.NEXT_PUBLIC_APP_KEYWORDS || 'AI headshot generator, LinkedIn headshot, professional headshots, resume photo, profile photo, high likeness portrait, fast AI generation, headshot pricing',
+  keywords: envKeywords && envKeywords.length <= 200 ? envKeywords : defaultKeywords,
 }
 
 // Pricing Configuration - imported from backend

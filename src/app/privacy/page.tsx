@@ -5,18 +5,12 @@ import Card from '@/components/ui/card'
 
 export const metadata: Metadata = {
   title: 'Magic-Headshot Privacy Policy for AI Headshots, Professional Photos, and AI Portraits',
-  description: 'Read how Magic-Headshot collects, uses, stores, and protects account data, uploaded photos, generated AI headshots, and payment metadata.',
+  description:
+    'Read how Magic-Headshot collects, uses, stores, and protects account data, uploaded photos, generated AI headshots, payment metadata, and support records.',
   keywords: [
-    'Magic-Headshot',
-    'AI headshot',
-    'professional photos',
-    'LinkedIn photo',
-    'AI portrait',
-    'headshot generator',
+    'Magic-Headshot privacy',
     'AI headshot privacy policy',
     'uploaded photo privacy',
-    'AI generated headshot data',
-    'professional headshot photo storage',
   ],
   alternates: {
     canonical: '/privacy',

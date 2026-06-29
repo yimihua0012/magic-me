@@ -5,18 +5,12 @@ import Card from '@/components/ui/card'
 
 export const metadata: Metadata = {
   title: 'Magic-Headshot Refund Policy for AI Headshots and Professional Photos',
-  description: 'Read Magic-Headshot refund eligibility, AI headshot credit handling, processing times, and how to request support.',
+  description:
+    'Read Magic-Headshot refund eligibility, unused credit handling, processing times, and support steps for AI headshot purchases and professional portraits.',
   keywords: [
-    'Magic-Headshot',
-    'AI headshot',
-    'professional photos',
-    'LinkedIn photo',
-    'AI portrait',
-    'headshot generator',
+    'Magic-Headshot refund',
     'AI headshot refund policy',
-    'AI headshot money back guarantee',
-    'professional headshot refund',
-    'AI portrait refund support',
+    'unused credit refund',
   ],
   alternates: {
     canonical: '/refund',

@@ -15,19 +15,12 @@ const inter = Inter({
 })
 
 const siteUrl = appConfig.url.replace(/\/$/, '')
-const seoKeywords = [
-  'realistic AI headshot generator',
-  'AI headshots for LinkedIn',
-  'AI resume photo generator',
-  'professional profile photo maker',
-  'business portrait AI generator',
-  'high likeness AI portraits',
-  'professional headshots without photographer',
-  'LinkedIn profile photo maker',
-  'virtual headshot generator',
-  'team photos online',
-  'fast headshot generation',
-]
+const siteDescription = appConfig.description
+const siteKeywords = appConfig.keywords
+  .split(',')
+  .map((keyword) => keyword.trim())
+  .filter(Boolean)
+  .slice(0, 5)
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -42,11 +35,8 @@ export const metadata: Metadata = {
     default: appConfig.title,
     template: `%s | ${appConfig.name}`,
   },
-  description: `${appConfig.description}. Fast AI headshots for LinkedIn, resumes, and profile photos with a dedicated portrait model and high likeness.`,
-  keywords: [
-    ...appConfig.keywords.split(','),
-    ...seoKeywords,
-  ],
+  description: siteDescription,
+  keywords: siteKeywords,
   authors: [{ name: appConfig.name }],
   creator: appConfig.name,
   publisher: appConfig.name,
@@ -66,7 +56,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: appConfig.title,
-    description: `${appConfig.description}. Fast AI headshots for LinkedIn, resumes, and profile photos with high likeness.`,
+    description: siteDescription,
     type: 'website',
     locale: 'en_US',
     siteName: appConfig.name,
@@ -83,7 +73,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: appConfig.title,
-    description: `${appConfig.description}. Starting at $${PLANS.basic.price}.`,
+    description: siteDescription,
     images: [`${siteUrl}/api/og`],
   },
   icons: {
@@ -102,11 +92,11 @@ export default function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: appConfig.name,
-    description: `${appConfig.description}. Fast AI headshots for LinkedIn, resumes, and profile photos with high likeness.`,
+    description: siteDescription,
     url: siteUrl,
     applicationCategory: 'DesignApplication',
     operatingSystem: 'Web',
-    keywords: seoKeywords.join(', '),
+    keywords: siteKeywords.join(', '),
     offers: [
       {
         '@type': 'Offer',
