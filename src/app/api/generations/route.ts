@@ -1,84 +1,81 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@backend/config/supabase'
+import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { searchParams } = new URL(request.url)
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)))
+    const offset = (page - 1) * limit
 
-    if (!user && authError) {
-      console.warn('Auth error:', authError)
-    }
-
-    // 如果没有用户，返回空数组
+    const user = await getCurrentUser(request)
     if (!user) {
-      return NextResponse.json({ generations: [] })
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const { data: generations, error } = await supabase
-      .from('generations')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
+    const [{ data: generations, error }, { count, error: countError }] = await Promise.all([
+      supabaseAdmin
+        .from('generations')
+        .select('id,status,plan_type,style_count,output_photos,created_at,updated_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1),
+      supabaseAdmin
+        .from('generations')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id),
+    ])
 
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json({ generations: [] })
+    if (error || countError) {
+      console.error('[Generations] Database error:', error || countError)
+      return NextResponse.json({ error: 'Failed to fetch generations' }, { status: 500 })
     }
 
-    return NextResponse.json({ generations })
+    const total = count || 0
+    const totalPages = Math.ceil(total / limit)
+
+    return NextResponse.json({
+      generations: generations || [],
+      pagination: { page, limit, total, totalPages },
+    })
   } catch (error) {
-    console.error('Fetch generations error:', error)
-    return NextResponse.json({ generations: [] })
+    console.error('[Generations] Fetch error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (!user && authError) {
-      console.warn('Auth error:', authError)
+    const user = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const userId = user?.id || 'anonymous'
-    const { plan_type, photo_count } = await request.json()
+    const { plan_type } = await request.json()
 
-    const { data: generation, error } = await supabase
+    const { data: generation, error } = await supabaseAdmin
       .from('generations')
       .insert({
-        user_id: userId,
+        user_id: user.id,
         status: 'pending',
         plan_type: plan_type || 'basic',
         style_count: plan_type === 'pro' ? 100 : 30,
         input_photos: [],
       })
-      .select()
+      .select('id,status,plan_type,style_count,output_photos,created_at,updated_at')
       .single()
 
     if (error) {
-      console.error('Database error:', error)
-      // 如果数据库插入失败，返回模拟数据
-      const mockGeneration = {
-        id: `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-        user_id: userId,
-        status: 'pending',
-        plan_type: plan_type || 'basic',
-        style_count: plan_type === 'pro' ? 100 : 30,
-        input_photos: [] as string[],
-        output_photos: [] as string[],
-        progress: 0,
-        created_at: new Date().toISOString(),
-      }
-      return NextResponse.json({ generation: mockGeneration })
+      console.error('[Generations] Create error:', error)
+      return NextResponse.json({ error: 'Failed to create generation' }, { status: 500 })
     }
 
     return NextResponse.json({ generation })
   } catch (error) {
-    console.error('Create generation error:', error)
+    console.error('[Generations] Create exception:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

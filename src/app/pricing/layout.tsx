@@ -1,15 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Pricing - Best AI Headshot Generator for LinkedIn Profile',
-  description: 'Simple pricing for professional headshots without a photographer. AI headshots with business attire for LinkedIn & resume. Starting at $12.90.',
+  title: 'AI Headshot Generator Pricing for LinkedIn, Resume, and Business Portraits',
+  description: 'Compare AI headshot pricing for realistic portraits, fast generation, and high likeness. One-time PayPal checkout, starting at $12.90.',
   keywords: [
-    'AI headshot generator pricing',
-    'professional headshots without photographer cost',
-    'LinkedIn profile photo maker pricing',
-    'AI business portrait with suit price',
-    'virtual headshot generator for LinkedIn cost',
-    'team photos online pricing',
+    'AI headshot pricing',
+    'professional headshot cost',
+    'LinkedIn photo pricing',
+    'AI business portrait',
   ],
 }
 

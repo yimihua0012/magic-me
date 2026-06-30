@@ -1,9 +1,22 @@
-'use client'
-
+import type { Metadata } from 'next'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import { appConfig } from '@/lib/config'
+
+export const metadata: Metadata = {
+  title: 'Magic-Headshot Terms for AI Headshots, Professional Photos, and LinkedIn Photos',
+  description:
+    'Review Magic-Headshot terms for AI headshot generation, uploaded photos, payments, refunds, commercial use rights, account rules, and acceptable use.',
+  keywords: [
+    'Magic-Headshot terms',
+    'AI headshot terms',
+    'commercial use rights',
+  ],
+  alternates: {
+    canonical: '/terms',
+  },
+}
 
 export default function TermsPage() {
   return (
@@ -12,7 +25,7 @@ export default function TermsPage() {
 
       <main className="pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-8">Terms of Service</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-8">Magic-Headshot AI Headshot Terms of Service</h1>
           
           <div className="space-y-6 text-slate-600">
             <Card className="p-6">
@@ -72,7 +85,7 @@ export default function TermsPage() {
               <h2 className="text-xl font-semibold text-slate-900 mb-3">6. Payment Terms</h2>
               <ul className="list-disc pl-6 space-y-2">
                 <li>All prices are in USD unless otherwise stated</li>
-                <li>Payments are processed securely through Stripe</li>
+                <li>Payments are processed securely through PayPal</li>
                 <li>One-time payments grant permanent access to generated content</li>
                 <li>All sales are final unless otherwise stated in our refund policy</li>
               </ul>
@@ -89,7 +102,7 @@ export default function TermsPage() {
             <Card className="p-6">
               <h2 className="text-xl font-semibold text-slate-900 mb-3">8. Contact</h2>
               <p>
-                For questions about these Terms, please contact us at: postmaster@magic-headshot.com
+                For questions about these Terms, please contact us at: support@mail.magic-headshot.com
               </p>
             </Card>
 

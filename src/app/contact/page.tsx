@@ -4,7 +4,7 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import Button from '@/components/ui/button'
-import { Mail, Phone, MapPin, MessageSquare, Send } from 'lucide-react'
+import { Mail, MapPin, MessageSquare, Send } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 import { useState } from 'react'
 
@@ -37,10 +37,10 @@ export default function ContactPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Contact Us
+              Contact Magic-Headshot AI Headshot Support
             </h1>
             <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-              Have questions about {appConfig.name}? We're here to help. Reach out to us and we'll respond as soon as possible.
+              Have questions about {appConfig.name}, AI headshot generation, professional photos, LinkedIn photo results, billing, refunds, or your account? Reach out and we&apos;ll respond as soon as possible.
             </p>
           </div>
 
@@ -54,8 +54,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900 mb-1">Email</h3>
-                    <p className="text-slate-600 text-sm">postmaster@magic-headshot.com</p>
-                    <p className="text-slate-500 text-xs mt-1">We'll respond within 24 hours</p>
+                    <p className="text-slate-600 text-sm">support@mail.magic-headshot.com</p>
+                    <p className="text-slate-500 text-xs mt-1">We&apos;ll respond within 24 hours</p>
                   </div>
                 </div>
               </Card>
@@ -99,7 +99,7 @@ export default function ContactPage() {
                       Message Sent!
                     </h3>
                     <p className="text-slate-600 mb-6">
-                      Thank you for contacting us. We'll get back to you within 24 hours.
+                      Thank you for contacting us. We&apos;ll get back to you within 24 hours.
                     </p>
                     <Button onClick={() => setSubmitted(false)}>
                       Send Another Message

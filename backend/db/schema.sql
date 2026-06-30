@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     avatar_url TEXT,
     stripe_customer_id TEXT UNIQUE,
     stripe_session_id TEXT,
-    plan_type TEXT DEFAULT 'basic' CHECK (plan_type IN ('basic', 'pro', 'enterprise')),
+    plan_type TEXT DEFAULT 'basic' CHECK (plan_type IN ('basic', 'pro', 'premium')),
     email_verified BOOLEAN DEFAULT FALSE,
     last_login_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -39,14 +39,82 @@ CREATE POLICY "Service role can manage all profiles"
     USING (auth.jwt()->>'role' = 'service_role');
 
 -- ============================================
+-- CREDIT PACKAGES TABLE
+-- 用户购买的信用包（套餐配额）
+-- ============================================
+CREATE TABLE IF NOT EXISTS credit_packages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    
+    -- 套餐信息
+    plan_type TEXT NOT NULL CHECK (plan_type IN ('basic', 'pro', 'premium')),
+    total_credits INTEGER NOT NULL,
+    remaining_credits INTEGER NOT NULL,
+    
+    -- 有效期（从第一次生成开始计算）
+    purchased_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    activated_at TIMESTAMP WITH TIME ZONE,        -- 第一次生成时设置
+    expires_at TIMESTAMP WITH TIME ZONE,          -- activated_at + validity_days
+    validity_days INTEGER NOT NULL,               -- 套餐有效期天数
+    
+    -- 支付信息
+    stripe_payment_id TEXT,
+    lemon_order_id TEXT,
+    paypal_order_id TEXT,
+    amount_paid DECIMAL(10, 2),
+    currency TEXT DEFAULT 'USD',
+    
+    -- 状态
+    status TEXT NOT NULL DEFAULT 'inactive' CHECK (status IN ('inactive', 'active', 'expired', 'depleted')),
+    -- inactive: 未使用，有效期未开始
+    -- active: 已激活（第一次生成后），在有效期内
+    -- expired: 已过期
+    -- depleted: 次数用完
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 索引
+CREATE INDEX idx_credit_packages_user_id ON credit_packages(user_id);
+CREATE INDEX idx_credit_packages_status ON credit_packages(status);
+CREATE INDEX idx_credit_packages_expires_at ON credit_packages(expires_at);
+CREATE UNIQUE INDEX idx_credit_packages_stripe_payment_id_unique
+    ON credit_packages(stripe_payment_id)
+    WHERE stripe_payment_id IS NOT NULL;
+CREATE UNIQUE INDEX idx_credit_packages_lemon_order_id_unique
+    ON credit_packages(lemon_order_id)
+    WHERE lemon_order_id IS NOT NULL;
+CREATE UNIQUE INDEX idx_credit_packages_paypal_order_id_unique
+    ON credit_packages(paypal_order_id)
+    WHERE paypal_order_id IS NOT NULL;
+
+-- RLS
+ALTER TABLE credit_packages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own credit packages"
+    ON credit_packages FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Service role can manage all credit packages"
+    ON credit_packages FOR ALL
+    USING (auth.jwt()->>'role' = 'service_role');
+
+-- Trigger for credit_packages updated_at
+DROP TRIGGER IF EXISTS update_credit_packages_updated_at ON credit_packages;
+CREATE TRIGGER update_credit_packages_updated_at
+    BEFORE UPDATE ON credit_packages
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
 -- GENERATIONS TABLE
 -- AI headshot generation records
 -- ============================================
 CREATE TABLE IF NOT EXISTS generations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
-    plan_type TEXT NOT NULL DEFAULT 'basic' CHECK (plan_type IN ('basic', 'pro')),
+    status TEXT NOT NULL DEFAULT 'processing' CHECK (status IN ('processing', 'completed', 'failed')),
+    plan_type TEXT NOT NULL DEFAULT 'basic' CHECK (plan_type IN ('basic', 'pro', 'premium')),
     style_count INTEGER NOT NULL DEFAULT 30,
     
     -- Input photos (stored in Supabase Storage)
@@ -66,12 +134,17 @@ CREATE TABLE IF NOT EXISTS generations (
     
     -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     started_at TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE,
     
     -- Metadata
     metadata JSONB DEFAULT '{}',
-    error_message TEXT
+    error_message TEXT,
+    
+    -- 新增字段：关联信用包
+    credit_package_id UUID REFERENCES credit_packages(id) ON DELETE SET NULL,
+    credits_used INTEGER DEFAULT 0
 );
 
 -- RLS for generations
@@ -97,6 +170,32 @@ CREATE POLICY "Users can delete their own generations"
 CREATE INDEX idx_generations_user_id ON generations(user_id);
 CREATE INDEX idx_generations_status ON generations(status);
 CREATE INDEX idx_generations_created_at ON generations(created_at DESC);
+CREATE INDEX idx_generations_credit_package_id ON generations(credit_package_id);
+
+-- ============================================
+-- BUTTON CLICK LOGS TABLE
+-- Analytics for marketing and pricing page button clicks
+-- ============================================
+CREATE TABLE IF NOT EXISTS button_click_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    clicked_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    button_type TEXT NOT NULL,
+    source TEXT NOT NULL,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE button_click_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role can manage all button click logs"
+    ON button_click_logs FOR ALL
+    USING (auth.jwt()->>'role' = 'service_role');
+
+CREATE INDEX idx_button_click_logs_clicked_at ON button_click_logs(clicked_at DESC);
+CREATE INDEX idx_button_click_logs_button_type ON button_click_logs(button_type);
+CREATE INDEX idx_button_click_logs_source ON button_click_logs(source);
+CREATE INDEX idx_button_click_logs_user_id ON button_click_logs(user_id);
 
 -- ============================================
 -- STORAGE BUCKETS
@@ -163,8 +262,15 @@ CREATE TRIGGER update_profiles_updated_at
     BEFORE UPDATE ON profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- Trigger for generations updated_at
+DROP TRIGGER IF EXISTS update_generations_updated_at ON generations;
+CREATE TRIGGER update_generations_updated_at
+    BEFORE UPDATE ON generations
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ============================================
 -- ENUMS (for reference)
 -- ============================================
--- Generation status: pending, processing, completed, failed
--- Plan types: basic, pro, enterprise
+-- Generation status: processing, completed, failed
+-- Credit package status: inactive, active, expired, depleted
+-- Plan types: basic, pro, premium

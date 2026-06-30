@@ -1,26 +1,29 @@
 export const PLANS = {
   basic: {
     id: 'basic',
-    name: 'Basic',
-    price: 12.90,
-    styleCount: 12,
+    name: 'Basic Plan',
+    price: 19,
+    credits: 20,
+    validityDays: 30,
     resolution: '1024x1024',
-    priceId: 'prod_Ul3eCiU0C6mCCx', // Set in Stripe dashboard
+    priceId: 'prod_Ul3eCiU0C6mCCx',
   },
   pro: {
     id: 'pro',
-    name: 'Pro',
-    price: 28.90,
-    styleCount: 36,
+    name: 'Pro Plan',
+    price: 39,
+    credits: 60,
+    validityDays: 45,
     resolution: '1024x1024',
     priceId: 'prod_Ul3iGVN0rrs1NW',
   },
-  enterprise: {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 99,
-    styleCount: 100,
-    resolution: 'Custom',
+  premium: {
+    id: 'premium',
+    name: 'Premium Plan',
+    price: 69,
+    credits: 120,
+    validityDays: 60,
+    resolution: '1024x1024',
     priceId: 'prod_Ul3l0JbDSnkjbS',
   },
 } as const

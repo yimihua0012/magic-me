@@ -8,5 +8,11 @@
       "source": "/api/:path*",
       "destination": "/api/:path*"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/credit-expiration",
+      "schedule": "0 8 * * *"
+    }
   ]
 }

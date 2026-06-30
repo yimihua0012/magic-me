@@ -1,5 +1,8 @@
 import { supabaseAdmin } from '@backend/config/supabase'
-import { Generation, GenerationStatus, StyleConfig, CreateGenerationInput } from '@backend/types'
+import { Generation, GenerationStatus, StyleConfig } from '@backend/types'
+import { CreditPackageService } from './credit-package.service'
+import { emailService } from './email.service'
+import { userRepository } from '@backend/db/repositories'
 
 // 内存存储作为数据库降级方案（使用全局变量确保跨请求共享）
 declare global {
@@ -13,6 +16,50 @@ if (!global.mockGenerations) {
 }
 
 const mockGenerations = global.mockGenerations
+const allowMemoryFallback = false
+const generationDebugEnabled = process.env.GENERATION_DEBUG === 'true'
+const INPUT_PHOTOS_BUCKET = 'input-photos'
+const OUTPUT_PHOTOS_BUCKET = 'output-photos'
+
+function logGenerationDebug(...args: unknown[]): void {
+  if (generationDebugEnabled) {
+    console.log(...args)
+  }
+}
+
+interface OutputPhotoStorageContext {
+  userId: string
+  generationId: string
+  folderName: string
+  index: number
+}
+
+interface StoredImage {
+  path: string
+  publicUrl: string | null
+}
+
+// 内存缓存 - 用于减少频繁的数据库查询（前端轮询优化）
+interface CacheEntry {
+  data: Generation
+  expiresAt: number
+}
+
+const generationCache = new Map<string, CacheEntry>()
+const CACHE_TTL_MS = 3000 // 3秒缓存，状态查询频繁但变化不快
+
+function getCachedGeneration(id: string): Generation | null {
+  const entry = generationCache.get(id)
+  if (entry && Date.now() < entry.expiresAt) {
+    return entry.data
+  }
+  generationCache.delete(id)
+  return null
+}
+
+function setCachedGeneration(id: string, data: Generation): void {
+  generationCache.set(id, { data, expiresAt: Date.now() + CACHE_TTL_MS })
+}
 
 const STYLE_CONFIGS: Record<string, StyleConfig> = {
   linkedin_professional: {
@@ -227,13 +274,98 @@ const STYLE_CONFIGS: Record<string, StyleConfig> = {
   }
 }
 
-const QUALITY_SUFFIX = '4k, highly detailed, professional photography, sharp focus, beautiful lighting, masterpiece'
-const DEFAULT_NEGATIVE = 'worst quality, low quality, blurry, distorted face, extra fingers, fused fingers, bad anatomy, ugly, deformed, disfigured, watermark, text, logo'
+let cachedDbStyles: StyleConfig[] | null = null
+let cachedDbStylesAt = 0
+const STYLE_CACHE_MS = 60_000
+
+async function loadDbStyles(): Promise<StyleConfig[] | null> {
+  if (cachedDbStyles && Date.now() - cachedDbStylesAt < STYLE_CACHE_MS) {
+    return cachedDbStyles
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('headshot_styles')
+      .select('id,name,category,prompt,negative,is_active')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+
+    if (error || !data || data.length === 0) {
+      return null
+    }
+
+    cachedDbStyles = data as StyleConfig[]
+    cachedDbStylesAt = Date.now()
+    return cachedDbStyles
+  } catch (error) {
+    console.error('[GenerationService] Failed to load DB styles:', error)
+    return null
+  }
+}
+
+async function getStyleMap(): Promise<Record<string, StyleConfig>> {
+  const dbStyles = await loadDbStyles()
+  const styles = dbStyles?.length ? dbStyles : Object.values(STYLE_CONFIGS)
+  return Object.fromEntries(styles.map(style => [style.id, style]))
+}
+
+async function incrementStyleStats(styleIds: string[]): Promise<void> {
+  const uniqueStyleIds = [...new Set(styleIds)].filter(Boolean)
+  if (uniqueStyleIds.length === 0) return
+
+  const now = new Date().toISOString()
+  await Promise.all(uniqueStyleIds.map(async (styleId) => {
+    const { data: existing } = await supabaseAdmin
+      .from('headshot_styles')
+      .select('selection_count')
+      .eq('id', styleId)
+      .maybeSingle()
+
+    const nextCount = (existing?.selection_count || 0) + 1
+    await supabaseAdmin
+      .from('headshot_styles')
+      .update({
+        selection_count: nextCount,
+        last_selected_at: now,
+      })
+      .eq('id', styleId)
+  }))
+}
+
+// 带超时的 fetch 包装
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 30000): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal })
+    return response
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
+const QUALITY_SUFFIX = 'professional headshot, upper-body portrait, clean background, natural skin texture, realistic lighting, sharp focus, crisp eyes, high detail, 4K resolution, ultra high definition, premium studio photography, LinkedIn-ready'
+const DEFAULT_NEGATIVE = 'worst quality, low quality, low resolution, blurry, pixelated, jpeg artifacts, distorted face, extra fingers, fused fingers, bad anatomy, ugly, deformed, disfigured, watermark, text, logo, multiple people, side profile, cropped face'
+const MAX_INPUT_PHOTOS = 3
+const GENERATION_ATTEMPTS = 3
+const POLL_INTERVAL_MS = 5000
+
+function generationStepForProgress(progress: number): string {
+  if (progress >= 95) return 'Preparing your finished headshots...'
+  if (progress >= 80) return 'Polishing lighting, detail, and skin tones...'
+  if (progress >= 60) return 'Rendering your selected portrait styles...'
+  if (progress >= 35) return 'Matching your reference photos to each style...'
+  if (progress >= 15) return 'Analyzing your reference photos...'
+  return 'Preparing your generation...'
+}
 
 export interface CreateGenerationRequest {
   userId: string
-  faceImageUrl: string
+  faceImageUrl?: string
+  faceImageUrls?: string[]
   styleIds?: string[]
+  clientGenerationId?: string
 }
 
 export interface GenerationResponse {
@@ -242,59 +374,320 @@ export interface GenerationResponse {
   progress: number
   currentStep: string
   outputUrls: string[]
+  reused?: boolean
 }
 
 export class GenerationService {
-  static async createGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
-    console.log(`[GenerationService] createGeneration called - userId: ${input.userId}, faceImageUrl: ${input.faceImageUrl?.substring(0, 50)}...`)
-    const { userId, faceImageUrl, styleIds } = input
-    const styles = styleIds || Object.keys(STYLE_CONFIGS).slice(0, 30)
-    console.log(`[GenerationService] Creating generation with ${styles.length} styles`)
+  private static normalizeInputPhotos(input: CreateGenerationRequest): string[] {
+    const photos = Array.isArray(input.faceImageUrls)
+      ? input.faceImageUrls
+      : input.faceImageUrl
+        ? [input.faceImageUrl]
+        : []
+
+    const normalized = photos
+      .filter((photo): photo is string => typeof photo === 'string')
+      .map(photo => photo.trim())
+      .filter(Boolean)
+      .slice(0, MAX_INPUT_PHOTOS)
+
+    if (normalized.length === 0) {
+      throw new Error('At least one input photo is required')
+    }
+
+    return normalized
+  }
+
+  private static async getGenerationByClientId(userId: string, clientGenerationId: string): Promise<Generation | null> {
+    const { data, error } = await supabaseAdmin
+      .from('generations')
+      .select('*')
+      .eq('user_id', userId)
+      .contains('metadata', { clientGenerationId })
+      .maybeSingle()
+
+    if (error) {
+      console.error('[GenerationService] Error checking idempotent generation:', error)
+      throw error
+    }
+
+    return data as Generation | null
+  }
+
+  static async findByClientGenerationId(userId: string, clientGenerationId: string): Promise<Generation | null> {
+    return this.getGenerationByClientId(userId, clientGenerationId)
+  }
+
+  private static toGenerationResponse(generation: Generation, reused = false): GenerationResponse {
+    return {
+      id: generation.id,
+      status: generation.status,
+      progress: generation.progress || 0,
+      currentStep: generation.current_step || 'Rendering your portrait styles...',
+      outputUrls: generation.output_photos || [],
+      reused,
+    }
+  }
+
+  static async getPendingGeneration(userId: string): Promise<Generation | null> {
+    logGenerationDebug(`[GenerationService] getPendingGeneration for user: ${userId}`)
     
-    const generationId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-    console.log(`[GenerationService] Generated generationId: ${generationId}`)
+    const { data, error } = await supabaseAdmin
+      .from('generations')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      console.error('[GenerationService] Error getting pending generation:', error)
+      return null
+    }
+
+    return data as Generation | null
+  }
+
+  static async activateGeneration(generationId: string, faceImageUrl: string, styleIds?: string[]): Promise<GenerationResponse> {
+    logGenerationDebug(`[GenerationService] activateGeneration called - id: ${generationId}`)
     
-    const generation: Partial<Generation> = {
+    const { data: existing } = await supabaseAdmin
+      .from('generations')
+      .select('*')
+      .eq('id', generationId)
+      .single()
+
+    if (!existing) {
+      throw new Error('Generation not found')
+    }
+
+    const inputPhotos = this.normalizeInputPhotos({ userId: existing.user_id, faceImageUrl })
+
+    const styles = styleIds?.length 
+      ? styleIds.slice(0, existing.style_count || 30)
+      : Object.keys(STYLE_CONFIGS).slice(0, existing.style_count || 30)
+
+    const updateData: Partial<Generation> = {
+      status: 'processing',
+      progress: 0,
+      current_step: 'Initializing...',
+      input_photos: inputPhotos,
+      output_photos: [],
+      started_at: new Date().toISOString(),
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('generations')
+      .update(updateData)
+      .eq('id', generationId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[GenerationService] Error activating generation:', error)
+      throw error
+    }
+
+    logGenerationDebug(`[GenerationService] Activated generation: ${generationId}, styles: ${styles.length}`)
+    setCachedGeneration(generationId, data as Generation)
+
+    return {
       id: generationId,
+      status: 'processing',
+      progress: 0,
+      currentStep: 'Initializing...',
+      outputUrls: []
+    }
+  }
+
+  static async createAndActivateGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
+    logGenerationDebug(`[GenerationService] createAndActivateGeneration called - userId: ${input.userId}`)
+    const { userId, styleIds, clientGenerationId } = input
+    const inputPhotos = this.normalizeInputPhotos(input)
+    const availableStyles = await getStyleMap()
+    const styles = styleIds?.length
+      ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
+      : Object.keys(availableStyles).slice(0, 30)
+    const styleCount = styles.length
+    logGenerationDebug(`[GenerationService] Creating generation with ${styleCount} styles`)
+
+    if (clientGenerationId) {
+      const existing = await this.getGenerationByClientId(userId, clientGenerationId)
+      if (existing) {
+        const existingGeneration = existing as Generation
+        logGenerationDebug(`[GenerationService] Reusing existing generation for clientGenerationId: ${clientGenerationId}`)
+        setCachedGeneration(existingGeneration.id, existingGeneration)
+        return this.toGenerationResponse(existingGeneration, true)
+      }
+    }
+
+    // 预扣信用次数
+    const consumeResult = await CreditPackageService.consumeCredits(userId, styleCount)
+    if (!consumeResult.success || !consumeResult.packageId) {
+      console.error(`[GenerationService] Failed to consume credits: ${consumeResult.error}`)
+      throw new Error(consumeResult.error || 'Failed to consume credits')
+    }
+
+    await incrementStyleStats(styles)
+
+    const generationData: Partial<Generation> = {
+      user_id: userId,
+      plan_type: 'basic',
+      style_count: styleCount,
+      input_photos: inputPhotos,
+      output_photos: [],
+      status: 'processing',
+      progress: 0,
+      current_step: 'Initializing...',
+      started_at: new Date().toISOString(),
+      credit_package_id: consumeResult.packageId,
+      credits_used: styleCount,
+      metadata: {
+        consumedCredits: consumeResult.consumedFrom || [],
+        styleIds: styles,
+        clientGenerationId,
+      },
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('generations')
+      .insert(generationData)
+      .select()
+      .single()
+
+    if (error) {
+      if (clientGenerationId) {
+        const existing = await this.getGenerationByClientId(userId, clientGenerationId)
+        if (existing) {
+          await Promise.all((consumeResult.consumedFrom || []).map(({ packageId, amount }) =>
+            CreditPackageService.refundCredits(packageId, amount)
+          ))
+          logGenerationDebug(`[GenerationService] Refunded duplicate retry and reused generation: ${existing.id}`)
+          setCachedGeneration(existing.id, existing)
+          return this.toGenerationResponse(existing, true)
+        }
+      }
+
+      if (!allowMemoryFallback) {
+        await Promise.all((consumeResult.consumedFrom || []).map(({ packageId, amount }) =>
+          CreditPackageService.refundCredits(packageId, amount)
+        ))
+        throw error
+      }
+
+      logGenerationDebug(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
+      // 内存降级
+      const fallbackId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+      mockGenerations.set(fallbackId, {
+        id: fallbackId,
+        user_id: userId,
+        plan_type: 'basic',
+        style_count: styleCount,
+        input_photos: inputPhotos,
+        output_photos: [],
+        status: 'processing',
+        progress: 0,
+        current_step: 'Initializing...',
+        started_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        credit_package_id: consumeResult.packageId,
+        credits_used: styleCount,
+        metadata: {
+          consumedCredits: consumeResult.consumedFrom || [],
+          styleIds: styles,
+          clientGenerationId,
+        },
+      })
+      logGenerationDebug(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
+      setCachedGeneration(fallbackId, mockGenerations.get(fallbackId)!)
+      return {
+        id: fallbackId,
+        status: 'processing',
+        progress: 0,
+        currentStep: 'Initializing...',
+        outputUrls: []
+      }
+    }
+
+    const generationId = data.id
+    logGenerationDebug(`[GenerationService] Successfully stored in database: ${generationId}`)
+    setCachedGeneration(generationId, data as Generation)
+
+    return {
+      id: generationId,
+      status: 'processing',
+      progress: 0,
+      currentStep: 'Initializing...',
+      outputUrls: []
+    }
+  }
+
+  static async createGeneration(input: CreateGenerationRequest): Promise<GenerationResponse> {
+    logGenerationDebug(`[GenerationService] createGeneration called - userId: ${input.userId}, inputPhotoCount: ${this.normalizeInputPhotos(input).length}`)
+    const { userId, styleIds } = input
+    const inputPhotos = this.normalizeInputPhotos(input)
+    const availableStyles = await getStyleMap()
+    const styles = styleIds?.length
+      ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
+      : Object.keys(availableStyles).slice(0, 30)
+    logGenerationDebug(`[GenerationService] Creating generation with ${styles.length} styles`)
+    
+    const generationData: Partial<Generation> = {
       user_id: userId,
       plan_type: 'basic',
       style_count: styles.length,
-      input_photos: [faceImageUrl],
+      input_photos: inputPhotos,
       output_photos: [],
-      status: 'pending',
+      status: 'processing',
       progress: 0,
       current_step: 'Initializing...',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
     }
 
-    const { error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('generations')
-      .insert(generation)
+      .insert(generationData)
+      .select()
+      .single()
 
     if (error) {
-      console.log(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
-      mockGenerations.set(generationId, {
-        id: generationId,
+      if (!allowMemoryFallback) {
+        throw error
+      }
+
+      logGenerationDebug(`[GenerationService] Database insert error: ${error.message || error}, falling back to memory`)
+      const fallbackId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+      mockGenerations.set(fallbackId, {
+        id: fallbackId,
         user_id: userId,
         plan_type: 'basic',
         style_count: styles.length,
-        input_photos: [faceImageUrl],
+        input_photos: inputPhotos,
         output_photos: [],
-        status: 'pending',
+        status: 'processing',
         progress: 0,
         current_step: 'Initializing...',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
-      console.log(`[GenerationService] Successfully stored in memory: ${generationId}`)
-    } else {
-      console.log(`[GenerationService] Successfully stored in database: ${generationId}`)
+      logGenerationDebug(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
+      return {
+        id: fallbackId,
+        status: 'processing',
+        progress: 0,
+        currentStep: 'Initializing...',
+        outputUrls: []
+      }
     }
+
+    const generationId = data.id
+    logGenerationDebug(`[GenerationService] Successfully stored in database: ${generationId}`)
+    setCachedGeneration(generationId, data as Generation)
 
     return {
       id: generationId,
-      status: 'pending',
+      status: 'processing',
       progress: 0,
       currentStep: 'Initializing...',
       outputUrls: []
@@ -302,8 +695,15 @@ export class GenerationService {
   }
 
   static async getGeneration(id: string): Promise<Generation | null> {
-    console.log(`[GenerationService] getGeneration called for id: ${id}`)
-    
+    logGenerationDebug(`[GenerationService] getGeneration called for id: ${id}`)
+
+    // 先查内存缓存
+    const cached = getCachedGeneration(id)
+    if (cached) {
+      logGenerationDebug(`[GenerationService] Cache hit for id: ${id}, status: ${cached.status}`)
+      return cached
+    }
+
     const { data, error } = await supabaseAdmin
       .from('generations')
       .select('*')
@@ -311,34 +711,43 @@ export class GenerationService {
       .single()
 
     if (!error && data) {
-      console.log(`[GenerationService] Found in database - id: ${id}, status: ${data.status}, progress: ${data.progress}`)
-      return data as Generation
+      logGenerationDebug(`[GenerationService] Found in database - id: ${id}, status: ${data.status}, progress: ${data.progress}`)
+      const gen = data as Generation
+      setCachedGeneration(id, gen)
+      return gen
     }
-    
+
     if (error) {
-      console.log(`[GenerationService] Database query error for id ${id}: ${error.message || error}`)
+      logGenerationDebug(`[GenerationService] Database query error for id ${id}: ${error.message || error}`)
     }
-    
+
     const mockGeneration = mockGenerations.get(id)
     if (mockGeneration) {
-      console.log(`[GenerationService] Found in memory - id: ${id}, status: ${mockGeneration.status}, progress: ${mockGeneration.progress}`)
+      logGenerationDebug(`[GenerationService] Found in memory - id: ${id}, status: ${mockGeneration.status}, progress: ${mockGeneration.progress}`)
       return mockGeneration
     }
-    
-    console.log(`[GenerationService] Generation NOT FOUND for id: ${id}`)
+
+    logGenerationDebug(`[GenerationService] Generation NOT FOUND for id: ${id}`)
     return null
   }
 
   static async updateGeneration(id: string, updates: Partial<Generation>): Promise<void> {
-    console.log(`[GenerationService] updateGeneration called for id: ${id}, updates:`, JSON.stringify(updates))
-    
+    logGenerationDebug(`[GenerationService] updateGeneration called for id: ${id}, updates:`, JSON.stringify(updates))
+
+    // 更新数据库时清除缓存，下次查询会重新加载
+    generationCache.delete(id)
+
     const { error } = await supabaseAdmin
       .from('generations')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
 
     if (error) {
-      console.log(`[GenerationService] Database update error for id ${id}: ${error.message || error}, falling back to memory`)
+      if (!allowMemoryFallback) {
+        throw error
+      }
+
+      logGenerationDebug(`[GenerationService] Database update error for id ${id}: ${error.message || error}, falling back to memory`)
       const mockGeneration = mockGenerations.get(id)
       if (mockGeneration) {
         const updated = {
@@ -347,12 +756,12 @@ export class GenerationService {
           updated_at: new Date().toISOString()
         }
         mockGenerations.set(id, updated)
-        console.log(`[GenerationService] Successfully updated memory for id: ${id}, new status: ${updated.status}, progress: ${updated.progress}`)
+        logGenerationDebug(`[GenerationService] Successfully updated memory for id: ${id}, new status: ${updated.status}, progress: ${updated.progress}`)
       } else {
-        console.log(`[GenerationService] Could not find generation in memory for id: ${id}`)
+        logGenerationDebug(`[GenerationService] Could not find generation in memory for id: ${id}`)
       }
     } else {
-      console.log(`[GenerationService] Successfully updated database for id: ${id}`)
+      logGenerationDebug(`[GenerationService] Successfully updated database for id: ${id}`)
     }
   }
 
@@ -375,23 +784,26 @@ export class GenerationService {
   }
 
   static async generateHeadshots(generationId: string): Promise<void> {
-    console.log(`[GenerationService] generateHeadshots started for id: ${generationId}`)
+    logGenerationDebug(`[GenerationService] generateHeadshots started for id: ${generationId}`)
     const generation = await this.getGeneration(generationId)
     if (!generation) {
-      console.log(`[GenerationService] generateHeadshots FAILED - generation not found: ${generationId}`)
+      logGenerationDebug(`[GenerationService] generateHeadshots FAILED - generation not found: ${generationId}`)
       throw new Error('Generation not found')
     }
-    console.log(`[GenerationService] Found generation - style_count: ${generation.style_count}`)
+    logGenerationDebug(`[GenerationService] Found generation - style_count: ${generation.style_count}`)
 
     await this.updateGeneration(generationId, { 
       status: 'processing',
       started_at: new Date().toISOString(),
-      current_step: 'Initializing generation...'
+      current_step: generationStepForProgress(5)
     })
 
-    const maxStylesForTesting = 3
-const stylesToGenerate = Object.keys(STYLE_CONFIGS).slice(0, Math.min(generation.style_count, maxStylesForTesting))
-console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTesting} styles`)
+    const requestedStyleIds = Array.isArray(generation.metadata?.styleIds)
+      ? generation.metadata.styleIds.filter((styleId): styleId is string => typeof styleId === 'string')
+      : []
+    const stylesToGenerate = requestedStyleIds.length
+      ? requestedStyleIds
+      : Object.keys(await getStyleMap()).slice(0, generation.style_count)
     const batchSize = 5
     const batches: string[][] = []
     
@@ -399,23 +811,33 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
       batches.push(stylesToGenerate.slice(i, i + batchSize))
     }
 
-    console.log(`[GenerationService] Generating ${stylesToGenerate.length} styles in ${batches.length} batches`)
+    logGenerationDebug(`[GenerationService] Generating ${stylesToGenerate.length} styles in ${batches.length} batches`)
 
     const outputUrls: string[] = []
-    const maxRetries = 1
     const totalStyles = stylesToGenerate.length
+    const storageFolderName = this.createStorageFolderName()
     let completedStyles = 0
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex]
-      console.log(`[GenerationService] Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} styles)`)
+      logGenerationDebug(`[GenerationService] Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} styles)`)
       
-      await this.updateGeneration(generationId, { 
-        current_step: `Generating batch ${batchIndex + 1}/${batches.length}...`
+      const batchStartProgress = Math.round((completedStyles / totalStyles) * 100)
+      await this.updateGeneration(generationId, {
+        current_step: generationStepForProgress(batchStartProgress),
       })
 
-      const batchPromises = batch.map(styleId => 
-        this.generateWithRetry(generation.input_photos[0], styleId, maxRetries)
+      const batchPromises = batch.map((styleId, batchItemIndex) => 
+        this.generateWithRetry(
+          generation.input_photos.slice(0, MAX_INPUT_PHOTOS),
+          styleId,
+          {
+            userId: generation.user_id,
+            generationId,
+            folderName: storageFolderName,
+            index: completedStyles + batchItemIndex,
+          }
+        )
       )
 
       const batchResults = await Promise.all(batchPromises)
@@ -424,92 +846,145 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
       completedStyles += batch.length
 
       const progress = Math.round((completedStyles / totalStyles) * 100)
-      console.log(`[GenerationService] Batch ${batchIndex + 1} completed - progress: ${progress}%, total outputs: ${outputUrls.length}`)
+      logGenerationDebug(`[GenerationService] Batch ${batchIndex + 1} completed - progress: ${progress}%, total outputs: ${outputUrls.length}`)
       await this.updateGeneration(generationId, { 
         progress, 
-        output_photos: outputUrls 
+        output_photos: outputUrls,
+        current_step: generationStepForProgress(progress),
       })
     }
 
-    console.log(`[GenerationService] Generation completed for id: ${generationId}, total outputs: ${outputUrls.length}`)
+    const archivedInputPhotos = await this.archiveInputPhotos(generation.input_photos, {
+      userId: generation.user_id,
+      generationId,
+      folderName: storageFolderName,
+      index: 0,
+    })
+
+    logGenerationDebug(`[GenerationService] Generation completed for id: ${generationId}, total outputs: ${outputUrls.length}`)
     await this.updateGeneration(generationId, { 
       status: 'completed', 
       progress: 100,
+      input_photos: archivedInputPhotos.length ? archivedInputPhotos : generation.input_photos,
       output_photos: outputUrls,
       completed_at: new Date().toISOString(),
-      current_step: 'Generation complete!'
+      current_step: 'Your headshots are ready to review.'
     })
+
+    // 发送生成完成邮件
+    this.sendCompletionEmail(generationId, outputUrls.length).catch(err => {
+      console.error('[GenerationService] Failed to send completion email:', err)
+    })
+  }
+
+  /**
+   * 发送生成完成邮件
+   */
+  private static async sendCompletionEmail(generationId: string, styleCount: number): Promise<void> {
+    try {
+      const generation = await this.getGeneration(generationId)
+      if (!generation) {
+        console.warn(`[GenerationService] Generation not found for email: ${generationId}`)
+        return
+      }
+
+      const user = await userRepository.findById(generation.user_id)
+      if (!user?.email) {
+        console.warn(`[GenerationService] User email not found for generation: ${generationId}`)
+        return
+      }
+
+      const creditSummary = await CreditPackageService.getTotalRemaining(generation.user_id)
+      const creditsUsed = generation.credits_used || styleCount
+
+      await emailService.sendGenerationCompleteEmail({
+        email: user.email,
+        name: user.full_name || undefined,
+        generationId: generation.id,
+        styleCount,
+        creditsUsed,
+        remainingCredits: creditSummary.totalRemaining,
+        nearestExpiresAt: creditSummary.nearestExpiresAt,
+      })
+
+      logGenerationDebug(`[GenerationService] Completion email sent to ${user.email}`)
+    } catch (err) {
+      console.error('[GenerationService] Error sending completion email:', err)
+    }
   }
 
   private static isMockMode(): boolean {
     const mode = process.env.GENERATION_MODE?.toLowerCase()
-    if (mode === 'mock') return true
+    if (mode === 'mock') return false
     if (mode === 'replicate') return false
-    // Default: use mock if no API key, otherwise use replicate
-    return !process.env.REPLICATE_API_KEY
+    return false
   }
 
-  private static async generateWithRetry(faceImageUrl: string, styleId: string, maxRetries: number): Promise<string> {
-    let attempts = 0
-    let lastError: Error | undefined
-
-    while (attempts <= maxRetries) {
-      try {
-        return await this.generateSingleStyle(faceImageUrl, styleId)
-      } catch (error) {
-        lastError = error as Error
-        attempts++
-        if (attempts <= maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 2000))
-        }
-      }
+  private static async generateWithRetry(
+    faceImageUrls: string[],
+    styleId: string,
+    storageContext: OutputPhotoStorageContext
+  ): Promise<string> {
+    try {
+      return await this.generateSingleStyle(faceImageUrls, styleId, storageContext)
+    } catch (error) {
+      console.error(`Failed to generate ${styleId} after ${GENERATION_ATTEMPTS} attempts:`, error)
+      return this.fallbackGenerationImage(styleId, error instanceof Error ? error.message : 'Retry limit reached')
     }
-
-    console.error(`Failed to generate ${styleId} after ${maxRetries + 1} attempts:`, lastError)
-    return this.generateMockImage(styleId)
   }
 
-  private static async generateSingleStyle(faceImageUrl: string, styleId: string): Promise<string> {
-    const styleConfig = STYLE_CONFIGS[styleId]
+  private static async generateSingleStyle(
+    faceImageUrls: string[],
+    styleId: string,
+    storageContext: OutputPhotoStorageContext
+  ): Promise<string> {
+    const availableStyles = await getStyleMap()
+    const styleConfig = availableStyles[styleId]
     if (!styleConfig) throw new Error(`Style ${styleId} not found`)
 
     if (this.isMockMode()) {
+      if (!allowMemoryFallback && process.env.GENERATION_MODE?.toLowerCase() === 'mock') {
+        throw new Error('Mock generation mode is not allowed in production')
+      }
       return this.generateMockImage(styleId)
     }
 
-    console.log(`[GenerationService] Generating ${styleId} with Replicate API...`)
+    logGenerationDebug(`[GenerationService] Generating ${styleId} with Replicate API...`)
     
-    const prompt = `${styleConfig.prompt}, ${QUALITY_SUFFIX}`
+    const prompt = `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
 
     const replicateApiKey = process.env.REPLICATE_API_KEY
     const modelName = process.env.REPLICATE_MODEL_NAME || 'google/nano-banana-2'
 
-    const maxRetries = 5
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    for (let attempt = 1; attempt <= GENERATION_ATTEMPTS; attempt++) {
       try {
-        console.log(`[GenerationService] Calling Replicate API for ${styleId} (attempt ${attempt}/${maxRetries})...`)
-        console.log(`[GenerationService] Using model: ${modelName}`)
+        logGenerationDebug(`[GenerationService] Calling Replicate API for ${styleId} (attempt ${attempt}/${GENERATION_ATTEMPTS})...`)
+        logGenerationDebug(`[GenerationService] Using model: ${modelName}`)
         
-        // 使用官方模型端点
-        const response = await fetch(`https://api.replicate.com/v1/models/${modelName}/predictions`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${replicateApiKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'wait'
+        // 使用官方模型端点（30秒超时）
+        const response = await fetchWithTimeout(
+          `https://api.replicate.com/v1/models/${modelName}/predictions`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${replicateApiKey}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'wait',
+            },
+            body: JSON.stringify({
+              input: {
+                prompt,
+                negative_prompt: `${styleConfig.negative}, ${DEFAULT_NEGATIVE}`,
+                image_input: faceImageUrls.slice(0, MAX_INPUT_PHOTOS),
+                aspect_ratio: '1:1',
+                output_format: 'jpg',
+              },
+            }),
           },
-          body: JSON.stringify({
-            input: {
-              prompt,
-              image_input: [faceImageUrl],
-              aspect_ratio: 'match_input_image',
-              output_format: 'jpg'
-            }
-          })
-        })
+          30000
+        )
 
-        console.log(`[GenerationService] Replicate API response status: ${response.status}`)
+        logGenerationDebug(`[GenerationService] Replicate API response status: ${response.status}`)
         
         if (response.status === 429) {
           const retryAfter = parseInt(response.headers.get('Retry-After') || '10')
@@ -520,34 +995,38 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
         }
 
         const data = await response.json()
-        console.log(`[GenerationService] Replicate API response data:`, JSON.stringify(data).substring(0, 500))
+        logGenerationDebug(`[GenerationService] Replicate API response data:`, JSON.stringify(data).substring(0, 500))
         
         if (response.status === 422) {
           console.error(`[GenerationService] Request validation failed (422) for ${styleId}:`, JSON.stringify(data))
-          return this.generateMockImage(styleId)
+          return this.fallbackGenerationImage(styleId, 'Replicate validation failed')
         }
         
         if (data.error) {
           console.error(`[GenerationService] Error generating ${styleId}:`, data.error)
-          return this.generateMockImage(styleId)
+          return this.fallbackGenerationImage(styleId, data.error)
         }
 
         if (!data.id) {
           console.error(`[GenerationService] No prediction ID returned for ${styleId}`)
-          return this.generateMockImage(styleId)
+          return this.fallbackGenerationImage(styleId, 'No prediction ID returned')
         }
 
-        console.log(`[GenerationService] Prediction ID: ${data.id}, status: ${data.status}`)
+        logGenerationDebug(`[GenerationService] Prediction ID: ${data.id}, status: ${data.status}`)
 
         let result = data
         let pollCount = 0
         while (result.status !== 'succeeded' && result.status !== 'failed') {
           pollCount++
-          console.log(`[GenerationService] Polling ${styleId} - attempt ${pollCount}, status: ${result.status}`)
-          await new Promise(resolve => setTimeout(resolve, 2000))
-          const statusResponse = await fetch(`https://api.replicate.com/v1/predictions/${result.id}`, {
-            headers: { 'Authorization': `Token ${replicateApiKey}` }
-          })
+          logGenerationDebug(`[GenerationService] Polling ${styleId} - attempt ${pollCount}, status: ${result.status}`)
+          await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
+          const statusResponse = await fetchWithTimeout(
+            `https://api.replicate.com/v1/predictions/${result.id}`,
+            {
+              headers: { 'Authorization': `Token ${replicateApiKey}` },
+            },
+            15000
+          )
           
           if (statusResponse.status === 429) {
             const retryAfter = parseInt(statusResponse.headers.get('Retry-After') || '5')
@@ -559,20 +1038,220 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
           result = await statusResponse.json()
         }
 
-        console.log(`[GenerationService] ${styleId} completed with status: ${result.status}`)
-        return result.output || this.generateMockImage(styleId)
+        logGenerationDebug(`[GenerationService] ${styleId} completed with status: ${result.status}`)
+        if (result.status === 'failed') {
+          return this.fallbackGenerationImage(styleId, result.error || 'Prediction failed')
+        }
+
+        const outputUrl = this.extractReplicateOutputUrl(result.output)
+        if (!outputUrl) {
+          return this.fallbackGenerationImage(styleId, 'Prediction returned no output')
+        }
+
+        return await this.persistOutputPhoto(outputUrl, styleId, storageContext)
       } catch (error) {
         console.error(`[GenerationService] Exception generating ${styleId} (attempt ${attempt}):`, error)
-        if (attempt < maxRetries) {
+        if (attempt < GENERATION_ATTEMPTS) {
           const waitTime = Math.pow(2, attempt) * 1000
-          console.log(`[GenerationService] Retrying ${styleId} in ${waitTime/1000}s...`)
+          logGenerationDebug(`[GenerationService] Retrying ${styleId} in ${waitTime/1000}s...`)
           await new Promise(resolve => setTimeout(resolve, waitTime))
         }
       }
     }
 
-    console.error(`[GenerationService] Failed to generate ${styleId} after ${maxRetries} attempts`)
+    console.error(`[GenerationService] Failed to generate ${styleId} after ${GENERATION_ATTEMPTS} attempts`)
+    return this.fallbackGenerationImage(styleId, 'Generation attempts exhausted')
+  }
+
+  private static fallbackGenerationImage(styleId: string, reason: string): string {
+    if (!allowMemoryFallback) {
+      throw new Error(`Generation failed for ${styleId}: ${reason}`)
+    }
+
     return this.generateMockImage(styleId)
+  }
+
+  private static extractReplicateOutputUrl(output: unknown): string | null {
+    if (typeof output === 'string') return output
+    if (Array.isArray(output)) {
+      for (const item of output) {
+        if (typeof item === 'string') return item
+        if (item && typeof item === 'object') {
+          const maybeOutput = item as { url?: unknown }
+          if (typeof maybeOutput.url === 'string') return maybeOutput.url
+        }
+      }
+
+      return null
+    }
+
+    if (output && typeof output === 'object') {
+      const maybeOutput = output as { url?: unknown }
+      if (typeof maybeOutput.url === 'string') return maybeOutput.url
+    }
+
+    return null
+  }
+
+  private static createStorageFolderName(): string {
+    return new Date().toISOString().replace(/[:.]/g, '-')
+  }
+
+  private static async persistOutputPhoto(
+    temporaryUrl: string,
+    styleId: string,
+    context: OutputPhotoStorageContext
+  ): Promise<string> {
+    const image = await this.loadImageFromUrl(temporaryUrl, 'image/jpeg')
+    const extension = this.extensionForContentType(image.contentType)
+    const safeStyleId = this.safeStorageSegment(styleId)
+    const objectPath = [
+      this.safeStorageSegment(context.userId),
+      `${context.folderName}-${this.safeStorageSegment(context.generationId)}`,
+      `${String(context.index + 1).padStart(3, '0')}-${safeStyleId}.${extension}`,
+    ].join('/')
+
+    const storedImage = await this.storeImage(temporaryUrl, image, {
+      bucket: OUTPUT_PHOTOS_BUCKET,
+      path: objectPath,
+      public: true,
+    })
+
+    if (!storedImage.publicUrl) {
+      throw new Error('Failed to create public URL for generated image')
+    }
+
+    return storedImage.publicUrl
+  }
+
+  private static async archiveInputPhotos(
+    inputPhotos: string[],
+    context: OutputPhotoStorageContext
+  ): Promise<string[]> {
+    const archivedPhotos: string[] = []
+
+    for (let index = 0; index < inputPhotos.length; index++) {
+      const inputPhoto = inputPhotos[index]
+      try {
+        const image = await this.loadImageFromUrl(inputPhoto, 'image/jpeg')
+        const extension = this.extensionForContentType(image.contentType)
+        const objectPath = [
+          this.safeStorageSegment(context.userId),
+          `${context.folderName}-${this.safeStorageSegment(context.generationId)}`,
+          `input-${String(index + 1).padStart(2, '0')}.${extension}`,
+        ].join('/')
+
+        const storedImage = await this.storeImage(inputPhoto, image, {
+          bucket: INPUT_PHOTOS_BUCKET,
+          path: objectPath,
+          public: false,
+        })
+
+        archivedPhotos.push(storedImage.path)
+      } catch (error) {
+        console.error('[GenerationService] Failed to archive input photo:', error)
+        archivedPhotos.push(inputPhoto)
+      }
+    }
+
+    return archivedPhotos
+  }
+
+  private static async loadImageFromUrl(
+    imageUrl: string,
+    fallbackContentType: string
+  ): Promise<{ contentType: string; data: ArrayBuffer }> {
+    if (imageUrl.startsWith('data:')) {
+      return this.loadDataUrlImage(imageUrl, fallbackContentType)
+    }
+
+    const response = await fetchWithTimeout(imageUrl, {}, 30000)
+    if (!response.ok) {
+      throw new Error(`Failed to download image: ${response.status}`)
+    }
+
+    const contentType = response.headers.get('content-type') || fallbackContentType
+    if (!contentType.startsWith('image/')) {
+      throw new Error(`Downloaded file is not an image: ${contentType}`)
+    }
+
+    return {
+      contentType,
+      data: await response.arrayBuffer(),
+    }
+  }
+
+  private static loadDataUrlImage(
+    dataUrl: string,
+    fallbackContentType: string
+  ): { contentType: string; data: ArrayBuffer } {
+    const match = dataUrl.match(/^data:([^;,]+)?(;base64)?,(.*)$/)
+    if (!match) {
+      throw new Error('Invalid data URL image')
+    }
+
+    const contentType = match[1] || fallbackContentType
+    if (!contentType.startsWith('image/')) {
+      throw new Error(`Data URL is not an image: ${contentType}`)
+    }
+
+    const payload = match[3] || ''
+    const bytes = match[2]
+      ? Buffer.from(payload, 'base64')
+      : Buffer.from(decodeURIComponent(payload), 'utf8')
+
+    return {
+      contentType,
+      data: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+    }
+  }
+
+  private static async storeImage(
+    sourceUrl: string,
+    image: { contentType: string; data: ArrayBuffer },
+    options: {
+      bucket: string
+      path: string
+      public: boolean
+    }
+  ): Promise<StoredImage> {
+    const { error } = await supabaseAdmin.storage
+      .from(options.bucket)
+      .upload(options.path, image.data, {
+        contentType: image.contentType,
+        upsert: true,
+        metadata: {
+          source: sourceUrl.startsWith('data:') ? 'data-url' : sourceUrl,
+        },
+      })
+
+    if (error) {
+      throw new Error(`Failed to upload image to ${options.bucket}: ${error.message}`)
+    }
+
+    if (!options.public) {
+      return { path: options.path, publicUrl: null }
+    }
+
+    const { data } = supabaseAdmin.storage
+      .from(options.bucket)
+      .getPublicUrl(options.path)
+
+    return {
+      path: options.path,
+      publicUrl: data.publicUrl || null,
+    }
+  }
+
+  private static extensionForContentType(contentType: string): string {
+    const normalized = contentType.split(';')[0].trim().toLowerCase()
+    if (normalized === 'image/png') return 'png'
+    if (normalized === 'image/webp') return 'webp'
+    return 'jpg'
+  }
+
+  private static safeStorageSegment(value: string): string {
+    return value.replace(/[^a-zA-Z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'unknown'
   }
 
   private static generateMockImage(styleId: string): string {
@@ -584,10 +1263,10 @@ console.log(`[GenerationService] Testing mode - limiting to ${maxStylesForTestin
   }
 
   static getStyleConfigs(): StyleConfig[] {
-    return Object.values(STYLE_CONFIGS)
+    return cachedDbStyles?.length ? cachedDbStyles : Object.values(STYLE_CONFIGS)
   }
 
   static getStyleConfig(id: string): StyleConfig | undefined {
-    return STYLE_CONFIGS[id]
+    return cachedDbStyles?.find(style => style.id === id) || STYLE_CONFIGS[id]
   }
 }

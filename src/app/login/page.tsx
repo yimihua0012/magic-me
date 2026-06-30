@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/navbar'
 import Button from '@/components/ui/button'
 import { Camera, Mail, Lock, User, Chrome } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -19,11 +18,15 @@ export default function LoginPage() {
   const [returnTo, setReturnTo] = useState<string | null>(null)
 
   useEffect(() => {
-    // Get return URL from query params
     const urlParams = new URLSearchParams(window.location.search)
     const returnParam = urlParams.get('returnTo')
     if (returnParam) {
       setReturnTo(returnParam)
+    }
+
+    const authError = urlParams.get('error')
+    if (authError) {
+      setError(authErrorMessage(authError))
     }
   }, [])
 
@@ -33,6 +36,7 @@ export default function LoginPage() {
     setError('')
 
     try {
+      const { supabase } = await import('@/lib/supabase/client')
       let data
       
       if (isLogin) {
@@ -48,7 +52,7 @@ export default function LoginPage() {
           password,
           options: {
             data: { full_name: name },
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+            emailRedirectTo: `${window.location.origin}/api/auth/callback`,
           },
         })
         data = result.data
@@ -67,7 +71,13 @@ export default function LoginPage() {
   }
 
   const handleGoogleAuth = () => {
-    window.location.href = '/api/auth/google'
+    const target = returnTo ? `/api/auth/google?returnTo=${encodeURIComponent(returnTo)}` : '/api/auth/google'
+    window.location.href = target
+  }
+
+  const handleXAuth = () => {
+    const target = returnTo ? `/api/auth/x?returnTo=${encodeURIComponent(returnTo)}` : '/api/auth/x'
+    window.location.href = target
   }
 
   return (
@@ -92,10 +102,18 @@ export default function LoginPage() {
             <button
               onClick={handleGoogleAuth}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-medium text-slate-700 mb-6"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-medium text-slate-700"
             >
               <Chrome className="w-5 h-5" />
               Continue with Google
+            </button>
+            <button
+              onClick={handleXAuth}
+              disabled={isLoading}
+              className="mt-3 w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-medium text-slate-700 mb-6"
+            >
+              <span className="text-base font-bold leading-none text-slate-900">X</span>
+              Continue with X
             </button>
 
             <div className="relative mb-6">
@@ -194,3 +212,17 @@ export default function LoginPage() {
     </div>
   )
 }
+
+function authErrorMessage(error: string) {
+  switch (error) {
+    case 'missing_code':
+      return 'Social sign-in did not return an authorization code. Please try again.'
+    case 'oauth_exchange_failed':
+      return 'Social sign-in could not be completed. Please check the authorized redirect URL in Supabase.'
+    case 'session_missing':
+      return 'Social sign-in completed, but the login session was not saved. Please try again.'
+    default:
+      return 'Social sign-in failed. Please try again.'
+  }
+}
+

@@ -1,59 +1,134 @@
 import { NextResponse } from 'next/server'
-import { GenerationService } from '@backend/services'
-import { createClient } from '@/lib/supabase/server'
+import { CreditPackageService, DailyLimitService, GenerationService, isDailyLimitError } from '@backend/services'
+import { supabaseAdmin } from '@backend/config/supabase'
+import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
-    console.log('[API POST] Request received')
-    const supabase = await createClient()
-    console.log('[API POST] Created supabase client')
-    
-    const authResult = await supabase.auth.getUser()
-    console.log('[API POST] Auth check completed')
-    const { user } = authResult.data
-    
-    if (authResult.error) {
-      console.warn('[API POST] Auth error:', authResult.error.message)
+    const user = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
     }
 
-    console.log('[API POST] Parsing request body...')
     const body = await request.json()
-    console.log('[API POST] Request body parsed successfully')
-    
-    const { faceImageUrl, styleIds } = body
-    console.log(`[API POST] faceImageUrl: ${faceImageUrl?.substring(0, 50)}..., styleIds count: ${styleIds?.length || 'all'}`)
+    const { faceImageUrl, faceImageUrls, styleIds, clientGenerationId } = body
+    const inputPhotoUrls = Array.isArray(faceImageUrls)
+      ? faceImageUrls
+      : typeof faceImageUrl === 'string'
+        ? [faceImageUrl]
+        : []
 
-    if (!faceImageUrl) {
-      console.log('[API POST] Error: faceImageUrl is required')
+    if (inputPhotoUrls.length === 0) {
       return NextResponse.json(
-        { error: 'faceImageUrl is required' },
+        { error: 'At least one face image is required' },
         { status: 400 }
       )
     }
 
-    const generation = await GenerationService.createGeneration({
-      userId: user?.id || 'anonymous',
-      faceImageUrl,
-      styleIds: styleIds || GenerationService.getStyleConfigs().map(s => s.id)
-    })
-    console.log(`[API POST] Created generation: ${generation.id}`)
+    if (inputPhotoUrls.length > 3 || inputPhotoUrls.some((url) => typeof url !== 'string' || !url.trim())) {
+      return NextResponse.json(
+        { error: 'faceImageUrls must contain 1-3 image strings' },
+        { status: 400 }
+      )
+    }
 
-    GenerationService.generateHeadshots(generation.id).then(() => {
-      console.log(`[API POST] Generation completed for taskId: ${generation.id}`)
-    }).catch(error => {
-      console.error('[API POST] Background generation error:', error)
+    if (!Array.isArray(styleIds) || styleIds.some((styleId) => typeof styleId !== 'string')) {
+      return NextResponse.json(
+        { error: 'styleIds must be an array of strings' },
+        { status: 400 }
+      )
+    }
+
+    if (clientGenerationId !== undefined && typeof clientGenerationId !== 'string') {
+      return NextResponse.json(
+        { error: 'clientGenerationId must be a string' },
+        { status: 400 }
+      )
+    }
+
+    const styleCount = styleIds.length
+    if (styleCount < 1 || styleCount > 120) {
+      return NextResponse.json(
+        { error: 'Invalid style count' },
+        { status: 400 }
+      )
+    }
+
+    if (clientGenerationId) {
+      const existing = await GenerationService.findByClientGenerationId(user.id, clientGenerationId)
+      if (existing) {
+        return NextResponse.json({
+          taskId: existing.id,
+          status: existing.status,
+          estimatedTime: existing.status === 'processing' ? 180 : 0,
+          reused: true,
+        })
+      }
+    }
+
+    await DailyLimitService.enforceGeneration(user.id)
+
+    const generation = await GenerationService.createAndActivateGeneration({
+      userId: user.id,
+      faceImageUrls: inputPhotoUrls,
+      styleIds,
+      clientGenerationId,
     })
-    console.log(`[API POST] Started background generation for taskId: ${generation.id}`)
+
+    if (!generation.reused) {
+      GenerationService.generateHeadshots(generation.id).catch(async (error) => {
+        console.error('[GenerateHeadshots] Background generation error:', error)
+        try {
+          const gen = await GenerationService.getGeneration(generation.id)
+          const consumedCredits = Array.isArray(gen?.metadata?.consumedCredits)
+            ? gen.metadata.consumedCredits as { packageId: string; amount: number }[]
+            : []
+
+          if (consumedCredits.length > 0) {
+            await Promise.all(consumedCredits.map(({ packageId, amount }) =>
+              CreditPackageService.refundCredits(packageId, amount)
+            ))
+          } else if (gen?.credit_package_id && gen?.credits_used) {
+            await CreditPackageService.refundCredits(gen.credit_package_id, gen.credits_used)
+          }
+        } catch (refundError) {
+          console.error('[GenerateHeadshots] Failed to refund credits:', refundError)
+        }
+      })
+    }
 
     return NextResponse.json({
       taskId: generation.id,
       status: 'processing',
-      estimatedTime: 180
+      estimatedTime: 180,
     })
   } catch (error) {
-    console.error('[API POST] Error creating generation:', error)
+    console.error('[GenerateHeadshots] Error creating generation:', error)
+    const message = error instanceof Error ? error.message : ''
+    if (message.includes('Insufficient credits') || message.includes('Concurrent credit update')) {
+      return NextResponse.json(
+        { error: 'No available credits. Please purchase a plan first.' },
+        { status: 402 }
+      )
+    }
+
+    if (isDailyLimitError(error)) {
+      return NextResponse.json(
+        {
+          error: 'Daily generation limit reached. Please try again tomorrow.',
+          limit: error.limit,
+          used: error.used,
+          resetAt: error.resetAt,
+        },
+        { status: 429 }
+      )
+    }
+
     return NextResponse.json(
       { error: 'Failed to create generation' },
       { status: 500 }
@@ -65,46 +140,59 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const taskId = searchParams.get('taskId')
-    console.log(`[API GET] Request received - taskId: ${taskId || 'none'}`)
 
     if (!taskId) {
-      console.log(`[API GET] Returning config (no taskId)`)
-      const mode = process.env.GENERATION_MODE?.toLowerCase()
-      const hasApiKey = !!process.env.REPLICATE_API_KEY
-      const isMockMode = mode === 'mock' || (!mode && !hasApiKey)
-
       return NextResponse.json({
-        generationMode: isMockMode ? 'mock' : 'replicate',
-        hasReplicateKey: hasApiKey,
-        modelVersion: process.env.REPLICATE_MODEL_VERSION || 'f65a676869e16bc5474c291f55ba299250d979897d165810020079f9eea8f574',
-        config: {
-          guidanceScale: parseFloat(process.env.REPLICATE_GUIDANCE_SCALE || '7.5'),
-          numInferenceSteps: parseInt(process.env.REPLICATE_INFERENCE_STEPS || '30')
-        }
+        service: 'generation',
+        status: process.env.REPLICATE_API_KEY ? 'configured' : 'not_configured',
       })
     }
 
-    console.log(`[API GET] Looking up generation for taskId: ${taskId}`)
-    const generation = await GenerationService.getGeneration(taskId)
-    
-    if (!generation) {
-      console.log(`[API GET] Generation NOT FOUND for taskId: ${taskId}`)
+    const user = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const { data: generation, error } = await supabaseAdmin
+      .from('generations')
+      .select('id,user_id,status,progress,current_step,output_photos')
+      .eq('id', taskId)
+      .maybeSingle()
+
+    if (error) {
+      console.error('[GenerateHeadshots] Error querying generation:', error)
+      return NextResponse.json(
+        { error: 'Failed to get generation' },
+        { status: 500 }
+      )
+    }
+
+    if (!generation || generation.user_id !== user.id) {
       return NextResponse.json(
         { error: 'Generation not found' },
         { status: 404 }
       )
     }
 
-    console.log(`[API GET] Found generation - id: ${generation.id}, status: ${generation.status}, progress: ${generation.progress}, outputUrls count: ${generation.output_photos?.length || 0}`)
-    
-    return NextResponse.json({
-      taskId: generation.id,
-      status: generation.status,
-      progress: generation.progress,
-      outputUrls: generation.output_photos
-    })
+    return NextResponse.json(
+      {
+        taskId: generation.id,
+        status: generation.status,
+        progress: generation.progress,
+        currentStep: generation.current_step,
+        outputUrls: generation.output_photos,
+      },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=5, stale-while-revalidate=10',
+        },
+      }
+    )
   } catch (error) {
-    console.error('[API GET] Error getting generation:', error)
+    console.error('[GenerateHeadshots] Error getting generation:', error)
     return NextResponse.json(
       { error: 'Failed to get generation' },
       { status: 500 }

@@ -1,7 +1,7 @@
 // Generation Types
-export type GenerationStatus = 'pending' | 'processing' | 'completed' | 'failed'
+export type GenerationStatus = 'processing' | 'completed' | 'failed'
 
-export type PlanType = 'basic' | 'pro'
+export type PlanType = 'basic' | 'pro' | 'premium'
 
 export interface Generation {
   id: string
@@ -22,6 +22,9 @@ export interface Generation {
   completed_at?: string
   metadata?: Record<string, unknown>
   error_message?: string
+  // 新增字段：关联信用包
+  credit_package_id?: string
+  credits_used?: number
 }
 
 export interface CreateGenerationInput {
@@ -31,6 +34,8 @@ export interface CreateGenerationInput {
   input_photos: string[]
   stripe_payment_id?: string
   amount_paid?: number
+  credit_package_id?: string
+  credits_used?: number
 }
 
 export interface UpdateGenerationInput {
@@ -45,6 +50,8 @@ export interface UpdateGenerationInput {
   amount_paid?: number
   metadata?: Record<string, unknown>
   error_message?: string
+  credit_package_id?: string
+  credits_used?: number
 }
 
 export interface GenerationProgress {
