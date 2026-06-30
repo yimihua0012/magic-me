@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 900" role="img" aria-label="Generated professional headshot without photographer or studio booking">
+  <defs><radialGradient id="g" cx=".5" cy=".2" r=".8"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#e2e8f0"/></radialGradient></defs>
+  <rect width="720" height="900" fill="url(#g)"/>
+  <circle cx="360" cy="292" r="132" fill="#e7b68b"/>
+  <path d="M235 240c43-108 139-145 229-72 37 30 44 80 18 124-82-55-166-61-247-52z" fill="#581c87"/>
+  <path d="M148 900c20-202 95-321 212-321s192 119 212 321H148z" fill="#111827"/>
+  <path d="M280 570h160l-80 114-80-114z" fill="#f8fafc"/>
+  <path d="M232 544c62 56 194 56 256 0 66 38 105 102 119 186H113c14-84 53-148 119-186z" fill="#64748b"/>
+  <circle cx="318" cy="306" r="9" fill="#111827"/>
+  <circle cx="406" cy="306" r="9" fill="#111827"/>
+  <path d="M326 370c23 15 47 15 70 0" fill="none" stroke="#7c2d12" stroke-width="9" stroke-linecap="round"/>
+  <text x="360" y="820" text-anchor="middle" fill="#475569" font-family="Arial" font-size="31" font-weight="700">No Photographer Needed</text>
+</svg>
