@@ -11,20 +11,6 @@ import { Check, X, Sparkles, Zap, Crown, Building } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { pricingConfig, appConfig } from '@/lib/config'
 import { PLANS } from '@backend/config/plans'
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'Pricing - Best AI Headshot Generator for LinkedIn Profile',
-  description: 'Simple pricing for professional headshots without a photographer. AI headshots with business attire for LinkedIn & resume. Starting at $12.90.',
-  keywords: [
-    'AI headshot generator pricing',
-    'professional headshots without photographer cost',
-    'LinkedIn profile photo maker pricing',
-    'AI business portrait with suit price',
-    'virtual headshot generator for LinkedIn cost',
-    'team photos online pricing',
-  ],
-}
 
 const plans = Object.values(pricingConfig).map((plan) => ({
   ...plan,

@@ -1,35 +1,20 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
+import { buttonStyles, type ButtonSize, type ButtonVariant } from '@/components/ui/button-styles'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'accent'
-  size?: 'sm' | 'md' | 'lg'
+  variant?: ButtonVariant
+  size?: ButtonSize
   isLoading?: boolean
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
-    
-    const variants = {
-      primary: 'bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5',
-      secondary: 'bg-white text-primary-600 border-2 border-primary-200 hover:border-primary-400 hover:bg-primary-50',
-      ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-      accent: 'bg-accent-500 text-white hover:bg-accent-600 shadow-lg shadow-accent-500/25 hover:shadow-xl hover:-translate-y-0.5',
-    }
-    
-    const sizes = {
-      sm: 'px-4 py-2 text-sm',
-      md: 'px-6 py-3 text-base',
-      lg: 'px-8 py-4 text-lg',
-    }
-
     return (
       <button
         ref={ref}
-        className={cn(baseStyles, variants[variant], sizes[size], className)}
+        className={buttonStyles({ variant, size, className })}
         disabled={disabled || isLoading}
         {...props}
       >
@@ -50,3 +35,4 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button'
 
 export default Button
+export { buttonStyles }

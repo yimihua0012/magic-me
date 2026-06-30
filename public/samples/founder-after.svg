@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 900" role="img" aria-label="Generated founder bio portrait for professional profile pages">
+  <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#ecfeff"/><stop offset="1" stop-color="#f8fafc"/></linearGradient></defs>
+  <rect width="720" height="900" fill="url(#g)"/>
+  <circle cx="360" cy="286" r="132" fill="#efc19b"/>
+  <path d="M240 240c38-96 126-132 219-72 43 28 55 75 31 119-79-55-162-60-250-47z" fill="#0f172a"/>
+  <path d="M150 900c18-195 91-312 210-312s192 117 210 312H150z" fill="#0f766e"/>
+  <path d="M283 578h154l-77 110-77-110z" fill="#ffffff"/>
+  <path d="M248 548c58 53 166 53 224 0 70 39 112 104 126 190H122c14-86 56-151 126-190z" fill="#0f172a"/>
+  <circle cx="318" cy="305" r="9" fill="#111827"/>
+  <circle cx="406" cy="305" r="9" fill="#111827"/>
+  <path d="M324 366c28 18 54 18 82 0" fill="none" stroke="#7f1d1d" stroke-width="9" stroke-linecap="round"/>
+  <text x="360" y="820" text-anchor="middle" fill="#0f766e" font-family="Arial" font-size="34" font-weight="700">Founder Bio</text>
+</svg>
