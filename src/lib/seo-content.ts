@@ -125,6 +125,54 @@ export const sampleComparisons = [
   },
 ] as const
 
+export const corporateHeadshotSamples = [
+  {
+    src: '/home-pages/corporate/headshot-1.jpg',
+    alt: 'Corporate AI headshot sample for AI headshots for LinkedIn',
+    title: 'Executive LinkedIn Portrait',
+  },
+  {
+    src: '/home-pages/corporate/headshot-2.jpg',
+    alt: 'Professional corporate headshot sample without photographer scheduling',
+    title: 'Professional Business Profile',
+  },
+  {
+    src: '/home-pages/corporate/headshot-3.jpg',
+    alt: 'AI resume photo generator corporate portrait sample',
+    title: 'Resume-Ready Portrait',
+  },
+  {
+    src: '/home-pages/corporate/headshot-4.jpg',
+    alt: 'Realistic AI headshot generator corporate style sample',
+    title: 'Realistic Studio Style',
+  },
+  {
+    src: '/home-pages/corporate/headshot-5.jpeg',
+    alt: 'LinkedIn profile photo maker corporate headshot example',
+    title: 'LinkedIn Profile Sample',
+  },
+  {
+    src: '/home-pages/corporate/headshot-6.jpg',
+    alt: 'Business portrait AI generator sample for company profile pages',
+    title: 'Company Bio Portrait',
+  },
+  {
+    src: '/home-pages/corporate/headshot-7.jpg',
+    alt: 'Professional profile photo maker corporate sample',
+    title: 'Consultant Profile Photo',
+  },
+  {
+    src: '/home-pages/corporate/headshot-8.jpeg',
+    alt: 'High likeness AI portrait sample for professional headshots',
+    title: 'High-Likeness Portrait',
+  },
+  {
+    src: '/home-pages/corporate/headshot-9.jpeg',
+    alt: 'Fast headshot generation corporate sample for LinkedIn and resumes',
+    title: 'Fast Corporate Headshot',
+  },
+] as const
+
 export const blogPosts = [
   {
     slug: 'ai-headshots-linkedin',
