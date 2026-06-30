@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Camera } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 import { buttonStyles } from '@/components/ui/button-styles'
+import Footer from '@/components/layout/footer'
 
 export default function StaticMarketingShell({
   children,
@@ -30,22 +31,7 @@ export default function StaticMarketingShell({
         </div>
       </header>
       {children}
-      <footer className="border-t border-slate-200 bg-slate-950 text-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-          <div>
-            <p className="font-bold">{appConfig.name}</p>
-            <p className="mt-1 max-w-xl text-sm text-slate-400">
-              Static guides, samples, and AI headshot resources for LinkedIn, resumes, and professional profile photos.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-4 text-sm text-slate-300">
-            <Link href="/questions" className="hover:text-white">Questions</Link>
-            <Link href="/sample" className="hover:text-white">Samples</Link>
-            <Link href="/blog" className="hover:text-white">Blog</Link>
-            <Link href="/contact" className="hover:text-white">Contact</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

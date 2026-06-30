@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, BookOpen, Clock3 } from 'lucide-react'
+import { ArrowRight, BookOpen, CalendarDays } from 'lucide-react'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
-import { blogPosts, coreSeoKeywords } from '@/lib/seo-content'
+import { blogGeneratedPortraitImages, blogPosts, coreSeoKeywords } from '@/lib/seo-content'
+import { getBlogPublishDate } from '@/lib/blog-dates'
 
 export const metadata: Metadata = {
   title: 'AI Image Generation Blog for Headshots, LinkedIn Photos, and Resume Portraits',
@@ -44,31 +46,46 @@ export default function BlogPage() {
 
         <section className="py-12 sm:py-16">
           <div className="mx-auto grid max-w-7xl gap-5 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:px-8">
-            {blogPosts.map((post) => (
-              <article key={post.slug} className="flex min-h-[270px] flex-col rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
-                  <Clock3 className="h-4 w-4" />
-                  4 min read
-                </div>
-                <h2 className="text-xl font-bold leading-snug text-slate-950">
-                  <Link href={`/blog/${post.slug}`} className="hover:text-primary-600">
-                    {post.title}
+            {blogPosts.map((post, index) => {
+              const portrait = index < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[index] : null
+
+              return (
+                <article key={post.slug} className="flex min-h-[270px] flex-col rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                  {portrait && (
+                    <div className="relative mb-5 aspect-[4/3] overflow-hidden rounded-md bg-slate-100">
+                      <Image
+                        src={portrait.src}
+                        alt={portrait.alt}
+                        fill
+                        sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 100vw"
+                        className="object-cover object-top"
+                      />
+                    </div>
+                  )}
+                  <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
+                    <CalendarDays className="h-4 w-4" />
+                    {getBlogPublishDate(index)}
+                  </div>
+                  <h2 className="text-xl font-bold leading-snug text-slate-950">
+                    <Link href={`/blog/${post.slug}`} className="hover:text-primary-600">
+                      {post.title}
+                    </Link>
+                  </h2>
+                  <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">{post.description}</p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {post.keywords.slice(0, 2).map((keyword) => (
+                      <span key={keyword} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                  <Link href={`/blog/${post.slug}`} className="mt-5 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
+                    Read article
+                    <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
-                </h2>
-                <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">{post.description}</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {post.keywords.slice(0, 2).map((keyword) => (
-                    <span key={keyword} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-                <Link href={`/blog/${post.slug}`} className="mt-5 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
-                  Read article
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </article>
-            ))}
+                </article>
+              )
+            })}
           </div>
         </section>
       </main>

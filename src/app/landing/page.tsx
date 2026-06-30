@@ -18,7 +18,7 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import TrackedLink from '@/components/ui/tracked-link'
-import { buttonStyles } from '@/components/ui/button'
+import { buttonStyles } from '@/components/ui/button-styles'
 import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {

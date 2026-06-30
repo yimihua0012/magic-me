@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays } from 'lucide-react'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
-import { blogPosts } from '@/lib/seo-content'
+import { blogGeneratedPortraitImages, blogPosts } from '@/lib/seo-content'
 import { buttonStyles } from '@/components/ui/button-styles'
+import { getBlogPublishDate } from '@/lib/blog-dates'
 
 type BlogArticlePageProps = {
   params: Promise<{
@@ -57,6 +59,8 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     notFound()
   }
 
+  const postIndex = blogPosts.findIndex((item) => item.slug === post.slug)
+  const portrait = postIndex >= 0 && postIndex < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[postIndex] : null
   const related = blogPosts.filter((item) => item.slug !== post.slug).slice(0, 3)
 
   return (
@@ -68,10 +72,27 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             Back to blog
           </Link>
           <h1 className="text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">{post.title}</h1>
+          <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-slate-500">
+            <CalendarDays className="h-4 w-4" />
+            {getBlogPublishDate(Math.max(postIndex, 0))}
+          </div>
           <p className="mt-5 text-lg leading-8 text-slate-600">{post.description}</p>
           <div className="mt-7">
             <KeywordStrip keywords={post.keywords} />
           </div>
+
+          {portrait && (
+            <div className="relative mt-10 aspect-[16/10] overflow-hidden rounded-lg bg-slate-100">
+              <Image
+                src={portrait.src}
+                alt={portrait.alt}
+                fill
+                priority
+                sizes="(min-width: 768px) 768px, 100vw"
+                className="object-cover object-top"
+              />
+            </div>
+          )}
 
           <div className="mt-10 rounded-lg bg-slate-50 p-6 text-base leading-8 text-slate-700">
             <p>{post.intro}</p>

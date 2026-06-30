@@ -6,7 +6,7 @@ import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import OAuthCodeRedirect from '@/components/auth/oauth-code-redirect'
 import HeroHeadshotGallery from '@/components/home/hero-headshot-gallery'
-import { buttonStyles } from '@/components/ui/button'
+import { buttonStyles } from '@/components/ui/button-styles'
 import TrackedLink from '@/components/ui/tracked-link'
 import { 
   Zap, 

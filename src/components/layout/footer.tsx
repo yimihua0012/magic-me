@@ -5,9 +5,9 @@ import { appConfig } from '@/lib/config'
 export default function Footer() {
   return (
     <footer className="bg-slate-900 text-white">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 lg:gap-12">
-          <div>
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4 lg:gap-12">
+          <div className="col-span-2 md:col-span-1">
             <Link href="/" className="mb-4 flex items-center gap-2">
               <Image src="/logo.svg" alt={appConfig.name} width={40} height={40} className="rounded-xl" />
               <span className="text-xl font-bold">{appConfig.name}</span>
@@ -33,6 +33,27 @@ export default function Footer() {
               <li>
                 <Link href="/upload" className="text-sm text-slate-400 transition-colors hover:text-white">
                   Generate Now
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="mb-4 font-semibold">Resources</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/questions" className="text-sm text-slate-400 transition-colors hover:text-white">
+                  Questions
+                </Link>
+              </li>
+              <li>
+                <Link href="/sample" className="text-sm text-slate-400 transition-colors hover:text-white">
+                  Samples
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="text-sm text-slate-400 transition-colors hover:text-white">
+                  Blog
                 </Link>
               </li>
             </ul>

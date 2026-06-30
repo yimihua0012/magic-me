@@ -55,127 +55,101 @@ export const questions = [
     answer:
       'Often yes, if the image is clean and professional. Some users generate one AI headshot for LinkedIn and a more neutral AI resume photo generator version for CVs or job applications.',
   },
-  {
-    question: 'Do keywords like professional profile photo maker matter on the page?',
-    answer:
-      'They help describe the intent of the content when used naturally. The page should answer real questions first, then include terms such as professional profile photo maker only where they fit.',
-  },
 ] as const
 
 export const sampleComparisons = [
   {
     title: 'LinkedIn Profile Refresh',
     keyword: 'AI headshots for LinkedIn',
-    before: '/samples/linkedin-before.svg',
-    after: '/samples/linkedin-after.svg',
-    beforeAlt: 'Original casual selfie before AI headshots for LinkedIn generation',
-    afterAlt: 'Generated professional LinkedIn AI headshot with clean background',
+    original: {
+      src: '/home-pages/corporate/headshot-1.jpg',
+      alt: 'Original reference photo before AI headshots for LinkedIn generation',
+    },
+    generated: [
+      {
+        src: '/home-pages/corporate/headshot-2.jpg',
+        alt: 'Generated professional LinkedIn AI headshot with polished corporate lighting',
+      },
+      {
+        src: '/home-pages/corporate/headshot-3.jpg',
+        alt: 'Second generated AI headshot for LinkedIn profile photo use',
+      },
+    ],
     description:
-      'A casual selfie becomes a polished LinkedIn portrait with sharper lighting, cleaner framing, and a business-ready expression.',
+      'A real reference image becomes two polished LinkedIn portrait options with cleaner lighting, stronger framing, and a business-ready expression.',
   },
   {
     title: 'Resume Photo Upgrade',
     keyword: 'AI resume photo generator',
-    before: '/samples/resume-before.svg',
-    after: '/samples/resume-after.svg',
-    beforeAlt: 'Original resume photo input before AI resume photo generator processing',
-    afterAlt: 'Generated resume-ready AI headshot with neutral background',
+    original: {
+      src: '/home-pages/corporate/headshot-4.jpg',
+      alt: 'Original reference photo before AI resume photo generator processing',
+    },
+    generated: [
+      {
+        src: '/home-pages/corporate/headshot-5.jpeg',
+        alt: 'Generated resume-ready AI headshot with professional profile styling',
+      },
+      {
+        src: '/home-pages/corporate/headshot-6.jpg',
+        alt: 'Second generated AI resume photo with corporate portrait styling',
+      },
+    ],
     description:
-      'The resume version keeps the face approachable and neutral, making it easier to fit into a CV, portfolio, or job application profile.',
-  },
-  {
-    title: 'Founder Bio Portrait',
-    keyword: 'professional profile photo maker',
-    before: '/samples/founder-before.svg',
-    after: '/samples/founder-after.svg',
-    beforeAlt: 'Original founder selfie before professional profile photo maker upgrade',
-    afterAlt: 'Generated founder bio portrait for professional profile pages',
-    description:
-      'Founder pages need credibility quickly. This comparison shows a casual input moved toward a confident bio and speaker-page portrait.',
+      'The generated resume versions keep the face approachable and professional, making the result easier to use in a CV, portfolio, or job application profile.',
   },
   {
     title: 'Corporate Business Portrait',
     keyword: 'business portrait AI generator',
-    before: '/samples/corporate-before.svg',
-    after: '/samples/corporate-after.svg',
-    beforeAlt: 'Original casual business selfie before business portrait AI generator',
-    afterAlt: 'Generated corporate business portrait AI headshot',
+    original: {
+      src: '/home-pages/corporate/headshot-7.jpg',
+      alt: 'Original reference photo before business portrait AI generator processing',
+    },
+    generated: [
+      {
+        src: '/home-pages/corporate/headshot-8.jpeg',
+        alt: 'Generated business portrait AI headshot for company profile pages',
+      },
+      {
+        src: '/home-pages/corporate/headshot-9.jpeg',
+        alt: 'Second generated corporate AI headshot for LinkedIn and resumes',
+      },
+    ],
     description:
-      'A business portrait style adds professional attire, balanced lighting, and a simple background suitable for company directories.',
-  },
-  {
-    title: 'No Photographer Workflow',
-    keyword: 'professional headshots without photographer',
-    before: '/samples/no-photographer-before.svg',
-    after: '/samples/no-photographer-after.svg',
-    beforeAlt: 'Original home selfie before professional headshots without photographer workflow',
-    afterAlt: 'Generated professional headshot without photographer or studio booking',
-    description:
-      'This result highlights the no-studio workflow: start with a normal selfie and create a professional headshot without photographer scheduling.',
-  },
-  {
-    title: 'High Likeness Portrait',
-    keyword: 'high likeness AI portraits',
-    before: '/samples/likeness-before.svg',
-    after: '/samples/likeness-after.svg',
-    beforeAlt: 'Original portrait input before high likeness AI portrait generation',
-    afterAlt: 'Generated high likeness AI portrait with realistic face detail',
-    description:
-      'High likeness matters when the final image must still feel familiar to recruiters, clients, teammates, and profile visitors.',
+      'The corporate portrait results show how professional headshots without photographer scheduling can still support company bios, sales profiles, and LinkedIn pages.',
   },
 ] as const
 
-export const corporateHeadshotSamples = [
-  {
-    src: '/home-pages/corporate/headshot-1.jpg',
-    alt: 'Corporate AI headshot sample for AI headshots for LinkedIn',
-    title: 'Executive LinkedIn Portrait',
-  },
+export const blogGeneratedPortraitImages = [
   {
     src: '/home-pages/corporate/headshot-2.jpg',
-    alt: 'Professional corporate headshot sample without photographer scheduling',
-    title: 'Professional Business Profile',
+    alt: 'Generated corporate portrait for professional photos and AI headshot blog article',
   },
   {
     src: '/home-pages/corporate/headshot-3.jpg',
-    alt: 'AI resume photo generator corporate portrait sample',
-    title: 'Resume-Ready Portrait',
-  },
-  {
-    src: '/home-pages/corporate/headshot-4.jpg',
-    alt: 'Realistic AI headshot generator corporate style sample',
-    title: 'Realistic Studio Style',
+    alt: 'Generated professional AI headshot for LinkedIn and resume blog article',
   },
   {
     src: '/home-pages/corporate/headshot-5.jpeg',
-    alt: 'LinkedIn profile photo maker corporate headshot example',
-    title: 'LinkedIn Profile Sample',
+    alt: 'Generated corporate profile photo for professional headshot blog article',
   },
   {
     src: '/home-pages/corporate/headshot-6.jpg',
-    alt: 'Business portrait AI generator sample for company profile pages',
-    title: 'Company Bio Portrait',
-  },
-  {
-    src: '/home-pages/corporate/headshot-7.jpg',
-    alt: 'Professional profile photo maker corporate sample',
-    title: 'Consultant Profile Photo',
+    alt: 'Generated business portrait for AI resume photo generator blog article',
   },
   {
     src: '/home-pages/corporate/headshot-8.jpeg',
-    alt: 'High likeness AI portrait sample for professional headshots',
-    title: 'High-Likeness Portrait',
+    alt: 'Generated corporate headshot sample for professional profile photo blog article',
   },
   {
     src: '/home-pages/corporate/headshot-9.jpeg',
-    alt: 'Fast headshot generation corporate sample for LinkedIn and resumes',
-    title: 'Fast Corporate Headshot',
+    alt: 'Generated professional portrait for LinkedIn profile photo blog article',
   },
 ] as const
 
 export const blogPosts = [
   {
-    slug: 'ai-headshots-linkedin',
+    slug: 'linkedin',
     title: 'How to Choose AI Headshots for LinkedIn That Still Look Like You',
     description:
       'How to pick AI headshots for LinkedIn that feel polished, but still look like the person people will actually meet.',
@@ -201,7 +175,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'professional-headshots-without-photographer',
+    slug: 'no-photographer',
     title: 'Professional Headshots Without Photographer Scheduling: What to Expect',
     description:
       'What it feels like to get professional headshots without photographer scheduling, studio pressure, or a full afternoon blocked off.',
@@ -227,7 +201,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'ai-resume-photo-generator',
+    slug: 'resume',
     title: 'Using an AI Resume Photo Generator Without Looking Overproduced',
     description:
       'How to use an AI resume photo generator without ending up with a picture that feels too glossy for a real job application.',
@@ -253,7 +227,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'realistic-ai-headshot-generator',
+    slug: 'realistic',
     title: 'What Makes a Realistic AI Headshot Generator Feel Professional?',
     description:
       'The small details that make a realistic AI headshot generator output feel believable instead of stiff, shiny, or fake.',
@@ -279,7 +253,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'linkedin-profile-photo-maker',
+    slug: 'profile-photo',
     title: 'LinkedIn Profile Photo Maker Checklist for Better First Impressions',
     description:
       'A plain-spoken LinkedIn profile photo maker checklist for choosing a photo that feels confident, current, and not awkward.',
@@ -305,7 +279,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'professional-profile-photo-maker',
+    slug: 'professional',
     title: 'Professional Profile Photo Maker Tips for Founders and Consultants',
     description:
       'How founders and consultants can use a professional profile photo maker without losing the warmth that makes people reach out.',
@@ -331,7 +305,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'business-portrait-ai-generator',
+    slug: 'business',
     title: 'Business Portrait AI Generator Styles That Work for Company Pages',
     description:
       'Business portrait AI generator ideas for company pages that need to look consistent without making everyone feel copied and pasted.',
@@ -357,7 +331,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'high-likeness-ai-portraits',
+    slug: 'likeness',
     title: 'Why High Likeness AI Portraits Matter More Than Perfect Skin',
     description:
       'Why high likeness AI portraits are more valuable than a flawless image that quietly stops looking like you.',
@@ -383,7 +357,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'fast-headshot-generation',
+    slug: 'fast',
     title: 'Fast Headshot Generation for Last-Minute Profile Updates',
     description:
       'How fast headshot generation helps when your profile photo suddenly becomes the one thing holding up a deadline.',
@@ -409,7 +383,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'virtual-headshot-generator',
+    slug: 'virtual',
     title: 'Virtual Headshot Generator vs Studio Session: When Each Makes Sense',
     description:
       'A grounded comparison of virtual headshot generator workflows and studio sessions, without pretending one option is always better.',
@@ -435,7 +409,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'team-photos-online',
+    slug: 'teams',
     title: 'Team Photos Online: Keeping Remote Profiles Consistent',
     description:
       'How remote teams can make team photos online feel consistent without turning the whole thing into a painful admin project.',
@@ -461,7 +435,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'headshot-backgrounds',
+    slug: 'backgrounds',
     title: 'Best Backgrounds for Realistic AI Headshots',
     description:
       'How to choose AI headshot backgrounds that feel professional, not fake, and do not steal attention from your face.',
@@ -487,7 +461,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'what-to-wear-ai-headshots',
+    slug: 'clothing',
     title: 'What to Wear for AI Headshots and Business Portraits',
     description:
       'Simple wardrobe advice for AI headshots when you want to look professional but not stiff, overdressed, or unlike yourself.',
@@ -513,7 +487,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'ai-headshot-mistakes',
+    slug: 'mistakes',
     title: 'Common AI Headshot Mistakes to Avoid Before Publishing',
     description:
       'Common AI headshot mistakes that can make a polished picture feel awkward once it is on LinkedIn or a resume.',
@@ -539,7 +513,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'resume-vs-linkedin-headshot',
+    slug: 'resume-linkedin',
     title: 'Resume Photo vs LinkedIn Headshot: How to Choose the Right Image',
     description:
       'How to choose between a resume photo and a LinkedIn headshot when one image does not quite fit both places.',
@@ -565,7 +539,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'founder-headshot-guide',
+    slug: 'founders',
     title: 'Founder Headshot Guide for Websites, Decks, and LinkedIn',
     description:
       'A founder-focused guide to choosing an AI headshot that works on LinkedIn, websites, decks, and launch announcements.',
@@ -591,7 +565,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'consultant-profile-photo',
+    slug: 'consultants',
     title: 'Consultant Profile Photo Tips for Trust and Conversion',
     description:
       'Profile photo tips for consultants who need to look trustworthy before a prospect books the first call.',
@@ -617,7 +591,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'remote-team-headshots',
+    slug: 'remote-teams',
     title: 'Remote Team Headshots Without Coordinating a Photo Day',
     description:
       'How remote teams can get consistent headshots without trying to coordinate a single impossible photo day.',
@@ -643,7 +617,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'ai-headshot-pricing-value',
+    slug: 'pricing',
     title: 'AI Headshot Pricing: When One-Time Credits Make Sense',
     description:
       'A practical look at AI headshot pricing, one-time credits, and when Magic-Headshot makes sense compared with a studio shoot.',
@@ -669,7 +643,7 @@ export const blogPosts = [
     ],
   },
   {
-    slug: 'best-selfies-for-ai-headshots',
+    slug: 'selfies',
     title: 'Best Selfies to Upload for Better AI Headshot Results',
     description:
       'How to choose selfies that give a realistic AI headshot generator enough honest detail to create better portraits.',
