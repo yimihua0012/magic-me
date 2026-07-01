@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LocalizedLandingPage from '@/components/landing/localized-landing-page'
 import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
+import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedLandingContent } from '@/lib/localized-marketing-content'
 import { getLocalizedSeo } from '@/lib/localized-seo'
 
@@ -24,6 +25,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: localePath(locale, '/landing'),
       languages: languageAlternatesForPath('/landing'),
     },
+    ...localizedSocialMetadata({
+      locale,
+      path: '/landing',
+      title: content.title,
+      description: content.description,
+    }),
   }
 }
 

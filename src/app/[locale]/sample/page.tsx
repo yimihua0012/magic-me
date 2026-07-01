@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LocalizedSamplePage from '@/components/sample/localized-sample-page'
 import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
+import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedSampleContent } from '@/lib/localized-marketing-content'
 import { getLocalizedSeo } from '@/lib/localized-seo'
 
@@ -24,6 +25,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: localePath(locale, '/sample'),
       languages: languageAlternatesForPath('/sample'),
     },
+    ...localizedSocialMetadata({
+      locale,
+      path: '/sample',
+      title: content.title,
+      description: content.description,
+    }),
   }
 }
 

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LoginPageView from '@/components/auth/login-page-view'
 import { isRoutedLocale, localePath, type RoutedLocale } from '@/lib/i18n'
+import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedAuthContent } from '@/lib/localized-auth-content'
 
 type PageProps = {
@@ -33,6 +34,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternates: {
       canonical: localePath(locale, '/login'),
     },
+    ...localizedSocialMetadata({
+      locale,
+      path: '/login',
+      title: content.signInTitle,
+      description: content.signInSubtitle,
+    }),
   }
 }
 

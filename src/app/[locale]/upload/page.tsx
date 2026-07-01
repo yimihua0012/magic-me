@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { UploadPageView } from '@/components/upload/upload-page-view'
 import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
+import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { getLocalizedSeo } from '@/lib/localized-seo'
 
 type PageProps = {
@@ -35,6 +36,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: localePath(locale, '/upload'),
       languages: languageAlternatesForPath('/upload'),
     },
+    ...localizedSocialMetadata({
+      locale,
+      path: '/upload',
+      title: seo.title || '',
+      description: seo.description || '',
+    }),
   }
 }
 

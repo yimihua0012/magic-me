@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LocalizedContactPage from '@/components/contact/localized-contact-page'
 import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
+import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedContactContent } from '@/lib/localized-marketing-content'
 import { getLocalizedSeo } from '@/lib/localized-seo'
 
@@ -24,6 +25,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: localePath(locale, '/contact'),
       languages: languageAlternatesForPath('/contact'),
     },
+    ...localizedSocialMetadata({
+      locale,
+      path: '/contact',
+      title: content.title,
+      description: content.description,
+    }),
   }
 }
 

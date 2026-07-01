@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getSitemapForLocale, renderSitemapXml } from '@/lib/sitemap'
-import type { RoutedLocale } from '@/lib/i18n'
+import type { Locale } from '@/lib/i18n'
 
-export function sitemapXmlResponse(locale: RoutedLocale) {
+export function sitemapXmlResponse(locale: Locale) {
   return new NextResponse(renderSitemapXml(getSitemapForLocale(locale)), {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
