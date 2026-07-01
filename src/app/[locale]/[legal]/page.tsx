@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LocalizedLegalPage from '@/components/legal/localized-legal-page'
+import { WebPageJsonLd } from '@/components/seo/page-json-ld'
 import { appConfig } from '@/lib/config'
 import {
   OPEN_GRAPH_LOCALES,
@@ -91,5 +92,18 @@ export default async function LocalizedLegalRoute({ params }: PageProps) {
     notFound()
   }
 
-  return <LocalizedLegalPage locale={locale as RoutedLocale} content={content} />
+  const routedLocale = locale as RoutedLocale
+  const legalPath = legal as LegalPageKey
+
+  return (
+    <>
+      <WebPageJsonLd
+        locale={routedLocale}
+        path={`/${legalPath}`}
+        title={content.title}
+        description={content.description}
+      />
+      <LocalizedLegalPage locale={routedLocale} content={content} />
+    </>
+  )
 }

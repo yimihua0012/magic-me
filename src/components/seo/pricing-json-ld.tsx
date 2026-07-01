@@ -1,32 +1,56 @@
 import { PLANS, type PlanType } from '@backend/config/plans'
+import { appConfig } from '@/lib/config'
 import type { Currency } from '@/lib/currency'
-import type { Locale } from '@/lib/i18n'
+import { localePath, type Locale } from '@/lib/i18n'
 
 interface PricingJsonLdProps {
   locale: Locale
   currency: Currency
+  title: string
+  description: string
+  planLabels?: Partial<Record<PlanType, string>>
+  planDescription?: (planId: PlanType) => string
 }
 
 const planIds: PlanType[] = ['basic', 'pro', 'premium']
 
-export default function PricingJsonLd({ locale, currency }: PricingJsonLdProps) {
+export default function PricingJsonLd({
+  locale,
+  currency,
+  title,
+  description,
+  planLabels,
+  planDescription,
+}: PricingJsonLdProps) {
+  const siteUrl = appConfig.url.replace(/\/$/, '')
+  const pageUrl = `${siteUrl}${localePath(locale, '/pricing')}`
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: 'Magic-Headshot AI Headshot Credits',
-    description: 'One-time credit packs for AI-generated professional headshots.',
+    name: title,
+    description,
+    url: pageUrl,
+    image: `${siteUrl}/api/og`,
     inLanguage: locale,
+    brand: {
+      '@type': 'Brand',
+      name: appConfig.name,
+    },
     offers: planIds.map((planId) => {
       const plan = PLANS[planId]
       const price = plan.prices[currency]
 
       return {
         '@type': 'Offer',
-        name: plan.name,
+        name: planLabels?.[planId] ?? plan.name,
         price: String(price.amount),
         priceCurrency: currency,
         availability: 'https://schema.org/InStock',
-        description: `${plan.credits} AI headshots with ${plan.validityDays} days validity.`,
+        url: `${pageUrl}?plan=${planId}#plans`,
+        description:
+          planDescription?.(planId) ??
+          `${plan.credits} AI headshots with ${plan.validityDays} days validity.`,
       }
     }),
   }

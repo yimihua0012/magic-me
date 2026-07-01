@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LocalizedQuestionsPage from '@/components/questions/localized-questions-page'
+import { FaqPageJsonLd } from '@/components/seo/page-json-ld'
 import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
 import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedQuestionsContent } from '@/lib/localized-marketing-content'
@@ -37,5 +38,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function LocalizedQuestionsRoute({ params }: PageProps) {
   const { locale } = await params
   if (!isRoutedLocale(locale)) notFound()
-  return <LocalizedQuestionsPage locale={locale as RoutedLocale} content={localizedQuestionsContent[locale as RoutedLocale]} />
+  const routedLocale = locale as RoutedLocale
+  const content = localizedQuestionsContent[routedLocale]
+
+  return (
+    <>
+      <FaqPageJsonLd
+        locale={routedLocale}
+        path="/questions"
+        title={content.title}
+        description={content.description}
+        items={content.questions}
+      />
+      <LocalizedQuestionsPage locale={routedLocale} content={content} />
+    </>
+  )
 }

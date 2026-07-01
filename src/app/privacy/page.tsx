@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
+import { WebPageJsonLd } from '@/components/seo/page-json-ld'
 import { languageAlternatesForPath } from '@/lib/i18n'
 
 export const metadata: Metadata = {
@@ -22,6 +23,12 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-slate-50">
+      <WebPageJsonLd
+        locale="en"
+        path="/privacy"
+        title="Magic-Headshot Privacy Policy for AI Headshots, Professional Photos, and AI Portraits"
+        description="Read how Magic-Headshot collects, uses, stores, and protects account data, uploaded photos, generated AI headshots, payment metadata, and support records."
+      />
       <Navbar />
 
       <main className="pt-24 pb-16">

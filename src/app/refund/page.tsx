@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
+import { WebPageJsonLd } from '@/components/seo/page-json-ld'
 import { languageAlternatesForPath } from '@/lib/i18n'
 
 export const metadata: Metadata = {
@@ -22,6 +23,12 @@ export const metadata: Metadata = {
 export default function RefundPage() {
   return (
     <div className="min-h-screen bg-slate-50">
+      <WebPageJsonLd
+        locale="en"
+        path="/refund"
+        title="Magic-Headshot Refund Policy for AI Headshots and Professional Photos"
+        description="Read Magic-Headshot refund eligibility, unused credit handling, processing times, and support steps for AI headshot purchases and professional portraits."
+      />
       <Navbar />
 
       <main className="pt-24 pb-16">

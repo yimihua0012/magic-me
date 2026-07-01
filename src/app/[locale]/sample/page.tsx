@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LocalizedSamplePage from '@/components/sample/localized-sample-page'
+import { CollectionPageJsonLd } from '@/components/seo/page-json-ld'
 import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
 import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedSampleContent } from '@/lib/localized-marketing-content'
 import { getLocalizedSeo } from '@/lib/localized-seo'
+import { sampleComparisons } from '@/lib/seo-content'
 
 type PageProps = { params: Promise<{ locale: string }> }
 
@@ -37,5 +39,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function LocalizedSampleRoute({ params }: PageProps) {
   const { locale } = await params
   if (!isRoutedLocale(locale)) notFound()
-  return <LocalizedSamplePage locale={locale as RoutedLocale} content={localizedSampleContent[locale as RoutedLocale]} />
+  const routedLocale = locale as RoutedLocale
+  const content = localizedSampleContent[routedLocale]
+
+  return (
+    <>
+      <CollectionPageJsonLd
+        locale={routedLocale}
+        path="/sample"
+        title={content.title}
+        description={content.description}
+        image={sampleComparisons[0]?.generated[0]?.src}
+        items={sampleComparisons.slice(0, 4).map((sample) => ({
+          name: sample.title,
+          description: sample.description,
+          image: sample.generated[0]?.src,
+        }))}
+      />
+      <LocalizedSamplePage locale={routedLocale} content={content} />
+    </>
+  )
 }

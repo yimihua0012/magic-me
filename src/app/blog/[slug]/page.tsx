@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowRight, CalendarDays } from 'lucide-react'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
+import BlogPostJsonLd from '@/components/seo/blog-post-json-ld'
 import { blogGeneratedPortraitImages, blogPosts } from '@/lib/seo-content'
 import { buttonStyles } from '@/components/ui/button-styles'
 import { getBlogPublishDate } from '@/lib/blog-dates'
@@ -35,6 +36,9 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
     }
   }
 
+  const postIndex = blogPosts.findIndex((item) => item.slug === post.slug)
+  const portrait = postIndex >= 0 && postIndex < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[postIndex] : null
+
   return {
     title: post.title,
     description: post.description,
@@ -47,6 +51,13 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
       description: post.description,
       type: 'article',
       url: `/blog/${post.slug}`,
+      images: portrait ? [portrait.src] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description,
+      images: portrait ? [portrait.src] : undefined,
     },
   }
 }
@@ -65,6 +76,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   return (
     <StaticMarketingShell>
+      <BlogPostJsonLd post={post} index={postIndex} imagePath={portrait?.src} />
       <main>
         <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <Link href="/blog" className="mb-8 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">

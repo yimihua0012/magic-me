@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowRight, HelpCircle, SearchCheck } from 'lucide-react'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
+import { FaqPageJsonLd } from '@/components/seo/page-json-ld'
 import { buttonStyles } from '@/components/ui/button-styles'
 import { languageAlternatesForPath } from '@/lib/i18n'
 import { coreSeoKeywords, questions } from '@/lib/seo-content'
@@ -26,6 +27,13 @@ export const metadata: Metadata = {
 export default function QuestionsPage() {
   return (
     <StaticMarketingShell>
+      <FaqPageJsonLd
+        locale="en"
+        path="/questions"
+        title="AI Headshot Questions and Answers"
+        description="Answers about Magic-Headshot, AI headshots for LinkedIn, resume photo generation, likeness, upload quality, and professional headshots without photographer sessions."
+        items={questions}
+      />
       <main>
         <section className="bg-slate-50 py-14 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">

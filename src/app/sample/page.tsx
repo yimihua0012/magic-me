@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowRight, Images, Sparkles } from 'lucide-react'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
+import { CollectionPageJsonLd } from '@/components/seo/page-json-ld'
 import { buttonStyles } from '@/components/ui/button-styles'
 import { languageAlternatesForPath } from '@/lib/i18n'
 import { coreSeoKeywords, sampleComparisons } from '@/lib/seo-content'
@@ -27,6 +28,18 @@ export const metadata: Metadata = {
 export default function SamplePage() {
   return (
     <StaticMarketingShell>
+      <CollectionPageJsonLd
+        locale="en"
+        path="/sample"
+        title="AI Headshot Sample Comparisons"
+        description="See real AI headshot comparison groups with original photos and generated corporate portraits for LinkedIn, resumes, business profiles, and professional photos."
+        image={sampleComparisons[0]?.generated[0]?.src}
+        items={sampleComparisons.map((sample) => ({
+          name: sample.title,
+          description: sample.description,
+          image: sample.generated[0]?.src,
+        }))}
+      />
       <main>
         <section className="bg-slate-950 py-14 text-white sm:py-20">
           <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">

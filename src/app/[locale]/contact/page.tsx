@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LocalizedContactPage from '@/components/contact/localized-contact-page'
+import { WebPageJsonLd } from '@/components/seo/page-json-ld'
 import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
 import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedContactContent } from '@/lib/localized-marketing-content'
@@ -37,5 +38,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function LocalizedContactRoute({ params }: PageProps) {
   const { locale } = await params
   if (!isRoutedLocale(locale)) notFound()
-  return <LocalizedContactPage locale={locale as RoutedLocale} content={localizedContactContent[locale as RoutedLocale]} />
+  const routedLocale = locale as RoutedLocale
+  const content = localizedContactContent[routedLocale]
+
+  return (
+    <>
+      <WebPageJsonLd
+        locale={routedLocale}
+        path="/contact"
+        type="ContactPage"
+        title={content.title}
+        description={content.description}
+      />
+      <LocalizedContactPage locale={routedLocale} content={content} />
+    </>
+  )
 }

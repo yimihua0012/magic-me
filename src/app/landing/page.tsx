@@ -17,6 +17,7 @@ import {
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
+import { FaqPageJsonLd, WebPageJsonLd } from '@/components/seo/page-json-ld'
 import TrackedLink from '@/components/ui/tracked-link'
 import { buttonStyles } from '@/components/ui/button-styles'
 import { languageAlternatesForPath } from '@/lib/i18n'
@@ -118,6 +119,20 @@ const faqs = [
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-white">
+      <WebPageJsonLd
+        locale="en"
+        path="/landing"
+        title="AI LinkedIn Headshots That Look Professional in Minutes"
+        description="A conversion-focused AI headshot landing page for professionals who need realistic LinkedIn, resume, and team portraits without booking a photographer."
+        image="/landing-headshot-showcase.png"
+      />
+      <FaqPageJsonLd
+        locale="en"
+        path="/landing"
+        title="Questions before you start?"
+        description="Clear answers about credits, uploads, and usage before you buy."
+        items={faqs.map((faq) => ({ question: faq.q, answer: faq.a }))}
+      />
       <Navbar />
 
       <section className="relative overflow-hidden bg-slate-950 text-white">

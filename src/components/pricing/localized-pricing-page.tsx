@@ -39,7 +39,24 @@ export default function LocalizedPricingPage({ locale, content }: LocalizedPrici
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar locale={locale} />
-      <PricingJsonLd locale={locale} currency={currency} />
+      <PricingJsonLd
+        locale={locale}
+        currency={currency}
+        title={content.title}
+        description={content.description}
+        planLabels={Object.fromEntries(
+          planIds.map((planId) => [
+            planId,
+            fillTemplate(content.choosePlanTemplate, { planName: PLANS[planId].name }),
+          ]),
+        )}
+        planDescription={(planId) => {
+          const plan = PLANS[planId]
+          return `${plan.credits} ${content.headshots}. ${fillTemplate(content.validityTemplate, {
+            days: plan.validityDays,
+          })}. ${content.validityRule}`
+        }}
+      />
 
       <main className="pb-10 pt-20 sm:pb-16 sm:pt-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

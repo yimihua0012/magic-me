@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
+import { WebPageJsonLd } from '@/components/seo/page-json-ld'
 import { appConfig } from '@/lib/config'
 import { languageAlternatesForPath } from '@/lib/i18n'
 
@@ -23,6 +24,12 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-slate-50">
+      <WebPageJsonLd
+        locale="en"
+        path="/terms"
+        title="Magic-Headshot Terms for AI Headshots, Professional Photos, and LinkedIn Photos"
+        description="Review Magic-Headshot terms for AI headshot generation, uploaded photos, payments, refunds, commercial use rights, account rules, and acceptable use."
+      />
       <Navbar />
 
       <main className="pt-24 pb-16">

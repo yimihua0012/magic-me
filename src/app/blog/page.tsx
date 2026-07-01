@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowRight, BookOpen, CalendarDays } from 'lucide-react'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
+import BlogJsonLd from '@/components/seo/blog-json-ld'
 import { blogGeneratedPortraitImages, blogPosts, coreSeoKeywords } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
 export default function BlogPage() {
   return (
     <StaticMarketingShell>
+      <BlogJsonLd posts={blogPosts} />
       <main>
         <section className="bg-slate-50 py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">

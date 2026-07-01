@@ -67,7 +67,16 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <PricingJsonLd locale="en" currency="USD" />
+      <PricingJsonLd
+        locale="en"
+        currency="USD"
+        title="AI Headshot Generator Pricing for LinkedIn and Resume Photos"
+        description="One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages."
+        planDescription={(planId) => {
+          const plan = PLANS[planId]
+          return `${plan.credits} AI headshots with ${plan.validityDays} days validity. Validity starts from the first generation.`
+        }}
+      />
 
       <main className="pb-10 pt-20 sm:pb-16 sm:pt-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
