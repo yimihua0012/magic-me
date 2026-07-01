@@ -5,8 +5,8 @@ import { Check, Crown, Sparkles, Zap } from 'lucide-react'
 import Card from '@/components/ui/card'
 import Footer from '@/components/layout/localized-footer'
 import Navbar from '@/components/layout/localized-navbar'
-import PayPalButton from '@/components/ui/paypal-button'
 import Button from '@/components/ui/button'
+import PlanPaymentCta from '@/components/ui/plan-payment-cta'
 import PricingJsonLd from '@/components/seo/pricing-json-ld'
 import { formatCurrency, getDefaultCurrencyForLocale } from '@/lib/currency'
 import type { RoutedLocale } from '@/lib/i18n'
@@ -112,19 +112,17 @@ export default function LocalizedPricingPage({ locale, content }: LocalizedPrici
                   </div>
 
                   {canCheckout ? (
-                    <div className="space-y-2">
-                      <PayPalButton
+                    <PlanPaymentCta
                         buttonId={price.paypalButtonId}
                         label={fillTemplate(content.choosePlanTemplate, { planName: plan.name })}
                         planType={planId}
-                        buttonType={`paypal_${planId}`}
+                        price={price.amount}
+                        highlighted={highlighted}
                         source={`pricing_${locale}`}
                         currency={currency}
                         locale={locale}
-                        metadata={{ plan: planId, price: price.amount, currency, locale }}
+                        helperText={content.validityRule}
                       />
-                      <p className="text-center text-xs text-slate-500">{content.validityRule}</p>
-                    </div>
                   ) : (
                     <div className="space-y-2">
                       <Button className="w-full" variant={highlighted ? 'primary' : 'secondary'} disabled>

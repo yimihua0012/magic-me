@@ -346,7 +346,7 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
 }
 
 const QUALITY_SUFFIX = 'professional headshot, upper-body portrait, clean background, natural skin texture, realistic lighting, sharp focus, crisp eyes, high detail, 4K resolution, ultra high definition, premium studio photography, LinkedIn-ready'
-const DEFAULT_NEGATIVE = 'worst quality, low quality, low resolution, blurry, pixelated, jpeg artifacts, distorted face, extra fingers, fused fingers, bad anatomy, ugly, deformed, disfigured, watermark, text, logo, multiple people, side profile, cropped face'
+const DEFAULT_NEGATIVE = 'worst quality, low quality, low resolution, blurry, pixelated, jpeg artifacts, distorted face, extra fingers, fused fingers, bad anatomy, ugly, deformed, disfigured, watermark, text, logo, multiple people, side profile, cropped face, changed identity, altered face shape, distorted facial proportions, over-smoothed skin, plastic surgery look, childlike face'
 const MAX_INPUT_PHOTOS = 3
 const GENERATION_ATTEMPTS = 3
 const POLL_INTERVAL_MS = 5000
@@ -951,7 +951,7 @@ export class GenerationService {
 
     logGenerationDebug(`[GenerationService] Generating ${styleId} with Replicate API...`)
     
-    const prompt = `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
+    const prompt = `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Preserve the person's facial structure, face shape, and recognizable likeness. Make the result look naturally polished and slightly refreshed, with a subtly younger appearance, without changing identity or facial proportions. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
 
     const replicateApiKey = process.env.REPLICATE_API_KEY
     const modelName = process.env.REPLICATE_MODEL_NAME || 'google/nano-banana-2'

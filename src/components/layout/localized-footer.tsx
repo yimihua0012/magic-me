@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { appConfig } from '@/lib/config'
+import { loginPathForReturn } from '@/lib/auth-return'
 import { localePath, type Locale } from '@/lib/i18n'
 import { localizedLayoutContent } from '@/lib/localized-layout-content'
 import { withSource } from '@/lib/navigation-source'
@@ -14,6 +15,7 @@ export default function Footer({ locale = 'en' }: FooterProps) {
   const featuresHref = `${homeHref === '/' ? '' : homeHref}/#features`
   const pricingHref = localePath(locale, '/pricing')
   const uploadHref = localePath(locale, '/upload')
+  const generateHref = loginPathForReturn(uploadHref, homeHref)
   const isEnglish = locale === 'en'
   const content = localizedLayoutContent[locale].footer
 
@@ -45,7 +47,7 @@ export default function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href={withSource(uploadHref, `footer_generate_${locale}`)} className="text-sm text-slate-400 transition-colors hover:text-white">
+                <Link href={withSource(generateHref, `footer_generate_${locale}`)} className="text-sm text-slate-400 transition-colors hover:text-white">
                   {content.generate}
                 </Link>
               </li>

@@ -5,6 +5,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/button'
 import { loginPathForReturn } from '@/lib/auth-return'
+import type { Currency } from '@/lib/currency'
+import { formatCurrency } from '@/lib/currency'
+import { localePath, type Locale } from '@/lib/i18n'
 import { PlanType } from '@backend/config/plans'
 
 const PayPalButton = dynamic(() => import('@/components/ui/paypal-button'), {
@@ -23,6 +26,9 @@ interface PlanPaymentCtaProps {
   price: number
   highlighted?: boolean
   source: string
+  currency?: Currency
+  locale?: Locale
+  helperText?: string
 }
 
 export default function PlanPaymentCta({
@@ -32,6 +38,9 @@ export default function PlanPaymentCta({
   price,
   highlighted = false,
   source,
+  currency = 'USD',
+  locale = 'en',
+  helperText = 'Validity starts from your first generation, not the purchase date.',
 }: PlanPaymentCtaProps) {
   const router = useRouter()
   const [isReady, setIsReady] = useState(false)
@@ -46,14 +55,14 @@ export default function PlanPaymentCta({
 
       if (!session?.access_token) {
         const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`
-        router.push(loginPathForReturn(returnTo, '/pricing'))
+        router.push(loginPathForReturn(returnTo, localePath(locale, '/pricing')))
         return
       }
 
       setIsReady(true)
     } catch {
       const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`
-      router.push(loginPathForReturn(returnTo, '/pricing'))
+      router.push(loginPathForReturn(returnTo, localePath(locale, '/pricing')))
     } finally {
       setIsCheckingAuth(false)
     }
@@ -68,11 +77,11 @@ export default function PlanPaymentCta({
           planType={planType}
           buttonType={`paypal_${planType}`}
           source={source}
-          metadata={{ plan: planType, price }}
+          currency={currency}
+          locale={locale}
+          metadata={{ plan: planType, price, currency, locale }}
         />
-        <p className="text-center text-xs text-slate-500">
-          Validity starts from your first generation, not the purchase date.
-        </p>
+        <p className="text-center text-xs text-slate-500">{helperText}</p>
       </div>
     )
   }
@@ -84,7 +93,7 @@ export default function PlanPaymentCta({
       onClick={handlePrepareCheckout}
       isLoading={isCheckingAuth}
     >
-      {label} - ${price}
+      {label} - {formatCurrency(price, currency)}
     </Button>
   )
 }

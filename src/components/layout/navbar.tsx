@@ -2,17 +2,12 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Camera, Menu, User, X } from 'lucide-react'
 import Button from '@/components/ui/button'
 import { appConfig } from '@/lib/config'
-
-const AuthModal = dynamic(() => import('@/components/auth/auth-modal'), {
-  loading: () => null,
-  ssr: false,
-})
+import { loginPathForReturn } from '@/lib/auth-return'
 
 interface NavbarProps {
   onOpenAuthModal?: () => void
@@ -28,7 +23,6 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
     let ticking = false
@@ -120,24 +114,17 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
       return
     }
 
-    setShowAuthModal(true)
+    router.push(loginPathForReturn(window.location.pathname || '/', '/'))
+  }
+
+  const handleGenerate = () => {
+    router.push(isAuthenticated ? '/upload' : loginPathForReturn('/upload', '/'))
   }
 
   const closeMenu = () => setIsOpen(false)
 
   return (
     <>
-      {showAuthModal && (
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          onSuccess={() => {
-            setShowAuthModal(false)
-            router.push('/upload')
-          }}
-        />
-      )}
-
       <nav className={`fixed left-0 right-0 top-0 z-40 safe-top transition-all duration-300 ${
         isScrolled
           ? 'border-b border-slate-200/50 bg-white/80 shadow-sm backdrop-blur-navbar'
@@ -190,7 +177,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
                   >
                     Sign In
                   </button>
-                  <Button variant="primary" size="sm" onClick={() => router.push('/upload')}>
+                  <Button variant="primary" size="sm" onClick={handleGenerate}>
                     <Camera className="mr-2 h-4 w-4" />
                     Generate Headshots
                   </Button>
@@ -275,7 +262,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
                       size="lg"
                       onClick={() => {
                         closeMenu()
-                        router.push('/upload')
+                        handleGenerate()
                       }}
                     >
                       <Camera className="mr-2 h-4 w-4" />

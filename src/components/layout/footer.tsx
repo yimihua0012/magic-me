@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { appConfig } from '@/lib/config'
+import { loginPathForReturn } from '@/lib/auth-return'
 
 export default function Footer() {
   return (
@@ -31,7 +32,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/upload" className="text-sm text-slate-400 transition-colors hover:text-white">
+                <Link href={loginPathForReturn('/upload', '/')} className="text-sm text-slate-400 transition-colors hover:text-white">
                   Generate Now
                 </Link>
               </li>

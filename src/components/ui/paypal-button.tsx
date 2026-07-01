@@ -33,6 +33,7 @@ type PayPalButtonsConfig = {
     shape?: 'rect' | 'pill'
     label?: 'paypal' | 'checkout' | 'buynow' | 'pay'
     height?: number
+    tagline?: boolean
   }
   createOrder: () => Promise<string>
   onApprove: (data: { orderID: string }, actions: PayPalButtonAction) => Promise<void>
@@ -84,7 +85,7 @@ function loadPayPalScript(clientId: string, currency: Currency) {
 
   paypalScriptPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script')
-    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=${currency}&intent=capture`
+    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=${currency}&intent=capture&disable-funding=paylater,credit,venmo`
     script.async = true
     script.dataset.paypalSdk = 'true'
     script.dataset.paypalCurrency = currency
@@ -151,6 +152,7 @@ export default function PayPalButton({
             shape: 'pill',
             label: 'paypal',
             height: 48,
+            tagline: false,
           },
           createOrder: async () => {
             setError('')
