@@ -102,6 +102,17 @@ export default async function RootLayout({
         name: appConfig.name,
         url: siteUrl,
         logo: `${siteUrl}/api/icon?size=180`,
+        email: 'support@mail.magic-headshot.com',
+        areaServed: 'Worldwide',
+        availableLanguage: ['English', 'Spanish', 'French', 'German', 'Japanese'],
+        contactPoint: [
+          {
+            '@type': 'ContactPoint',
+            contactType: 'customer support',
+            email: 'support@mail.magic-headshot.com',
+            availableLanguage: ['English', 'Spanish', 'French', 'German', 'Japanese'],
+          },
+        ],
       },
       {
         '@type': 'WebSite',

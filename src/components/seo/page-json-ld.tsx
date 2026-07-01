@@ -1,6 +1,8 @@
 import { appConfig } from '@/lib/config'
 import { localePath, type Locale } from '@/lib/i18n'
 
+const defaultSeoImage = `/home-pages/${encodeURIComponent('Ai headshot-linkedin-professional.jpg')}`
+
 type JsonLdImage = {
   url: string
   width?: number
@@ -26,6 +28,16 @@ interface FaqPageJsonLdProps {
 
 interface CollectionPageJsonLdProps extends WebPageJsonLdProps {
   items: readonly { name: string; description?: string; image?: string }[]
+}
+
+interface BreadcrumbJsonLdProps {
+  locale: Locale
+  path: string
+  currentName: string
+  parent?: {
+    name: string
+    path: string
+  }
 }
 
 function absoluteUrl(pathOrUrl: string) {
@@ -65,13 +77,59 @@ function JsonLdScript({ data }: { data: Record<string, unknown> }) {
   )
 }
 
+function homeName(locale: Locale) {
+  const labels: Record<Locale, string> = {
+    en: 'Home',
+    es: 'Inicio',
+    fr: 'Accueil',
+    de: 'Startseite',
+    ja: 'ホーム',
+  }
+
+  return labels[locale]
+}
+
+export function BreadcrumbJsonLd({ locale, path, currentName, parent }: BreadcrumbJsonLdProps) {
+  const items = [
+    {
+      name: homeName(locale),
+      item: pageUrl(locale, '/'),
+    },
+    ...(parent
+      ? [
+          {
+            name: parent.name,
+            item: pageUrl(locale, parent.path),
+          },
+        ]
+      : []),
+    {
+      name: currentName,
+      item: pageUrl(locale, path),
+    },
+  ]
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.item,
+    })),
+  }
+
+  return <JsonLdScript data={jsonLd} />
+}
+
 export function WebPageJsonLd({
   locale,
   path,
   type = 'WebPage',
   title,
   description,
-  image = '/api/og',
+  image = defaultSeoImage,
 }: WebPageJsonLdProps) {
   const url = pageUrl(locale, path)
   const jsonLd = {
@@ -88,7 +146,12 @@ export function WebPageJsonLd({
     primaryImageOfPage: imageObject(image),
   }
 
-  return <JsonLdScript data={jsonLd} />
+  return (
+    <>
+      <JsonLdScript data={jsonLd} />
+      <BreadcrumbJsonLd locale={locale} path={path} currentName={title} />
+    </>
+  )
 }
 
 export function FaqPageJsonLd({ locale, path, title, description, items }: FaqPageJsonLdProps) {
@@ -111,7 +174,12 @@ export function FaqPageJsonLd({ locale, path, title, description, items }: FaqPa
     })),
   }
 
-  return <JsonLdScript data={jsonLd} />
+  return (
+    <>
+      <JsonLdScript data={jsonLd} />
+      <BreadcrumbJsonLd locale={locale} path={path} currentName={title} />
+    </>
+  )
 }
 
 export function CollectionPageJsonLd({
@@ -119,7 +187,7 @@ export function CollectionPageJsonLd({
   path,
   title,
   description,
-  image = '/api/og',
+  image = defaultSeoImage,
   items,
 }: CollectionPageJsonLdProps) {
   const url = pageUrl(locale, path)
@@ -147,5 +215,10 @@ export function CollectionPageJsonLd({
     },
   }
 
-  return <JsonLdScript data={jsonLd} />
+  return (
+    <>
+      <JsonLdScript data={jsonLd} />
+      <BreadcrumbJsonLd locale={locale} path={path} currentName={title} />
+    </>
+  )
 }

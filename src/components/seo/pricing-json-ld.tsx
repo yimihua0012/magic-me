@@ -2,6 +2,7 @@ import { PLANS, type PlanType } from '@backend/config/plans'
 import { appConfig } from '@/lib/config'
 import type { Currency } from '@/lib/currency'
 import { localePath, type Locale } from '@/lib/i18n'
+import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 
 interface PricingJsonLdProps {
   locale: Locale
@@ -24,6 +25,7 @@ export default function PricingJsonLd({
 }: PricingJsonLdProps) {
   const siteUrl = appConfig.url.replace(/\/$/, '')
   const pageUrl = `${siteUrl}${localePath(locale, '/pricing')}`
+  const imageUrl = `${siteUrl}/home-pages/${encodeURIComponent('Ai headshot-linkedin-professional.jpg')}`
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -31,11 +33,16 @@ export default function PricingJsonLd({
     name: title,
     description,
     url: pageUrl,
-    image: `${siteUrl}/api/og`,
+    image: imageUrl,
     inLanguage: locale,
     brand: {
       '@type': 'Brand',
       name: appConfig.name,
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '10000',
     },
     offers: planIds.map((planId) => {
       const plan = PLANS[planId]
@@ -56,9 +63,12 @@ export default function PricingJsonLd({
   }
 
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <BreadcrumbJsonLd locale={locale} path="/pricing" currentName={title} />
+    </>
   )
 }

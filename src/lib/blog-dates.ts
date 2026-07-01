@@ -11,3 +11,7 @@ const blogDateFormatter = new Intl.DateTimeFormat('en-US', {
 export function getBlogPublishDate(index: number) {
   return blogDateFormatter.format(new Date(BLOG_START_DATE - index * DAY_IN_MS))
 }
+
+export function getBlogPublishIsoDate(index: number) {
+  return new Date(BLOG_START_DATE - index * DAY_IN_MS).toISOString().slice(0, 10)
+}

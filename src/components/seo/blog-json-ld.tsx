@@ -1,4 +1,5 @@
 import { appConfig } from '@/lib/config'
+import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 import type { BlogPost } from '@/lib/seo-content'
 
 interface BlogJsonLdProps {
@@ -31,9 +32,12 @@ export default function BlogJsonLd({ posts }: BlogJsonLdProps) {
   }
 
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <BreadcrumbJsonLd locale="en" path="/blog" currentName="Magic-Headshot Blog" />
+    </>
   )
 }

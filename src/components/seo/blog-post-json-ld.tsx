@@ -1,5 +1,6 @@
 import { appConfig } from '@/lib/config'
-import { getBlogPublishDate } from '@/lib/blog-dates'
+import { getBlogPublishIsoDate } from '@/lib/blog-dates'
+import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 import type { BlogPost } from '@/lib/seo-content'
 
 interface BlogPostJsonLdProps {
@@ -12,7 +13,7 @@ export default function BlogPostJsonLd({ post, index, imagePath }: BlogPostJsonL
   const siteUrl = appConfig.url.replace(/\/$/, '')
   const pageUrl = `${siteUrl}/blog/${post.slug}`
   const imageUrl = imagePath ? `${siteUrl}${imagePath}` : `${siteUrl}/api/og`
-  const publishDate = getBlogPublishDate(Math.max(index, 0))
+  const publishDate = getBlogPublishIsoDate(Math.max(index, 0))
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -40,9 +41,17 @@ export default function BlogPostJsonLd({ post, index, imagePath }: BlogPostJsonL
   }
 
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <BreadcrumbJsonLd
+        locale="en"
+        path={`/blog/${post.slug}`}
+        currentName={post.title}
+        parent={{ name: 'Magic-Headshot Blog', path: '/blog' }}
+      />
+    </>
   )
 }
