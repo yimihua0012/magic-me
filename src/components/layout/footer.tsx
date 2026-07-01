@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { appConfig } from '@/lib/config'
-import { loginPathForReturn } from '@/lib/auth-return'
+import FooterGenerateLink from '@/components/layout/footer-generate-link'
 
 export default function Footer() {
   return (
@@ -32,9 +32,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href={loginPathForReturn('/upload', '/')} className="text-sm text-slate-400 transition-colors hover:text-white">
+                <FooterGenerateLink className="text-left text-sm text-slate-400 transition-colors hover:text-white disabled:cursor-wait disabled:opacity-70">
                   Generate Now
-                </Link>
+                </FooterGenerateLink>
               </li>
             </ul>
           </div>

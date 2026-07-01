@@ -155,13 +155,6 @@ export default function PricingPage() {
                     source="pricing_cards"
                   />
 
-                  <p className="mt-3 hidden text-center text-xs sm:block">
-                    <span className="font-semibold text-primary-600">{plan.credits} headshots</span>
-                    <span className="mx-1 text-slate-400">/</span>
-                    <span className="font-semibold text-primary-600">{plan.validityDays} days validity</span>
-                  </p>
-
-                  <p className="mt-2 hidden text-center text-xs text-primary-600 sm:block">{plan.validityNote}</p>
                 </Card>
               )
             })}
