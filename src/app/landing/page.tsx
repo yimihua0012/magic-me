@@ -19,6 +19,7 @@ import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import TrackedLink from '@/components/ui/tracked-link'
 import { buttonStyles } from '@/components/ui/button-styles'
+import { languageAlternatesForPath } from '@/lib/i18n'
 import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
     'A conversion-focused AI headshot landing page for professionals who need realistic LinkedIn, resume, and team portraits without booking a photographer.',
   alternates: {
     canonical: '/landing',
+    languages: languageAlternatesForPath('/landing'),
   },
   openGraph: {
     title: 'AI LinkedIn Headshots That Look Professional in Minutes',

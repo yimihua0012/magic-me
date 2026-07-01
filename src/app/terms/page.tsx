@@ -3,6 +3,7 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import { appConfig } from '@/lib/config'
+import { languageAlternatesForPath } from '@/lib/i18n'
 
 export const metadata: Metadata = {
   title: 'Magic-Headshot Terms for AI Headshots, Professional Photos, and LinkedIn Photos',
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: '/terms',
+    languages: languageAlternatesForPath('/terms'),
   },
 }
 

@@ -21,6 +21,7 @@ import {
   Camera,
 } from 'lucide-react'
 import { appConfig } from '@/lib/config'
+import { languageAlternatesForPath } from '@/lib/i18n'
 import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: '/',
+    languages: languageAlternatesForPath(),
   },
   openGraph: {
     title: appConfig.title,

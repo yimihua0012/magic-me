@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { loginPathForReturn } from '@/lib/auth-return'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,8 +45,7 @@ function safeReturnTo(value: string | null): string {
 }
 
 function redirectToLogin(requestUrl: URL, returnTo: string, error: string) {
-  const loginUrl = new URL('/login', requestUrl.origin)
-  loginUrl.searchParams.set('returnTo', returnTo)
+  const loginUrl = new URL(loginPathForReturn(returnTo), requestUrl.origin)
   loginUrl.searchParams.set('error', error)
   return redirectAndClear(loginUrl)
 }

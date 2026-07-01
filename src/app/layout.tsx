@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import { headers } from 'next/headers'
 import './globals.css'
 import ButtonClickTracker from '@/components/ui/button-click-tracker'
 import DeferredPageEffects from '@/components/layout/deferred-page-effects'
+import HtmlLangSync from '@/components/layout/html-lang-sync'
 import { appConfig } from '@/lib/config'
-import { PLANS } from '@backend/config/plans'
+import { DEFAULT_LOCALE, isLocale } from '@/lib/i18n'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -83,11 +85,14 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const requestHeaders = await headers()
+  const requestLocale = requestHeaders.get('x-mh-locale')
+  const locale = requestLocale && isLocale(requestLocale) ? requestLocale : DEFAULT_LOCALE
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
@@ -97,29 +102,6 @@ export default function RootLayout({
     applicationCategory: 'DesignApplication',
     operatingSystem: 'Web',
     keywords: siteKeywords.join(', '),
-    offers: [
-      {
-        '@type': 'Offer',
-        name: PLANS.basic.name,
-        price: PLANS.basic.price.toString(),
-        priceCurrency: 'USD',
-        description: `${PLANS.basic.credits} AI headshots at ${PLANS.basic.resolution} resolution - Perfect AI headshot for resume and CV`,
-      },
-      {
-        '@type': 'Offer',
-        name: PLANS.pro.name,
-        price: PLANS.pro.price.toString(),
-        priceCurrency: 'USD',
-        description: `${PLANS.pro.credits} AI headshots at ${PLANS.pro.resolution} resolution - Best AI headshot generator for LinkedIn profile with business attire`,
-      },
-      {
-        '@type': 'Offer',
-        name: PLANS.premium.name,
-        price: PLANS.premium.price.toString(),
-        priceCurrency: 'USD',
-        description: `${PLANS.premium.credits} AI headshots at ${PLANS.premium.resolution} resolution with priority processing and dedicated support`,
-      },
-    ],
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.8',
@@ -162,7 +144,7 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang={locale} className={inter.variable}>
       <head>
         <script
           type="application/ld+json"
@@ -171,6 +153,7 @@ export default function RootLayout({
       </head>
       <body className={`min-h-screen bg-white ${inter.className}`}>
         {children}
+        <HtmlLangSync />
         <ButtonClickTracker />
         <DeferredPageEffects />
       </body>

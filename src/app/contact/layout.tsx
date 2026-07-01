@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { languageAlternatesForPath } from '@/lib/i18n'
 
 export const metadata: Metadata = {
   title: 'Contact Magic-Headshot AI Headshot Generator Support for Professional Photos',
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: '/contact',
+    languages: languageAlternatesForPath('/contact'),
   },
 }
 

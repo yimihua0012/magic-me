@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Modal from '@/components/ui/modal'
 import Button from '@/components/ui/button'
 import { Camera, Mail, Lock, User, Chrome } from 'lucide-react'
+import { safeReturnTo } from '@/lib/auth-return'
 import { supabase } from '@/lib/supabase/client'
 
 interface AuthModalProps {
@@ -65,13 +66,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   const handleGoogleAuth = async () => {
     setIsLoading(true)
     const currentPath = `${window.location.pathname}${window.location.search}`
-    window.location.href = `/api/auth/google?returnTo=${encodeURIComponent(currentPath || '/dashboard')}`
+    window.location.href = `/api/auth/google?returnTo=${encodeURIComponent(safeReturnTo(currentPath, '/dashboard'))}`
   }
 
   const handleXAuth = async () => {
     setIsLoading(true)
     const currentPath = `${window.location.pathname}${window.location.search}`
-    window.location.href = `/api/auth/x?returnTo=${encodeURIComponent(currentPath || '/dashboard')}`
+    window.location.href = `/api/auth/x?returnTo=${encodeURIComponent(safeReturnTo(currentPath, '/dashboard'))}`
   }
 
   return (

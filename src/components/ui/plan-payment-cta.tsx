@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/button'
+import { loginPathForReturn } from '@/lib/auth-return'
 import { PlanType } from '@backend/config/plans'
 
 const PayPalButton = dynamic(() => import('@/components/ui/paypal-button'), {
@@ -45,14 +46,14 @@ export default function PlanPaymentCta({
 
       if (!session?.access_token) {
         const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`
-        router.push(`/login?returnTo=${encodeURIComponent(returnTo || '/pricing')}`)
+        router.push(loginPathForReturn(returnTo, '/pricing'))
         return
       }
 
       setIsReady(true)
     } catch {
       const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`
-      router.push(`/login?returnTo=${encodeURIComponent(returnTo || '/pricing')}`)
+      router.push(loginPathForReturn(returnTo, '/pricing'))
     } finally {
       setIsCheckingAuth(false)
     }
@@ -69,7 +70,9 @@ export default function PlanPaymentCta({
           source={source}
           metadata={{ plan: planType, price }}
         />
-        <p className="text-center text-xs text-slate-500">Secure PayPal checkout</p>
+        <p className="text-center text-xs text-slate-500">
+          Validity starts from your first generation, not the purchase date.
+        </p>
       </div>
     )
   }

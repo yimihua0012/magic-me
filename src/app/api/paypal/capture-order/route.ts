@@ -3,7 +3,7 @@ import { CreditPackageService, isDailyLimitError } from '@backend/services'
 import { getBearerUser } from '@/lib/auth/server'
 import {
   capturePayPalOrder,
-  expectedPayPalAmount,
+  expectedPayPalCurrencyAmount,
   parsePayPalCustomId,
 } from '@/lib/paypal'
 
@@ -39,12 +39,13 @@ export async function POST(request: Request) {
 
     const completedCapture = purchaseUnit?.payments?.captures?.find((item) => item.status === 'COMPLETED')
     const amount = completedCapture?.amount
-    const expectedAmount = expectedPayPalAmount(custom.planType)
+    const expectedAmount = expectedPayPalCurrencyAmount(custom.planType, custom.currency)
 
-    if (!completedCapture || amount?.currency_code !== 'USD' || amount?.value !== expectedAmount) {
+    if (!completedCapture || amount?.currency_code !== custom.currency || amount?.value !== expectedAmount) {
       console.warn(`[PayPal] Order ${capture.id} amount mismatch`, {
         amount,
         expectedAmount,
+        expectedCurrency: custom.currency,
         planType: custom.planType,
       })
       return NextResponse.json({ error: 'PayPal payment amount mismatch' }, { status: 400 })

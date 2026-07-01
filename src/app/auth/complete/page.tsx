@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { safeReturnTo } from '@/lib/auth-return'
 import { supabase } from '@/lib/supabase/client'
 
 export default function AuthCompletePage() {
@@ -61,10 +62,3 @@ function AuthCompleteShell({ message }: { message: string }) {
   )
 }
 
-function safeReturnTo(value: string | null): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) {
-    return '/dashboard'
-  }
-
-  return value
-}

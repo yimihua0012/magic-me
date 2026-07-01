@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
+import { languageAlternatesForPath } from '@/lib/i18n'
 
 export const metadata: Metadata = {
   title: 'Magic-Headshot Refund Policy for AI Headshots and Professional Photos',
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: '/refund',
+    languages: languageAlternatesForPath('/refund'),
   },
 }
 

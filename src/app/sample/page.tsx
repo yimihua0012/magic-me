@@ -5,6 +5,7 @@ import { ArrowRight, Images, Sparkles } from 'lucide-react'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import { buttonStyles } from '@/components/ui/button-styles'
+import { languageAlternatesForPath } from '@/lib/i18n'
 import { coreSeoKeywords, sampleComparisons } from '@/lib/seo-content'
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: '/sample',
+    languages: languageAlternatesForPath('/sample'),
   },
 }
 

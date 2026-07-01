@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { trackButtonClick } from '@/lib/analytics'
+import { loginPathForReturn } from '@/lib/auth-return'
 import { supabase } from '@/lib/supabase/client'
+import type { Currency } from '@/lib/currency'
+import { localePath, type Locale } from '@/lib/i18n'
+import { withSource } from '@/lib/navigation-source'
 import { PlanType } from '@backend/config/plans'
 
 declare global {
@@ -44,17 +48,34 @@ interface PayPalButtonProps {
   source?: string
   metadata?: Record<string, unknown>
   containerClassName?: string
+  currency?: Currency
+  locale?: Locale
 }
 
 let paypalScriptPromise: Promise<void> | null = null
+let loadedPayPalCurrency: Currency | null = null
 
-function loadPayPalScript(clientId: string) {
+function removePayPalScript() {
+  document.querySelector<HTMLScriptElement>('script[data-paypal-sdk="true"]')?.remove()
+  window.paypal = undefined
+  paypalScriptPromise = null
+  loadedPayPalCurrency = null
+}
+
+function loadPayPalScript(clientId: string, currency: Currency) {
   if (typeof window === 'undefined') {
     return Promise.resolve()
   }
 
-  if (window.paypal) {
+  if (window.paypal && loadedPayPalCurrency === currency) {
     return Promise.resolve()
+  }
+
+  const existing = document.querySelector<HTMLScriptElement>('script[data-paypal-sdk="true"]')
+  const existingCurrency = existing?.dataset.paypalCurrency as Currency | undefined
+
+  if (existing && existingCurrency !== currency) {
+    removePayPalScript()
   }
 
   if (paypalScriptPromise) {
@@ -62,18 +83,15 @@ function loadPayPalScript(clientId: string) {
   }
 
   paypalScriptPromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>('script[data-paypal-sdk="true"]')
-    if (existing) {
-      existing.addEventListener('load', () => resolve(), { once: true })
-      existing.addEventListener('error', () => reject(new Error('Failed to load PayPal SDK')), { once: true })
-      return
-    }
-
     const script = document.createElement('script')
-    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&intent=capture`
+    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=${currency}&intent=capture`
     script.async = true
     script.dataset.paypalSdk = 'true'
-    script.onload = () => resolve()
+    script.dataset.paypalCurrency = currency
+    script.onload = () => {
+      loadedPayPalCurrency = currency
+      resolve()
+    }
     script.onerror = () => reject(new Error('Failed to load PayPal SDK'))
     document.head.appendChild(script)
   })
@@ -89,6 +107,8 @@ export default function PayPalButton({
   source,
   metadata,
   containerClassName,
+  currency = 'USD',
+  locale = 'en',
 }: PayPalButtonProps) {
   const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -114,7 +134,8 @@ export default function PayPalButton({
 
       try {
         setIsLoading(true)
-        await loadPayPalScript(clientId)
+        setError('')
+        await loadPayPalScript(clientId, currency)
 
         if (!isMounted || !containerRef.current || !window.paypal) {
           return
@@ -142,6 +163,7 @@ export default function PayPalButton({
                   buttonId,
                   label,
                   plan: planType,
+                  currency,
                   ...metadata,
                 },
               })
@@ -150,7 +172,7 @@ export default function PayPalButton({
             const { data: { session } } = await supabase.auth.getSession()
             if (!session?.access_token) {
               const returnTo = `${window.location.pathname}${window.location.search}`
-              router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`)
+              router.push(loginPathForReturn(returnTo, localePath(locale, '/pricing')))
               throw new Error('Please sign in before paying with PayPal.')
             }
 
@@ -160,7 +182,7 @@ export default function PayPalButton({
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${session.access_token}`,
               },
-              body: JSON.stringify({ plan_type: planType }),
+              body: JSON.stringify({ plan_type: planType, currency }),
             })
             const data = await response.json()
 
@@ -194,7 +216,7 @@ export default function PayPalButton({
                 throw new Error(data.error || 'Failed to finish PayPal payment.')
               }
 
-              router.push('/upload?payment=success')
+              router.push(withSource(`${localePath(locale, '/upload')}?payment=success`, `paypal_success_${planType}_${currency}_${locale}`))
             } catch (captureError) {
               setError(captureError instanceof Error ? captureError.message : 'Failed to finish PayPal payment.')
             } finally {
@@ -231,7 +253,7 @@ export default function PayPalButton({
       isMounted = false
       buttonsRef.current?.close?.()
     }
-  }, [buttonId, buttonType, clientId, label, metadata, planType, router, source])
+  }, [buttonId, buttonType, clientId, currency, label, locale, metadata, planType, router, source])
 
   return (
     <div className={containerClassName ?? 'text-center'}>

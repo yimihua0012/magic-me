@@ -1,0 +1,34 @@
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import LocalizedContactPage from '@/components/contact/localized-contact-page'
+import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
+import { localizedContactContent } from '@/lib/localized-marketing-content'
+import { getLocalizedSeo } from '@/lib/localized-seo'
+
+type PageProps = { params: Promise<{ locale: string }> }
+
+export function generateStaticParams() {
+  return [{ locale: 'es' }, { locale: 'fr' }, { locale: 'de' }, { locale: 'ja' }]
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params
+  if (!isRoutedLocale(locale)) return {}
+  const content = localizedContactContent[locale]
+  const seo = getLocalizedSeo(locale, 'contact')
+  return {
+    title: content.title,
+    description: content.description,
+    keywords: seo.keywords,
+    alternates: {
+      canonical: localePath(locale, '/contact'),
+      languages: languageAlternatesForPath('/contact'),
+    },
+  }
+}
+
+export default async function LocalizedContactRoute({ params }: PageProps) {
+  const { locale } = await params
+  if (!isRoutedLocale(locale)) notFound()
+  return <LocalizedContactPage locale={locale as RoutedLocale} content={localizedContactContent[locale as RoutedLocale]} />
+}

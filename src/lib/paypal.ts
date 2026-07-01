@@ -1,4 +1,5 @@
 import { PLANS, PlanType } from '@backend/config/plans'
+import { type Currency, isCurrency } from '@/lib/currency'
 
 const PAYPAL_API_BASE =
   process.env.PAYPAL_ENVIRONMENT === 'live'
@@ -44,8 +45,17 @@ export function parsePlanType(value: unknown): PlanType | null {
   return typeof value === 'string' && value in PLANS ? (value as PlanType) : null
 }
 
-export function expectedPayPalAmount(planType: PlanType) {
-  return PLANS[planType].price.toFixed(2)
+export function expectedPayPalCurrencyAmount(planType: PlanType, currency: Currency) {
+  const amount = PLANS[planType].prices[currency].amount
+  return currency === 'JPY' ? String(amount) : amount.toFixed(2)
+}
+
+export function hasPayPalButtonForCurrency(planType: PlanType, currency: Currency) {
+  return Boolean(PLANS[planType].prices[currency].paypalButtonId)
+}
+
+export function parsePayPalCurrency(value: unknown): Currency | null {
+  return typeof value === 'string' && isCurrency(value) ? value : null
 }
 
 export function parsePayPalCustomId(customId: string | undefined) {
@@ -53,16 +63,18 @@ export function parsePayPalCustomId(customId: string | undefined) {
     return null
   }
 
-  const [userId, planType] = customId.split(':')
+  const [userId, planType, currency = 'USD'] = customId.split(':')
   const parsedPlanType = parsePlanType(planType)
+  const parsedCurrency = parsePayPalCurrency(currency)
 
-  if (!userId || !parsedPlanType) {
+  if (!userId || !parsedPlanType || !parsedCurrency) {
     return null
   }
 
   return {
     userId,
     planType: parsedPlanType,
+    currency: parsedCurrency,
   }
 }
 
@@ -93,7 +105,7 @@ async function getPayPalAccessToken() {
   return data.access_token
 }
 
-export async function createPayPalOrder(userId: string, planType: PlanType) {
+export async function createPayPalOrder(userId: string, planType: PlanType, currency: Currency) {
   const plan = PLANS[planType]
   const accessToken = await getPayPalAccessToken()
 
@@ -108,11 +120,11 @@ export async function createPayPalOrder(userId: string, planType: PlanType) {
       intent: 'CAPTURE',
       purchase_units: [
         {
-          custom_id: `${userId}:${planType}`,
+          custom_id: `${userId}:${planType}:${currency}`,
           description: `${plan.name} - ${plan.credits} AI headshots`,
           amount: {
-            currency_code: 'USD',
-            value: expectedPayPalAmount(planType),
+            currency_code: currency,
+            value: expectedPayPalCurrencyAmount(planType, currency),
           },
         },
       ],

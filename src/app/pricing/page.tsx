@@ -1,10 +1,36 @@
+import type { Metadata } from 'next'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import PlanPaymentCta from '@/components/ui/plan-payment-cta'
+import PricingJsonLd from '@/components/seo/pricing-json-ld'
 import { Check, X, Sparkles, Zap, Crown } from 'lucide-react'
 import { pricingConfig, pricingFAQ, appConfig } from '@/lib/config'
+import { languageAlternatesForPath } from '@/lib/i18n'
 import { PLANS, type PlanType } from '@backend/config/plans'
+
+export const metadata: Metadata = {
+  title: 'AI Headshot Generator Pricing for LinkedIn and Resume Photos',
+  description:
+    'One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages.',
+  alternates: {
+    canonical: '/pricing',
+    languages: languageAlternatesForPath('/pricing'),
+  },
+  openGraph: {
+    title: 'AI Headshot Generator Pricing for LinkedIn and Resume Photos',
+    description:
+      'One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages.',
+    url: '/pricing',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AI Headshot Generator Pricing for LinkedIn and Resume Photos',
+    description:
+      'One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages.',
+  },
+}
 
 const PAYPAL_BUTTONS: Record<PlanType, { id: string }> = {
   basic: {
@@ -41,6 +67,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
+      <PricingJsonLd locale="en" currency="USD" />
 
       <main className="pb-10 pt-20 sm:pb-16 sm:pt-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
 import { getBearerUser } from '@/lib/auth/server'
-import { createPayPalOrder, getPublicPayPalClientId, parsePlanType } from '@/lib/paypal'
+import {
+  createPayPalOrder,
+  getPublicPayPalClientId,
+  hasPayPalButtonForCurrency,
+  parsePayPalCurrency,
+  parsePlanType,
+} from '@/lib/paypal'
 import { DailyLimitService, isDailyLimitError } from '@backend/services'
 
 export const dynamic = 'force-dynamic'
@@ -16,15 +22,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'PayPal is not configured' }, { status: 503 })
     }
 
-    const { plan_type } = await request.json()
+    const { plan_type, currency: requestedCurrency } = await request.json()
     const planType = parsePlanType(plan_type)
     if (!planType) {
       return NextResponse.json({ error: 'Invalid plan type' }, { status: 400 })
     }
 
+    const currency = parsePayPalCurrency(requestedCurrency) ?? 'USD'
+    if (!hasPayPalButtonForCurrency(planType, currency)) {
+      return NextResponse.json({ error: 'PayPal is not available for this currency' }, { status: 400 })
+    }
+
     await DailyLimitService.enforceCreditPackage(user.id)
 
-    const order = await createPayPalOrder(user.id, planType)
+    const order = await createPayPalOrder(user.id, planType, currency)
     return NextResponse.json({ orderID: order.id })
   } catch (error) {
     if (isDailyLimitError(error)) {
