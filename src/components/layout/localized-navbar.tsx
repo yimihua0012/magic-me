@@ -128,6 +128,7 @@ export default function Navbar({ onOpenAuthModal, locale = 'en' }: NavbarProps) 
   const featuresHref = `${homeHref === '/' ? '' : homeHref}/#features`
   const testimonialsHref = `${homeHref === '/' ? '' : homeHref}/#testimonials`
   const pricingHref = localePath(locale, '/pricing')
+  const photoToolsHref = localePath(locale, '/free-id-photo-tool')
   const uploadHref = localePath(locale, '/upload')
   const dashboardHref = localePath(locale, '/dashboard')
   const sourcedUploadHref = withSource(uploadHref, `nav_generate_${locale}`)
@@ -185,6 +186,9 @@ export default function Navbar({ onOpenAuthModal, locale = 'en' }: NavbarProps) 
               </Link>
               <Link href={withSource(pricingHref, `nav_pricing_${locale}`)} className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
                 {content.pricing}
+              </Link>
+              <Link href={photoToolsHref} className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                {content.photoTools}
               </Link>
               <Link href={testimonialsHref} className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
                 {content.testimonials}
@@ -253,6 +257,13 @@ export default function Navbar({ onOpenAuthModal, locale = 'en' }: NavbarProps) 
                 onClick={closeMenu}
               >
                 {content.pricing}
+              </Link>
+              <Link
+                href={photoToolsHref}
+                className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                onClick={closeMenu}
+              >
+                {content.photoTools}
               </Link>
               <Link
                 href={testimonialsHref}
@@ -335,6 +346,8 @@ function getLocalizedSwitchPath(pathname: string) {
     route === 'questions' ||
     route === 'sample' ||
     route === 'landing' ||
+    route === 'photo-tools' ||
+    route === 'free-id-photo-tool' ||
     route === 'upload'
   ) {
     return `/${route}`

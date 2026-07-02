@@ -1,13 +1,10 @@
-import type { Metadata } from 'next'
+import { privatePageMetadata } from '@/lib/private-page-metadata'
 
-export const metadata: Metadata = {
+export const metadata = {
+  ...privatePageMetadata,
   title: 'Dashboard',
   description:
     'View your AI headshot history, check remaining credits, manage packages, and download professional portraits for LinkedIn, resumes, and business profiles.',
-  robots: {
-    index: false,
-    follow: false,
-  },
 }
 
 export default function DashboardLayout({

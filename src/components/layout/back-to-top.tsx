@@ -1,7 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { DEFAULT_LOCALE, isRoutedLocale, type Locale } from '@/lib/i18n'
 import { ChevronUp } from 'lucide-react'
+
+const labels: Record<Locale, string> = {
+  en: 'Back to top',
+  es: 'Volver arriba',
+  fr: 'Retour en haut',
+  de: 'Nach oben',
+  ja: 'トップへ戻る',
+}
 
 export default function BackToTop() {
   const [isVisible, setIsVisible] = useState(false)
@@ -21,6 +30,10 @@ export default function BackToTop() {
       behavior: 'smooth',
     })
   }
+  const firstSegment = typeof window === 'undefined'
+    ? DEFAULT_LOCALE
+    : window.location.pathname.replace(/^\/+/, '').split('/')[0]
+  const locale = isRoutedLocale(firstSegment) ? firstSegment : DEFAULT_LOCALE
 
   return (
     <button
@@ -29,7 +42,7 @@ export default function BackToTop() {
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
       }`}
       style={{ marginBottom: 'env(safe-area-inset-bottom)', marginRight: 'env(safe-area-inset-right)' }}
-      aria-label="Back to top"
+      aria-label={labels[locale]}
     >
       <ChevronUp className="w-5 h-5" />
     </button>

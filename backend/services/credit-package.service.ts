@@ -10,6 +10,7 @@ import {
 } from '@backend/types'
 import { emailService } from './email.service'
 import { DailyLimitService } from './daily-limit.service'
+import { CreditTransactionService } from './credit-transaction.service'
 import { userRepository } from '@backend/db/repositories'
 
 // 内存存储作为数据库降级方案
@@ -148,6 +149,25 @@ export class CreditPackageService {
     }
 
     const createdPackage = data as CreditPackage
+    CreditTransactionService.record({
+      userId: createdPackage.user_id,
+      creditPackageId: createdPackage.id,
+      transactionType: 'credit_added',
+      amountDelta: createdPackage.total_credits,
+      packageRemainingAfter: createdPackage.remaining_credits,
+      description: `${createdPackage.plan_type} credit package added`,
+      source: this.paymentProviderForPackage(createdPackage).provider.toLowerCase(),
+      sourceKey: `package:add:${createdPackage.id}`,
+      metadata: {
+        planType: createdPackage.plan_type,
+        paymentId: this.paymentProviderForPackage(createdPackage).paymentId,
+        amountPaid: createdPackage.amount_paid,
+        currency: createdPackage.currency,
+      },
+      occurredAt: createdPackage.purchased_at,
+    }).catch(err => {
+      console.error('[CreditPackage] Failed to record credit_added transaction:', err)
+    })
     console.log(`[CreditPackage] Created package: ${createdPackage.id}, credits: ${plan.credits}, validity: ${plan.validityDays} days`)
     this.sendPaymentConfirmation(createdPackage).catch(err => {
       console.error('[CreditPackage] Failed to send payment confirmation:', err)
@@ -486,17 +506,35 @@ export class CreditPackageService {
     const newRemaining = Math.min(existing.remaining_credits + amount, existing.total_credits)
     const newStatus = existing.status === 'depleted' ? 'active' : existing.status
 
-    const { error } = await supabaseAdmin
+    const { data: updatedPackage, error } = await supabaseAdmin
       .from('credit_packages')
       .update({
         remaining_credits: newRemaining,
         status: newStatus,
       })
       .eq('id', packageId)
+      .select('id,user_id,remaining_credits,total_credits,status')
+      .single()
 
     if (error) {
       console.error(`[CreditPackage] Error refunding to package ${packageId}:`, error)
       throw error
+    }
+
+    if (updatedPackage) {
+      await CreditTransactionService.record({
+        userId: updatedPackage.user_id,
+        creditPackageId: updatedPackage.id,
+        transactionType: 'credit_refunded',
+        amountDelta: amount,
+        packageRemainingAfter: updatedPackage.remaining_credits,
+        description: 'Credits refunded',
+        source: 'system',
+        metadata: {
+          packageStatus: updatedPackage.status,
+          totalCredits: updatedPackage.total_credits,
+        },
+      })
     }
 
     console.log(`[CreditPackage] Refunded ${amount} to package ${packageId}`)
@@ -510,7 +548,7 @@ export class CreditPackageService {
 
     const { data: expiredPackages, error } = await supabaseAdmin
       .from('credit_packages')
-      .select('id')
+      .select('id,user_id,plan_type,remaining_credits,expires_at')
       .eq('user_id', userId)
       .eq('status', 'active')
       .lt('expires_at', now.toISOString())
@@ -531,6 +569,20 @@ export class CreditPackageService {
       if (updateError) {
         console.error('[CreditPackage] Error marking packages as expired:', updateError)
       } else {
+        await Promise.all(expiredPackages.map((pkg) =>
+          CreditTransactionService.record({
+            userId: pkg.user_id,
+            creditPackageId: pkg.id,
+            transactionType: 'credit_expired',
+            amountDelta: -Math.max(pkg.remaining_credits || 0, 0),
+            packageRemainingAfter: pkg.remaining_credits || 0,
+            description: `${pkg.plan_type} package expired`,
+            source: 'system',
+            sourceKey: `package:expire:${pkg.id}`,
+            metadata: { planType: pkg.plan_type },
+            occurredAt: pkg.expires_at || now.toISOString(),
+          })
+        ))
         console.log(`[CreditPackage] Marked ${ids.length} packages as expired`)
       }
     }

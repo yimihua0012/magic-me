@@ -142,7 +142,7 @@ export const localizedLegalContent: LocalizedLegalContent = {
         {
           title: '4. Proveedores externos',
           bullets: [
-            'Supabase para autenticación, base de datos y almacenamiento.',
+            'Proveedores de infraestructura de confianza para autenticación, base de datos y almacenamiento.',
             'PayPal, Stripe u otros procesadores para pagos y reembolsos.',
             'Resend para correos transaccionales.',
             'Proveedores de hosting, analítica, registros y seguridad.',
@@ -328,7 +328,7 @@ export const localizedLegalContent: LocalizedLegalContent = {
         {
           title: '4. Prestataires tiers',
           bullets: [
-            'Supabase pour l’authentification, la base de données et le stockage.',
+            'Des fournisseurs d’infrastructure de confiance pour l’authentification, la base de données et le stockage.',
             'PayPal, Stripe ou d’autres processeurs pour les paiements et remboursements.',
             'Resend pour l’envoi d’e-mails transactionnels.',
             'Prestataires d’hébergement, d’analytique, de journalisation et de sécurité.',
@@ -514,7 +514,7 @@ export const localizedLegalContent: LocalizedLegalContent = {
         {
           title: '4. Drittanbieter',
           bullets: [
-            'Supabase fur Authentifizierung, Datenbank und Dateispeicherung.',
+            'Vertrauenswurdige Infrastruktur-Anbieter fur Authentifizierung, Datenbank und Dateispeicherung.',
             'PayPal, Stripe oder andere Zahlungsdienstleister fur Zahlungen und Erstattungen.',
             'Resend fur transaktionale E-Mails.',
             'Hosting-, Analyse-, Logging- und Sicherheitsanbieter.',
@@ -700,7 +700,7 @@ export const localizedLegalContent: LocalizedLegalContent = {
         {
           title: '4. 外部サービス提供者',
           bullets: [
-            '認証、データベース、ファイル保存のためのSupabase。',
+            '認証、データベース、ファイル保存のための信頼できるインフラ提供者。',
             '支払いと返金のためのPayPal、Stripe、その他決済処理業者。',
             'トランザクションメール配信のためのResend。',
             'ホスティング、分析、ログ、セキュリティ提供者。',

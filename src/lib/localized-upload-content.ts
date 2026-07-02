@@ -116,6 +116,7 @@ type UploadContent = {
 const en: UploadContent = {
   categories: {
     professional: 'Professional',
+    photo_tools: 'ID Photo',
     lifestyle: 'Lifestyle',
     artistic: 'Creative',
     seasonal: 'Seasonal',
@@ -235,7 +236,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
   en,
   es: {
     ...en,
-    categories: { professional: 'Profesional', lifestyle: 'Lifestyle', artistic: 'Creativo', seasonal: 'Temporada' },
+    categories: { professional: 'Profesional', photo_tools: 'Foto ID', lifestyle: 'Lifestyle', artistic: 'Creativo', seasonal: 'Temporada' },
     credits: {
       ...en.credits,
       checkingTitle: 'Comprobando créditos...',
@@ -261,7 +262,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
   },
   fr: {
     ...en,
-    categories: { professional: 'Professionnel', lifestyle: 'Lifestyle', artistic: 'Créatif', seasonal: 'Saisonnier' },
+    categories: { professional: 'Professionnel', photo_tools: 'Photo ID', lifestyle: 'Lifestyle', artistic: 'Créatif', seasonal: 'Saisonnier' },
     credits: {
       ...en.credits,
       checkingTitle: 'Vérification des crédits...',
@@ -287,7 +288,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
   },
   de: {
     ...en,
-    categories: { professional: 'Professionell', lifestyle: 'Lifestyle', artistic: 'Kreativ', seasonal: 'Saisonal' },
+    categories: { professional: 'Professionell', photo_tools: 'Passfoto', lifestyle: 'Lifestyle', artistic: 'Kreativ', seasonal: 'Saisonal' },
     credits: {
       ...en.credits,
       checkingTitle: 'Credits werden geprüft...',
@@ -313,7 +314,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
   },
   ja: {
     ...en,
-    categories: { professional: 'プロ向け', lifestyle: 'ライフスタイル', artistic: 'クリエイティブ', seasonal: '季節' },
+    categories: { professional: 'プロ向け', photo_tools: '証明写真', lifestyle: 'ライフスタイル', artistic: 'クリエイティブ', seasonal: '季節' },
     credits: {
       ...en.credits,
       checkingTitle: 'クレジットを確認中...',

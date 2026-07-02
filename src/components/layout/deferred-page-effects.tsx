@@ -16,6 +16,10 @@ type IdleWindow = Window & {
 }
 
 function loadGoogleAnalytics() {
+  if (isLocalHost()) {
+    return
+  }
+
   const analyticsWindow = window as IdleWindow
 
   if (document.querySelector('script[data-gtag-script="true"]')) {
@@ -36,14 +40,22 @@ function loadGoogleAnalytics() {
   document.head.appendChild(script)
 }
 
+function isLocalHost() {
+  return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+}
+
 export default function DeferredPageEffects() {
   const [shouldLoad, setShouldLoad] = useState(false)
+  const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(false)
 
   useEffect(() => {
     const analyticsWindow = window as IdleWindow
     const enableEffects = () => {
       setShouldLoad(true)
-      loadGoogleAnalytics()
+      if (!isLocalHost()) {
+        setShouldLoadAnalytics(true)
+        loadGoogleAnalytics()
+      }
     }
 
     if (analyticsWindow.requestIdleCallback) {
@@ -61,8 +73,12 @@ export default function DeferredPageEffects() {
 
   return (
     <>
-      <Analytics />
-      <SpeedInsights />
+      {shouldLoadAnalytics && (
+        <>
+          <Analytics />
+          <SpeedInsights />
+        </>
+      )}
       <CookieConsent />
       <BackToTop />
     </>

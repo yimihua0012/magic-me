@@ -67,8 +67,8 @@ export default function PrivacyPage() {
                 Your uploaded photos and generated headshots remain your content. We use uploaded photos only to provide the AI headshot service you request through our specialized portrait-generation model and related processing infrastructure.
               </p>
               <ul className="list-disc space-y-2 pl-6">
-                <li>Uploaded input photos may be stored in private Supabase Storage or generation records for processing, troubleshooting, abuse prevention, and support.</li>
-                <li>Generated headshots are stored in Supabase Storage so you can view and download your results.</li>
+                <li>Uploaded input photos may be stored in private file storage or generation records for processing, troubleshooting, abuse prevention, and support.</li>
+                <li>Generated headshots are stored in secure file storage so you can view and download your results.</li>
                 <li>Generated image URLs may be accessible to anyone who has the direct file link. Do not share result links publicly unless you want others to view them.</li>
                 <li>We do not sell your uploaded photos or generated headshots.</li>
                 <li>We do not use your uploaded photos or generated headshots to train our own AI models.</li>
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
               <h2 className="mb-3 text-xl font-semibold text-slate-900">4. Third-Party Service Providers</h2>
               <p className="mb-3">We share data with service providers only as needed to operate the service, including:</p>
               <ul className="list-disc space-y-2 pl-6">
-                <li>Supabase for authentication, database, and file storage.</li>
+                <li>Trusted infrastructure providers for authentication, database, and file storage.</li>
                 <li>PayPal, Stripe, or other payment processors for payments and refunds.</li>
                 <li>Resend for transactional email delivery.</li>
                 <li>Hosting, analytics, logging, and security providers used to run the website.</li>

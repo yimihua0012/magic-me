@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@backend/config/supabase'
 import { isLocale, type Locale } from '@/lib/i18n'
+import { PHOTO_TOOL_STYLE_CONFIGS } from '@/lib/photo-tool-styles'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,9 +58,11 @@ export async function GET(request: Request) {
       throw error
     }
 
+    const styles = includeFallbackPhotoToolStyles(data || [])
+
     return NextResponse.json(
       {
-        styles: (data || []).map((style) => localizeStyle(style, locale)),
+        styles: styles.map((style) => localizeStyle(style, locale)),
       },
       {
         headers: {
@@ -74,11 +77,36 @@ export async function GET(request: Request) {
 }
 
 type StyleRow = {
+  id?: string
   name: string
   category: string
   localized_names?: Record<string, string> | null
   localized_category_labels?: Record<string, string> | null
   [key: string]: unknown
+}
+
+function includeFallbackPhotoToolStyles(styles: StyleRow[]) {
+  const existingIds = new Set(styles.map((style) => style.id).filter(Boolean))
+  const missingPhotoToolStyles = PHOTO_TOOL_STYLE_CONFIGS
+    .filter((style) => !existingIds.has(style.id))
+    .map((style) => ({
+      ...style,
+      is_active: true,
+    }))
+
+  if (missingPhotoToolStyles.length === 0) {
+    return styles
+  }
+
+  return [...styles, ...missingPhotoToolStyles].sort((left, right) => {
+    const leftCategoryOrder = typeof left.category_order === 'number' ? left.category_order : 99
+    const rightCategoryOrder = typeof right.category_order === 'number' ? right.category_order : 99
+    if (leftCategoryOrder !== rightCategoryOrder) return leftCategoryOrder - rightCategoryOrder
+
+    const leftStyleOrder = typeof left.style_order === 'number' ? left.style_order : 0
+    const rightStyleOrder = typeof right.style_order === 'number' ? right.style_order : 0
+    return leftStyleOrder - rightStyleOrder
+  })
 }
 
 function localizeStyle(style: StyleRow, locale: Locale) {

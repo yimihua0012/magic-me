@@ -4,6 +4,7 @@ type LocalizedLayoutContent = {
   nav: {
     features: string
     pricing: string
+    photoTools: string
     testimonials: string
     dashboard: string
     logout: string
@@ -37,6 +38,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
     nav: {
       features: 'Features',
       pricing: 'Pricing',
+      photoTools: 'Photo Tools',
       testimonials: 'Testimonials',
       dashboard: 'Dashboard',
       logout: 'Logout',
@@ -68,6 +70,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
     nav: {
       features: 'Funciones',
       pricing: 'Precios',
+      photoTools: 'Herramientas de foto',
       testimonials: 'Opiniones',
       dashboard: 'Panel',
       logout: 'Cerrar sesion',
@@ -99,6 +102,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
     nav: {
       features: 'Fonctionnalites',
       pricing: 'Tarifs',
+      photoTools: 'Outils photo',
       testimonials: 'Avis',
       dashboard: 'Tableau de bord',
       logout: 'Se deconnecter',
@@ -130,6 +134,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
     nav: {
       features: 'Funktionen',
       pricing: 'Preise',
+      photoTools: 'Fototools',
       testimonials: 'Bewertungen',
       dashboard: 'Dashboard',
       logout: 'Abmelden',
@@ -161,6 +166,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
     nav: {
       features: '機能',
       pricing: '料金',
+      photoTools: '写真ツール',
       testimonials: 'レビュー',
       dashboard: 'ダッシュボード',
       logout: 'ログアウト',

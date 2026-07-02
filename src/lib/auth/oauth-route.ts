@@ -30,7 +30,7 @@ export async function redirectToOAuthProvider(
   }
 
   if (!data.url) {
-    console.error(`[${providerLabel} Auth] Supabase did not return an OAuth URL`)
+    console.error(`[${providerLabel} Auth] Authentication provider did not return an OAuth URL`)
     return NextResponse.json({ error: `Failed to create ${providerLabel} login URL` }, { status: 500 })
   }
 

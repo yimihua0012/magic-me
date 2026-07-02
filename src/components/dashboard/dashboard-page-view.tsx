@@ -23,6 +23,8 @@ import {
   ExternalLink,
   Coins,
   AlertCircle,
+  FileClock,
+  SearchCheck,
 } from 'lucide-react'
 
 interface Generation {
@@ -70,9 +72,12 @@ export default function DashboardPageView({ locale = 'en' }: DashboardPageViewPr
   const [creditPackages, setCreditPackages] = useState<CreditPackageSummaryItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [hydratedLocalRecords, setHydratedLocalRecords] = useState(false)
+  const [isAdminUser, setIsAdminUser] = useState(false)
 
   const uploadHref = localePath(locale, '/upload')
   const dashboardHref = localePath(locale, '/dashboard')
+  const recordsHref = localePath(locale, '/dashboard/records')
+  const adminHref = localePath(locale, '/dashboard/admin')
   const generationHref = (id: string) => localePath(locale, `/generations/${id}`)
 
   useEffect(() => {
@@ -102,14 +107,22 @@ export default function DashboardPageView({ locale = 'en' }: DashboardPageViewPr
       }
 
       try {
-        const [generationsRes, creditsRes] = await Promise.all([
+        const [generationsRes, creditsRes, adminStatusRes] = await Promise.all([
           fetch('/api/generations?limit=20', {
             headers: { Authorization: `Bearer ${session.access_token}` },
           }),
           fetch('/api/credits', {
             headers: { Authorization: `Bearer ${session.access_token}` },
           }),
+          fetch('/api/admin/status', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          }),
         ])
+
+        if (adminStatusRes.ok) {
+          const adminStatus = await adminStatusRes.json().catch(() => null)
+          setIsAdminUser(Boolean(adminStatus?.isAdmin))
+        }
 
         if (generationsRes.ok) {
           const data = await generationsRes.json()
@@ -203,17 +216,37 @@ export default function DashboardPageView({ locale = 'en' }: DashboardPageViewPr
 
       <main className="pt-24 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-slate-900">{content.title}</h1>
               <p className="text-slate-600 mt-1">{content.subtitle}</p>
             </div>
-            <Link href={uploadHref}>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                {content.newGeneration}
-              </Button>
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              {isAdminUser && (
+                <Link href={adminHref}>
+                  <Button variant="secondary" className="hidden sm:inline-flex">
+                    <SearchCheck className="w-4 h-4 mr-2" />
+                    管理入口
+                  </Button>
+                </Link>
+              )}
+              <Link href={recordsHref}>
+                <Button variant="secondary" className="hidden sm:inline-flex">
+                  <FileClock className="w-4 h-4 mr-2" />
+                  My Center
+                </Button>
+              </Link>
+              <Link href={uploadHref}>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  {content.newGeneration}
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900 sm:hidden">
+            My Center and admin tools are best viewed on desktop. Please use a computer to manage records, downloads, print layouts, and admin settings.
           </div>
 
           <Card className="p-5 sm:p-6 mb-8">

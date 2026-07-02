@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { headers } from 'next/headers'
 import './globals.css'
 import ButtonClickTracker from '@/components/ui/button-click-tracker'
+import PageViewTracker from '@/components/ui/page-view-tracker'
 import DeferredPageEffects from '@/components/layout/deferred-page-effects'
 import HtmlLangSync from '@/components/layout/html-lang-sync'
 import { appConfig } from '@/lib/config'
@@ -138,6 +139,7 @@ export default async function RootLayout({
       <body className={`min-h-screen bg-white ${inter.className}`}>
         {children}
         <HtmlLangSync />
+        <PageViewTracker />
         <ButtonClickTracker />
         <DeferredPageEffects />
       </body>

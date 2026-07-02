@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/button'
+import { trackButtonClick } from '@/lib/analytics'
 import { loginPathForReturn } from '@/lib/auth-return'
 import type { Currency } from '@/lib/currency'
 import { formatCurrency } from '@/lib/currency'
@@ -49,6 +50,12 @@ export default function PlanPaymentCta({
   const handlePrepareCheckout = async () => {
     try {
       setIsCheckingAuth(true)
+      void trackButtonClick({
+        buttonType: 'checkout_prepare',
+        source,
+        metadata: { plan: planType, price, currency, locale },
+      })
+
       const { supabase } = await import('@/lib/supabase/client')
       const { getSessionSafely } = await import('@/lib/supabase/auth-session')
       const session = await getSessionSafely(supabase)

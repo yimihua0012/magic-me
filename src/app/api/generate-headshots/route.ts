@@ -83,6 +83,18 @@ export async function POST(request: Request) {
     if (!generation.reused) {
       GenerationService.generateHeadshots(generation.id).catch(async (error) => {
         console.error('[GenerateHeadshots] Background generation error:', error)
+        const message = error instanceof Error ? error.message : 'Background generation failed'
+        try {
+          await GenerationService.updateGeneration(generation.id, {
+            status: 'failed',
+            progress: 0,
+            current_step: 'Generation failed. Please try again.',
+            error_message: message,
+          })
+        } catch (updateError) {
+          console.error('[GenerateHeadshots] Failed to mark generation failed:', updateError)
+        }
+
         try {
           const gen = await GenerationService.getGeneration(generation.id)
           const consumedCredits = Array.isArray(gen?.metadata?.consumedCredits)

@@ -9,6 +9,7 @@ import Footer from '@/components/layout/localized-footer'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Modal from '@/components/ui/modal'
+import { trackButtonClick } from '@/lib/analytics'
 import { loginPathForReturn } from '@/lib/auth-return'
 import { localePath, type Locale } from '@/lib/i18n'
 import { formatUploadText, localizedUploadContent } from '@/lib/localized-upload-content'
@@ -64,12 +65,13 @@ interface HeadshotStyle {
 
 const CATEGORY_LABELS: Record<string, string> = {
   professional: 'Professional',
+  photo_tools: 'ID Photo',
   lifestyle: 'Lifestyle',
   artistic: 'Creative',
   seasonal: 'Seasonal',
 }
 
-const CATEGORY_ORDER = ['professional', 'lifestyle', 'artistic', 'seasonal']
+const CATEGORY_ORDER = ['professional', 'photo_tools', 'lifestyle', 'artistic', 'seasonal']
 
 function isUsableCreditPackage(pkg: CreditPackageSummaryItem) {
   const expiresAt = pkg.expires_at ? new Date(pkg.expires_at).getTime() : null
@@ -486,6 +488,17 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
   }
 
   const handleProceed = () => {
+    void trackButtonClick({
+      buttonType: shouldShowBuyCredits ? 'upload_buy_credits' : 'generation_prepare',
+      source: `upload_generate_${locale}`,
+      metadata: {
+        locale,
+        validPhotos: validPhotos.length,
+        selectedStyles: selectedStyleCount,
+        availableCredits,
+      },
+    })
+
     if (!isAuthenticated) {
       promptForAuth(true)
       return

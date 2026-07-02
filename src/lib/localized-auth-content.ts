@@ -49,7 +49,7 @@ export const localizedAuthContent: Record<Locale, AuthContent> = {
     privacy: 'Privacy Policy',
     errorDefault: 'Social sign-in failed. Please try again.',
     errorMissingCode: 'Social sign-in did not return an authorization code. Please try again.',
-    errorExchangeFailed: 'Social sign-in could not be completed. Please check the authorized redirect URL in Supabase.',
+    errorExchangeFailed: 'Social sign-in could not be completed. Please check the authorized redirect URL in the authentication provider.',
     errorSessionMissing: 'Social sign-in completed, but the login session was not saved. Please try again.',
   },
   es: {

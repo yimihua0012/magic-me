@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const [{ data: generations, error }, { count, error: countError }] = await Promise.all([
       supabaseAdmin
         .from('generations')
-        .select('id,status,plan_type,style_count,output_photos,created_at,updated_at')
+        .select('id,status,plan_type,style_count,output_photos,metadata,created_at,updated_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1),
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
         style_count: plan_type === 'pro' ? 100 : 30,
         input_photos: [],
       })
-      .select('id,status,plan_type,style_count,output_photos,created_at,updated_at')
+      .select('id,status,plan_type,style_count,output_photos,metadata,created_at,updated_at')
       .single()
 
     if (error) {

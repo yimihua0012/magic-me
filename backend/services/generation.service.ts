@@ -1,8 +1,10 @@
 import { supabaseAdmin } from '@backend/config/supabase'
 import { Generation, GenerationStatus, StyleConfig } from '@backend/types'
 import { CreditPackageService } from './credit-package.service'
+import { CreditTransactionService } from './credit-transaction.service'
 import { emailService } from './email.service'
 import { userRepository } from '@backend/db/repositories'
+import { PHOTO_TOOL_STYLE_CONFIGS, isPhotoToolStyleId } from '@/lib/photo-tool-styles'
 
 // 内存存储作为数据库降级方案（使用全局变量确保跨请求共享）
 declare global {
@@ -20,6 +22,8 @@ const allowMemoryFallback = false
 const generationDebugEnabled = process.env.GENERATION_DEBUG === 'true'
 const INPUT_PHOTOS_BUCKET = 'input-photos'
 const OUTPUT_PHOTOS_BUCKET = 'output-photos'
+const BACKGROUND_REMOVAL_MODEL_NAME = process.env.REPLICATE_BACKGROUND_REMOVAL_MODEL_NAME || '851-labs/background-remover'
+const BACKGROUND_REMOVAL_MODEL_VERSION = process.env.REPLICATE_BACKGROUND_REMOVAL_MODEL_VERSION
 
 function logGenerationDebug(...args: unknown[]): void {
   if (generationDebugEnabled) {
@@ -32,6 +36,31 @@ interface OutputPhotoStorageContext {
   generationId: string
   folderName: string
   index: number
+}
+
+interface PhotoToolOutputRecord {
+  styleId: string
+  whiteBackgroundUrl: string
+  transparentPngUrl?: string
+  cutoutStatus: 'completed' | 'failed'
+  cutoutError?: string
+  cutoutDurationMs?: number
+  cutoutPredictTimeSeconds?: number
+  cutoutTotalTimeSeconds?: number
+}
+
+interface StyleGenerationResult {
+  outputUrls: string[]
+  photoToolOutput?: PhotoToolOutputRecord
+}
+
+interface BackgroundRemovalResult {
+  outputUrl: string
+  durationMs: number
+  metrics?: {
+    predict_time?: number
+    total_time?: number
+  }
 }
 
 interface StoredImage {
@@ -47,6 +76,7 @@ interface CacheEntry {
 
 const generationCache = new Map<string, CacheEntry>()
 const CACHE_TTL_MS = 3000 // 3秒缓存，状态查询频繁但变化不快
+let cachedBackgroundRemovalVersion: string | null = BACKGROUND_REMOVAL_MODEL_VERSION || null
 
 function getCachedGeneration(id: string): Generation | null {
   const entry = generationCache.get(id)
@@ -306,7 +336,19 @@ async function loadDbStyles(): Promise<StyleConfig[] | null> {
 async function getStyleMap(): Promise<Record<string, StyleConfig>> {
   const dbStyles = await loadDbStyles()
   const styles = dbStyles?.length ? dbStyles : Object.values(STYLE_CONFIGS)
-  return Object.fromEntries(styles.map(style => [style.id, style]))
+  const styleMap = Object.fromEntries(styles.map(style => [style.id, style]))
+  PHOTO_TOOL_STYLE_CONFIGS.forEach((style) => {
+    if (!styleMap[style.id]) {
+      styleMap[style.id] = {
+        id: style.id,
+        name: style.name,
+        category: style.category,
+        prompt: style.prompt,
+        negative: style.negative,
+      }
+    }
+  })
+  return styleMap
 }
 
 async function incrementStyleStats(styleIds: string[]): Promise<void> {
@@ -612,6 +654,23 @@ export class GenerationService {
     }
 
     const generationId = data.id
+    await Promise.all((consumeResult.consumedFrom || []).map(({ packageId, amount }) =>
+      CreditTransactionService.record({
+        userId,
+        creditPackageId: packageId,
+        generationId,
+        transactionType: 'credit_used',
+        amountDelta: -amount,
+        description: `${amount} credits used for generation`,
+        source: 'generation',
+        sourceKey: `generation:use:${generationId}:${packageId}`,
+        metadata: {
+          styleCount,
+          styleIds: styles,
+          clientGenerationId,
+        },
+      })
+    ))
     logGenerationDebug(`[GenerationService] Successfully stored in database: ${generationId}`)
     setCachedGeneration(generationId, data as Generation)
 
@@ -814,6 +873,11 @@ export class GenerationService {
     logGenerationDebug(`[GenerationService] Generating ${stylesToGenerate.length} styles in ${batches.length} batches`)
 
     const outputUrls: string[] = []
+    const photoToolOutputs: PhotoToolOutputRecord[] = []
+    const baseMetadata = {
+      ...(generation.metadata || {}),
+      photoToolOutputs,
+    }
     const totalStyles = stylesToGenerate.length
     const storageFolderName = this.createStorageFolderName()
     let completedStyles = 0
@@ -841,8 +905,13 @@ export class GenerationService {
       )
 
       const batchResults = await Promise.all(batchPromises)
-      const validResults = batchResults.filter(Boolean)
+      const validResults = batchResults.flatMap((result) => result.outputUrls).filter(Boolean)
       outputUrls.push(...validResults)
+      photoToolOutputs.push(
+        ...batchResults
+          .map((result) => result.photoToolOutput)
+          .filter((record): record is PhotoToolOutputRecord => Boolean(record))
+      )
       completedStyles += batch.length
 
       const progress = Math.round((completedStyles / totalStyles) * 100)
@@ -850,6 +919,10 @@ export class GenerationService {
       await this.updateGeneration(generationId, { 
         progress, 
         output_photos: outputUrls,
+        metadata: {
+          ...baseMetadata,
+          photoToolOutputs: [...photoToolOutputs],
+        },
         current_step: generationStepForProgress(progress),
       })
     }
@@ -867,6 +940,10 @@ export class GenerationService {
       progress: 100,
       input_photos: archivedInputPhotos.length ? archivedInputPhotos : generation.input_photos,
       output_photos: outputUrls,
+      metadata: {
+        ...baseMetadata,
+        photoToolOutputs,
+      },
       completed_at: new Date().toISOString(),
       current_step: 'Your headshots are ready to review.'
     })
@@ -924,12 +1001,43 @@ export class GenerationService {
     faceImageUrls: string[],
     styleId: string,
     storageContext: OutputPhotoStorageContext
-  ): Promise<string> {
+  ): Promise<StyleGenerationResult> {
     try {
-      return await this.generateSingleStyle(faceImageUrls, styleId, storageContext)
+      const generatedUrl = await this.generateSingleStyle(faceImageUrls, styleId, storageContext)
+      if (!isPhotoToolStyleId(styleId)) {
+        return { outputUrls: [generatedUrl] }
+      }
+
+      const photoToolOutput: PhotoToolOutputRecord = {
+        styleId,
+        whiteBackgroundUrl: generatedUrl,
+        cutoutStatus: 'failed',
+      }
+
+      try {
+        logGenerationDebug(`[GenerationService] Removing background after generation for ${styleId} with Replicate model ${BACKGROUND_REMOVAL_MODEL_NAME}...`)
+        const cutoutResult = await this.removeBackgroundWithReplicate(generatedUrl, styleId)
+        const transparentPngUrl = await this.persistOutputPhoto(
+          cutoutResult.outputUrl,
+          `${styleId}-transparent`,
+          storageContext,
+          'image/png'
+        )
+        photoToolOutput.transparentPngUrl = transparentPngUrl
+        photoToolOutput.cutoutStatus = 'completed'
+        photoToolOutput.cutoutDurationMs = cutoutResult.durationMs
+        photoToolOutput.cutoutPredictTimeSeconds = cutoutResult.metrics?.predict_time
+        photoToolOutput.cutoutTotalTimeSeconds = cutoutResult.metrics?.total_time
+        return { outputUrls: [generatedUrl, transparentPngUrl], photoToolOutput }
+      } catch (cutoutError) {
+        const message = cutoutError instanceof Error ? cutoutError.message : 'Background removal failed'
+        console.warn(`[GenerationService] Background removal failed for ${styleId}; keeping white-background result only:`, cutoutError)
+        photoToolOutput.cutoutError = message.slice(0, 500)
+        return { outputUrls: [generatedUrl], photoToolOutput }
+      }
     } catch (error) {
       console.error(`Failed to generate ${styleId} after ${GENERATION_ATTEMPTS} attempts:`, error)
-      return this.fallbackGenerationImage(styleId, error instanceof Error ? error.message : 'Retry limit reached')
+      return { outputUrls: [this.fallbackGenerationImage(styleId, error instanceof Error ? error.message : 'Retry limit reached')] }
     }
   }
 
@@ -951,7 +1059,10 @@ export class GenerationService {
 
     logGenerationDebug(`[GenerationService] Generating ${styleId} with Replicate API...`)
     
-    const prompt = `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Preserve the person's facial structure, face shape, and recognizable likeness. Make the result look naturally polished and slightly refreshed, with a subtly younger appearance, without changing identity or facial proportions. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
+    const isPhotoToolStyle = isPhotoToolStyleId(styleId)
+    const prompt = isPhotoToolStyle
+      ? `Create a square 1:1 realistic ID photo portrait from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness, facial structure, face shape, and recognizable likeness. Front-facing head and shoulders, centered composition. Use even studio lighting and a clean pure white background suitable for ID photo printing. Chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
+      : `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Preserve the person's facial structure, face shape, and recognizable likeness. Make the result look naturally polished and slightly refreshed, with a subtly younger appearance, without changing identity or facial proportions. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
 
     const replicateApiKey = process.env.REPLICATE_API_KEY
     const modelName = process.env.REPLICATE_MODEL_NAME || 'google/nano-banana-2'
@@ -1048,7 +1159,7 @@ export class GenerationService {
           return this.fallbackGenerationImage(styleId, 'Prediction returned no output')
         }
 
-        return await this.persistOutputPhoto(outputUrl, styleId, storageContext)
+        return await this.persistOutputPhoto(outputUrl, styleId, storageContext, 'image/jpeg')
       } catch (error) {
         console.error(`[GenerationService] Exception generating ${styleId} (attempt ${attempt}):`, error)
         if (attempt < GENERATION_ATTEMPTS) {
@@ -1093,6 +1204,114 @@ export class GenerationService {
     return null
   }
 
+  private static async resolveBackgroundRemovalVersion(replicateApiKey: string): Promise<string> {
+    if (cachedBackgroundRemovalVersion) {
+      return cachedBackgroundRemovalVersion
+    }
+
+    const response = await fetchWithTimeout(
+      `https://api.replicate.com/v1/models/${BACKGROUND_REMOVAL_MODEL_NAME}/versions`,
+      {
+        headers: {
+          'Authorization': `Bearer ${replicateApiKey}`,
+        },
+      },
+      15000,
+    )
+
+    const data = await response.json()
+    const version = Array.isArray(data.results) && typeof data.results[0]?.id === 'string'
+      ? data.results[0].id
+      : null
+
+    if (!response.ok || !version) {
+      throw new Error(`Failed to resolve background removal model version: ${data.error || data.detail || response.status}`)
+    }
+
+    cachedBackgroundRemovalVersion = version
+    return version
+  }
+
+  private static async removeBackgroundWithReplicate(imageUrl: string, styleId: string): Promise<BackgroundRemovalResult> {
+    const replicateApiKey = process.env.REPLICATE_API_KEY
+    if (!replicateApiKey) {
+      throw new Error('REPLICATE_API_KEY is required for background removal')
+    }
+
+    const startedAt = Date.now()
+    const version = await this.resolveBackgroundRemovalVersion(replicateApiKey)
+    const response = await fetchWithTimeout(
+      'https://api.replicate.com/v1/predictions',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${replicateApiKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'wait',
+        },
+        body: JSON.stringify({
+          version,
+          input: {
+            image: imageUrl,
+            format: 'png',
+            background_type: 'rgba',
+            threshold: 0,
+            reverse: false,
+          },
+        }),
+      },
+      30000,
+    )
+
+    const prediction = await response.json()
+    if (!response.ok || prediction.error) {
+      throw new Error(`Background removal failed for ${styleId}: ${prediction.error || response.status}`)
+    }
+
+    let result = prediction
+    let pollCount = 0
+    while (result.status !== 'succeeded' && result.status !== 'failed') {
+      pollCount += 1
+      if (pollCount > 60) {
+        throw new Error(`Background removal timed out for ${styleId}`)
+      }
+
+      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
+      const statusResponse = await fetchWithTimeout(
+        `https://api.replicate.com/v1/predictions/${result.id}`,
+        {
+          headers: { 'Authorization': `Bearer ${replicateApiKey}` },
+        },
+        15000,
+      )
+
+      result = await statusResponse.json()
+      if (!statusResponse.ok || result.error) {
+        throw new Error(`Background removal polling failed for ${styleId}: ${result.error || statusResponse.status}`)
+      }
+    }
+
+    if (result.status === 'failed') {
+      throw new Error(`Background removal failed for ${styleId}: ${result.error || 'Prediction failed'}`)
+    }
+
+    const outputUrl = this.extractReplicateOutputUrl(result.output)
+    if (!outputUrl) {
+      throw new Error(`Background removal returned no output for ${styleId}`)
+    }
+
+    const durationMs = Date.now() - startedAt
+    logGenerationDebug(`[GenerationService] Background removal completed for ${styleId} in ${durationMs}ms`)
+
+    return {
+      outputUrl,
+      durationMs,
+      metrics: result.metrics && typeof result.metrics === 'object'
+        ? result.metrics as BackgroundRemovalResult['metrics']
+        : undefined,
+    }
+  }
+
   private static createStorageFolderName(): string {
     return new Date().toISOString().replace(/[:.]/g, '-')
   }
@@ -1100,9 +1319,10 @@ export class GenerationService {
   private static async persistOutputPhoto(
     temporaryUrl: string,
     styleId: string,
-    context: OutputPhotoStorageContext
+    context: OutputPhotoStorageContext,
+    fallbackContentType = 'image/jpeg',
   ): Promise<string> {
-    const image = await this.loadImageFromUrl(temporaryUrl, 'image/jpeg')
+    const image = await this.loadImageFromUrl(temporaryUrl, fallbackContentType)
     const extension = this.extensionForContentType(image.contentType)
     const safeStyleId = this.safeStorageSegment(styleId)
     const objectPath = [

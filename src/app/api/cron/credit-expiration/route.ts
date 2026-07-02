@@ -6,7 +6,7 @@ import { supabaseAdmin } from '@backend/config/supabase'
 
 export const dynamic = 'force-dynamic'
 
-// Vercel Cron 配置：每天早上 9 点执行
+// Hosted cron: run every day at 9 AM.
 export async function GET(request: Request) {
   // 验证 cron secret（防止未授权访问）
   const authHeader = request.headers.get('authorization')

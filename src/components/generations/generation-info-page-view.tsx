@@ -28,12 +28,19 @@ interface Generation {
   output_photos?: string[]
   metadata?: {
     styleIds?: string[]
+    photoToolOutputs?: unknown
   }
 }
 
 interface HeadshotStyle {
   id: string
   name: string
+}
+
+type PhotoOutputEntry = {
+  url: string
+  styleId?: string
+  variant?: 'white' | 'transparent'
 }
 
 type GenerationInfoContent = {
@@ -246,12 +253,17 @@ export default function GenerationInfoPageView({ locale = 'en' }: GenerationInfo
     void loadGeneration()
   }, [content.loadFailed, content.notFound, dashboardHref, generationHref, generationId, locale, router])
 
-  const photos = generation?.output_photos || []
+  const photoEntries = buildPhotoOutputEntries(generation)
+  const photos = photoEntries.map((entry) => entry.url)
   const selectedStyleIds = Array.isArray(generation?.metadata?.styleIds) ? generation.metadata.styleIds : []
 
   const styleNameForIndex = (index: number) => {
-    const styleId = selectedStyleIds[index]
-    return styles.find((style) => style.id === styleId)?.name || fill(content.styleFallback, { index: index + 1 })
+    const entry = photoEntries[index]
+    const styleId = entry?.styleId || selectedStyleIds[index]
+    const baseName = styles.find((style) => style.id === styleId)?.name || fill(content.styleFallback, { index: index + 1 })
+    if (entry?.variant === 'white') return `${baseName} - White`
+    if (entry?.variant === 'transparent') return `${baseName} - PNG`
+    return baseName
   }
 
   const formatDate = (dateString: string) => {
@@ -266,8 +278,9 @@ export default function GenerationInfoPageView({ locale = 'en' }: GenerationInfo
     const photo = photos[index]
     if (!photo) return
     const styleName = styleNameForIndex(index)
+    const extension = photoEntries[index]?.variant === 'transparent' || /\.png(?:$|\?)/i.test(photo) ? 'png' : 'jpg'
     const link = document.createElement('a')
-    const filename = `headshot-${styleName.toLowerCase().replace(/\s+/g, '-')}.jpg`
+    const filename = `headshot-${styleName.toLowerCase().replace(/\s+/g, '-')}.${extension}`
 
     try {
       const response = await fetch(photo)
@@ -468,4 +481,62 @@ export default function GenerationInfoPageView({ locale = 'en' }: GenerationInfo
       {locale === 'en' ? <Footer /> : <LocalizedFooter locale={locale} />}
     </div>
   )
+}
+
+function buildPhotoOutputEntries(generation: Generation | null): PhotoOutputEntry[] {
+  if (!generation) return []
+
+  const structuredOutputs = parsePhotoToolOutputs(generation.metadata?.photoToolOutputs)
+  if (structuredOutputs.length > 0) {
+    return structuredOutputs.flatMap((record) => {
+      const entries: PhotoOutputEntry[] = [{
+        url: record.whiteBackgroundUrl,
+        styleId: record.styleId,
+        variant: 'white',
+      }]
+
+      if (record.transparentPngUrl) {
+        entries.push({
+          url: record.transparentPngUrl,
+          styleId: record.styleId,
+          variant: 'transparent',
+        })
+      }
+
+      return entries
+    })
+  }
+
+  const styleIds = Array.isArray(generation.metadata?.styleIds) ? generation.metadata.styleIds : []
+  return (generation.output_photos || []).map((url, index) => ({
+    url,
+    styleId: styleIds[index],
+  }))
+}
+
+function parsePhotoToolOutputs(value: unknown): Array<{
+  styleId: string
+  whiteBackgroundUrl: string
+  transparentPngUrl?: string
+}> {
+  if (!Array.isArray(value)) return []
+
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object') return []
+    const record = item as {
+      styleId?: unknown
+      whiteBackgroundUrl?: unknown
+      transparentPngUrl?: unknown
+    }
+
+    if (typeof record.styleId !== 'string' || typeof record.whiteBackgroundUrl !== 'string') {
+      return []
+    }
+
+    return [{
+      styleId: record.styleId,
+      whiteBackgroundUrl: record.whiteBackgroundUrl,
+      transparentPngUrl: typeof record.transparentPngUrl === 'string' ? record.transparentPngUrl : undefined,
+    }]
+  })
 }
