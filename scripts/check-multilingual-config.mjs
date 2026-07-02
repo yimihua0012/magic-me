@@ -101,6 +101,10 @@ assert(!sitemap.includes("path: '/blog'") || sitemap.indexOf("englishStaticRoute
 const robots = read('src/app/robots.ts')
 assert(robots.includes("...ROUTED_LOCALES.map((locale) => `/${locale}/upload`)"), 'robots must disallow localized upload pages')
 assert(robots.includes('getSitemapIndexEntries'), 'robots must list sitemap index entries')
+assert(read('src/app/sitemap.xml/route.ts').includes("sitemapXmlResponse('en')"), 'root sitemap must use the shared XML sitemap renderer')
+for (const locale of locales) {
+  assert(read(`src/app/sitemap-${locale}.xml/route.ts`).includes(`sitemapXmlResponse('${locale}')`), `sitemap-${locale}.xml must use the shared XML sitemap renderer`)
+}
 
 const localizedNavbar = read('src/components/layout/localized-navbar.tsx')
 assert(localizedNavbar.includes('withSource'), 'localized navbar CTA links must include source')
@@ -133,6 +137,8 @@ assert(paypal.includes("localePath(locale, '/upload')"), 'PayPal success redirec
 
 const rootLayout = read('src/app/layout.tsx')
 assert(!rootLayout.includes('priceCurrency'), 'root layout JSON-LD must not emit a single global price currency')
+assert((rootLayout.match(/availableLanguage/g) || []).length === 1, 'Organization must not emit top-level availableLanguage; keep it only inside ContactPoint')
+assert(rootLayout.includes("contactType: 'customer support'"), 'Organization JSON-LD must expose customer support ContactPoint')
 assert(rootLayout.includes("headers()"), 'root layout must read request headers for SEO-oriented server-rendered html lang')
 assert(rootLayout.includes('lang={locale}'), 'root layout must render html lang from the active locale')
 assert(rootLayout.includes('HtmlLangSync'), 'root layout must sync html lang after client-side locale navigation')
@@ -146,6 +152,17 @@ assert(middleware.includes('nextWithLocale(request, firstSegment)'), 'localized 
 
 const pricingJsonLd = read('src/components/seo/pricing-json-ld.tsx')
 assert(pricingJsonLd.includes('priceCurrency: currency'), 'pricing JSON-LD must use the active locale default currency')
+assert(pricingJsonLd.includes('BreadcrumbJsonLd'), 'pricing JSON-LD must include BreadcrumbList')
+assert(pricingJsonLd.includes('Ai headshot-linkedin-professional.jpg'), 'pricing JSON-LD must use the stable static SEO image')
+
+const pageJsonLd = read('src/components/seo/page-json-ld.tsx')
+assert(pageJsonLd.includes('BreadcrumbJsonLd'), 'page JSON-LD helper must expose BreadcrumbList')
+assert(pageJsonLd.includes("'BreadcrumbList'"), 'page JSON-LD helper must render BreadcrumbList schema')
+assert(pageJsonLd.includes('defaultSeoImage'), 'page JSON-LD helper must default to the stable static SEO image')
+
+const homeJsonLd = read('src/components/seo/home-json-ld.tsx')
+assert(homeJsonLd.includes('Ai headshot-linkedin-professional.jpg'), 'home JSON-LD must use the stable static SEO image')
+assert(homeJsonLd.includes("'FAQPage'"), 'home JSON-LD must include FAQPage')
 
 const localizedPricingPage = read('src/components/pricing/localized-pricing-page.tsx')
 assert(localizedPricingPage.includes('getDefaultCurrencyForLocale(locale)'), 'localized pricing must derive currency from the URL locale')
@@ -171,6 +188,31 @@ for (const route of [
 ]) {
   assert(read(route).includes('getLocalizedSeo'), `${route} must use localized SEO keywords`)
 }
+
+const keywordStrategy = read('SEO_KEYWORD_STRATEGY.zh-CN.md')
+for (const keyword of ['AI headshot generator', 'AI headshots for LinkedIn', 'AI resume photo generator', 'professional headshots without photographer']) {
+  assert(keywordStrategy.includes(keyword), `SEO keyword strategy must include ${keyword}`)
+}
+
+const englishHome = read('src/app/page.tsx')
+for (const source of ['home_resource_sample', 'home_resource_questions', 'home_resource_blog']) {
+  assert(englishHome.includes(source), `English homepage must include resource link source ${source}`)
+}
+
+const localizedHomeUseCases = read('src/lib/localized-home-use-cases.ts')
+for (const locale of locales) {
+  assert(localizedHomeUseCases.includes(`${locale}: {`), `localized home use-case content missing ${locale}`)
+}
+for (const href of ["href: '/pricing'", "href: '/sample'", "href: '/questions'"]) {
+  assert(localizedHomeUseCases.includes(href), `localized home use-case content must preserve deferred link ${href}`)
+}
+
+const blogArticle = read('src/app/blog/[slug]/page.tsx')
+for (const link of ["href: '/sample'", "href: '/questions'", "href: '/pricing'"]) {
+  assert(blogArticle.includes(link), `Blog article must link internally to ${link}`)
+}
+assert(read('src/app/questions/page.tsx').includes('View one-time credit packs'), 'Questions page must link toward pricing')
+assert(read('src/app/sample/page.tsx').includes('Browse AI headshot guides'), 'Sample page must link toward blog guides')
 
 const authReturn = read('src/lib/auth-return.ts')
 assert(authReturn.includes('safeReturnTo'), 'auth return helper must validate returnTo')

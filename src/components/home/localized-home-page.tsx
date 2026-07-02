@@ -143,7 +143,7 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
         </div>
       </section>
 
-      <section className="bg-slate-50 py-10 sm:py-20">
+      <section className="content-auto bg-slate-50 py-10 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center sm:mb-16">
             <h2 className="section-heading">{content.howItWorksTitle}</h2>
@@ -169,7 +169,7 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
         </div>
       </section>
 
-      <section id="features" className="py-10 sm:py-20">
+      <section id="features" className="content-auto py-10 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center sm:mb-16">
             <h2 className="section-heading">{content.featuresTitle}</h2>
@@ -190,7 +190,7 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
         </div>
       </section>
 
-      <section id="examples" className="bg-slate-900 py-10 text-white sm:py-20">
+      <section id="examples" className="content-auto bg-slate-900 py-10 text-white sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center sm:mb-16">
             <h2 className="text-2xl font-bold sm:text-3xl lg:text-4xl">{content.examplesTitle}</h2>
@@ -222,7 +222,7 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
         </div>
       </section>
 
-      <section id="testimonials" className="py-10 sm:py-20">
+      <section id="testimonials" className="content-auto py-10 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center sm:mb-16">
             <h2 className="section-heading">{content.testimonialsTitle}</h2>
@@ -253,7 +253,7 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
         </div>
       </section>
 
-      <section className="bg-slate-50 py-10 sm:py-20">
+      <section className="content-auto bg-slate-50 py-10 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center sm:mb-16">
             <h2 className="section-heading">{content.pricingTitle}</h2>
@@ -320,7 +320,7 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
         </div>
       </section>
 
-      <section className="bg-gradient-to-br from-primary-600 to-primary-700 py-10 sm:py-20">
+      <section className="content-auto bg-gradient-to-br from-primary-600 to-primary-700 py-10 sm:py-20">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <h2 className="mb-4 text-2xl font-bold text-white sm:mb-6 sm:text-3xl lg:text-4xl">{content.bottomTitle}</h2>
           <p className="mx-auto mb-6 max-w-2xl text-base text-primary-100 sm:mb-8 sm:text-lg">{content.bottomText}</p>

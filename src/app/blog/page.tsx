@@ -33,7 +33,7 @@ export default function BlogPage() {
             <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-600">
               <BookOpen className="h-6 w-6" />
             </div>
-            <h1 className="text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">
               AI Image Generation and Headshot Blog
             </h1>
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
@@ -46,20 +46,20 @@ export default function BlogPage() {
           </div>
         </section>
 
-        <section className="py-12 sm:py-16">
+        <section className="content-auto py-12 sm:py-16">
           <div className="mx-auto grid max-w-7xl gap-5 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:px-8">
             {blogPosts.map((post, index) => {
               const portrait = index < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[index] : null
 
               return (
-                <article key={post.slug} className="flex min-h-[270px] flex-col rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                <article key={post.slug} className="content-auto flex min-h-[270px] flex-col rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                   {portrait && (
                     <div className="relative mb-5 aspect-[4/3] overflow-hidden rounded-md bg-slate-100">
                       <Image
                         src={portrait.src}
                         alt={portrait.alt}
                         fill
-                        sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 100vw"
+                        sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, calc(100vw - 40px)"
                         className="object-cover object-top"
                       />
                     </div>
@@ -68,12 +68,12 @@ export default function BlogPage() {
                     <CalendarDays className="h-4 w-4" />
                     {getBlogPublishDate(index)}
                   </div>
-                  <h2 className="text-xl font-bold leading-snug text-slate-950">
+                  <h2 className="break-words text-xl font-bold leading-snug text-slate-950">
                     <Link href={`/blog/${post.slug}`} className="hover:text-primary-600">
                       {post.title}
                     </Link>
                   </h2>
-                  <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">{post.description}</p>
+                  <p className="mt-3 flex-1 break-words text-sm leading-6 text-slate-600">{post.description}</p>
                   <div className="mt-5 flex flex-wrap gap-2">
                     {post.keywords.slice(0, 2).map((keyword) => (
                       <span key={keyword} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">

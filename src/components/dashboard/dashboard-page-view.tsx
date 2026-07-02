@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import NextImage from 'next/image'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
@@ -287,22 +288,22 @@ export default function DashboardPageView({ locale = 'en' }: DashboardPageViewPr
                 <Card key={gen.id} className="overflow-hidden group">
                   <div className="aspect-square bg-slate-200 relative">
                     {gen.thumbnail ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <NextImage
                         src={gen.thumbnail}
                         alt="Headshot"
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        decoding="async"
+                        fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                        className="object-cover"
+                        unoptimized
                       />
                     ) : gen.output_photos && gen.output_photos.length > 0 ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <NextImage
                         src={gen.output_photos[0]}
                         alt="Headshot"
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        decoding="async"
+                        fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                        className="object-cover"
+                        unoptimized
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">

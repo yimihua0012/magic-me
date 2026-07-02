@@ -1,9 +1,11 @@
 'use client'
 
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import { Sparkles, ZoomIn } from 'lucide-react'
-import Modal from '@/components/ui/modal'
+
+const Modal = dynamic(() => import('@/components/ui/modal'), { ssr: false })
 
 interface HeroHeadshot {
   src: string
@@ -42,7 +44,6 @@ export default function HeroHeadshotGallery({
                 src={image.src}
                 alt={image.alt}
                 fill
-                priority={index === 0}
                 sizes="(min-width: 1024px) 160px, 30vw"
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
               />

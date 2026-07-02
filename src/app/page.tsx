@@ -20,6 +20,7 @@ import {
   Star,
   Users,
   Camera,
+  ArrowRight,
 } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 import { languageAlternatesForPath } from '@/lib/i18n'
@@ -144,6 +145,30 @@ const heroHeadshots = [
   {
     src: '/home-pages/headshot-linkedin-professional3.jpg',
     alt: 'Business profile AI headshot example',
+  },
+]
+
+const resourceLinks = [
+  {
+    title: 'Compare AI headshot samples',
+    description:
+      'See before-and-after examples for LinkedIn photos, resume portraits, and business profile images.',
+    href: '/sample',
+    source: 'home_resource_sample',
+  },
+  {
+    title: 'Read common AI headshot questions',
+    description:
+      'Learn what to upload, how credits work, and how to choose realistic professional headshots.',
+    href: '/questions',
+    source: 'home_resource_questions',
+  },
+  {
+    title: 'Browse AI headshot guides',
+    description:
+      'Explore practical guides for LinkedIn profile photos, resume photos, and headshots without a photographer.',
+    href: '/blog',
+    source: 'home_resource_blog',
   },
 ]
 
@@ -291,6 +316,35 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{feature.title}</h3>
                 <p className="text-slate-600 text-sm">{feature.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="content-auto bg-slate-50 py-10 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center sm:mb-12">
+            <h2 className="section-heading">Plan the right professional headshot</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">
+              Compare examples, answer practical questions, and choose the best AI headshot workflow for your profile.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:gap-6 md:grid-cols-3">
+            {resourceLinks.map((resource) => (
+              <Card key={resource.href} className="flex h-full flex-col p-5 sm:p-6">
+                <h3 className="text-lg font-bold text-slate-900">{resource.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">{resource.description}</p>
+                <TrackedLink
+                  href={resource.href}
+                  className="mt-5 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700"
+                  buttonType="resource_link"
+                  source={resource.source}
+                >
+                  Open resource
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </TrackedLink>
               </Card>
             ))}
           </div>

@@ -1,11 +1,8 @@
-'use client'
-
-import { useMemo } from 'react'
 import { Check, Crown, Sparkles, Zap } from 'lucide-react'
 import Card from '@/components/ui/card'
 import Footer from '@/components/layout/localized-footer'
 import Navbar from '@/components/layout/localized-navbar'
-import Button from '@/components/ui/button'
+import { buttonStyles } from '@/components/ui/button-styles'
 import PlanPaymentCta from '@/components/ui/plan-payment-cta'
 import PricingJsonLd from '@/components/seo/pricing-json-ld'
 import { formatCurrency, getDefaultCurrencyForLocale } from '@/lib/currency'
@@ -34,7 +31,7 @@ function fillTemplate(template: string, values: Record<string, string | number>)
 }
 
 export default function LocalizedPricingPage({ locale, content }: LocalizedPricingPageProps) {
-  const currency = useMemo(() => getDefaultCurrencyForLocale(locale), [locale])
+  const currency = getDefaultCurrencyForLocale(locale)
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -142,9 +139,13 @@ export default function LocalizedPricingPage({ locale, content }: LocalizedPrici
                       />
                   ) : (
                     <div className="space-y-2">
-                      <Button className="w-full" variant={highlighted ? 'primary' : 'secondary'} disabled>
+                      <button
+                        className={buttonStyles({ className: 'w-full', variant: highlighted ? 'primary' : 'secondary' })}
+                        disabled
+                        type="button"
+                      >
                         {fillTemplate(content.choosePlanTemplate, { planName: plan.name })}
-                      </Button>
+                      </button>
                       <p className="text-center text-xs text-slate-500">{content.checkoutUnavailable}</p>
                     </div>
                   )}

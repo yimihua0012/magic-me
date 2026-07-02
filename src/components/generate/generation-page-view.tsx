@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import LocalizedNavbar from '@/components/layout/localized-navbar'
@@ -669,13 +670,14 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
                     className="relative group cursor-pointer"
                     onClick={() => openLightbox(index)}
                   >
-                    <div className="aspect-square rounded-xl overflow-hidden bg-slate-200">
-                      <img 
+                    <div className="relative aspect-square rounded-xl overflow-hidden bg-slate-200">
+                      <Image
                         src={photo}
                         alt={styleNameForIndex(index)}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        decoding="async"
+                        fill
+                        sizes="(min-width: 1024px) 20vw, (min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        unoptimized
                       />
                     </div>
                     
@@ -769,11 +771,14 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
       >
         {lightboxPhoto !== null && (
           <div>
-            <div className="aspect-square rounded-xl overflow-hidden bg-slate-200 mb-4">
-              <img 
+            <div className="relative aspect-square rounded-xl overflow-hidden bg-slate-200 mb-4">
+              <Image
                 src={generation.outputPhotos[lightboxPhoto]}
                 alt={styleNameForIndex(lightboxPhoto)}
-                className="w-full h-full object-contain"
+                fill
+                sizes="(min-width: 640px) 640px, 92vw"
+                className="object-contain"
+                unoptimized
               />
             </div>
             <h3 className="font-semibold text-slate-900 mb-4">{styleNameForIndex(lightboxPhoto)}</h3>

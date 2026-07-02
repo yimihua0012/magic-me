@@ -169,7 +169,7 @@ export default function PricingPage() {
             })}
           </div>
 
-          <div className="mt-12 sm:mt-20">
+          <div className="content-auto mt-12 sm:mt-20">
             <h2 className="mb-5 text-center text-xl font-bold text-slate-900 sm:mb-8 sm:text-2xl">
               Quick Questions About Pricing
             </h2>
@@ -199,7 +199,7 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <div className="mt-12 text-center sm:mt-20">
+          <div className="content-auto mt-12 text-center sm:mt-20">
             <h2 className="mb-3 text-xl font-bold text-slate-900 sm:mb-4 sm:text-2xl">
               Ready to Order Your AI Headshots?
             </h2>

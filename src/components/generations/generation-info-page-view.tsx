@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
@@ -384,13 +385,14 @@ export default function GenerationInfoPageView({ locale = 'en' }: GenerationInfo
                     className="group relative cursor-pointer"
                     onClick={() => setLightboxPhoto(index)}
                   >
-                    <div className={`aspect-square overflow-hidden rounded-xl bg-slate-200 ring-offset-2 transition ${selectedPhotos.has(index) ? 'ring-2 ring-primary-500' : ''}`}>
-                      <img
+                    <div className={`relative aspect-square overflow-hidden rounded-xl bg-slate-200 ring-offset-2 transition ${selectedPhotos.has(index) ? 'ring-2 ring-primary-500' : ''}`}>
+                      <Image
                         src={photo}
                         alt={styleNameForIndex(index)}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        loading="lazy"
-                        decoding="async"
+                        fill
+                        sizes="(min-width: 1024px) 20vw, (min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        unoptimized
                       />
                     </div>
 
@@ -437,11 +439,14 @@ export default function GenerationInfoPageView({ locale = 'en' }: GenerationInfo
       >
         {lightboxPhoto !== null && photos[lightboxPhoto] && (
           <div>
-            <div className="mb-4 aspect-square overflow-hidden rounded-xl bg-slate-200">
-              <img
+            <div className="relative mb-4 aspect-square overflow-hidden rounded-xl bg-slate-200">
+              <Image
                 src={photos[lightboxPhoto]}
                 alt={styleNameForIndex(lightboxPhoto)}
-                className="h-full w-full object-contain"
+                fill
+                sizes="(min-width: 640px) 640px, 92vw"
+                className="object-contain"
+                unoptimized
               />
             </div>
             <h3 className="mb-4 font-semibold text-slate-900">{styleNameForIndex(lightboxPhoto)}</h3>

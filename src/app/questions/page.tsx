@@ -40,7 +40,7 @@ export default function QuestionsPage() {
             <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-600">
               <HelpCircle className="h-6 w-6" />
             </div>
-            <h1 className="text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">
               AI Headshot Questions and Answers
             </h1>
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
@@ -53,7 +53,7 @@ export default function QuestionsPage() {
           </div>
         </section>
 
-        <section className="py-12 sm:py-16">
+        <section className="content-auto py-12 sm:py-16">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="mb-8 flex items-center gap-3">
               <SearchCheck className="h-6 w-6 text-primary-600" />
@@ -70,9 +70,9 @@ export default function QuestionsPage() {
           </div>
         </section>
 
-        <section className="bg-primary-600 py-12 text-white">
+        <section className="content-auto bg-primary-600 py-12 text-white">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold">Ready to compare real AI headshot samples?</h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">Ready to compare real AI headshot samples?</h2>
             <p className="mx-auto mt-3 max-w-2xl text-primary-100">
               Review original photo and generated portrait examples before choosing styles for LinkedIn, resumes, and
               business profiles.
@@ -81,6 +81,14 @@ export default function QuestionsPage() {
               View Sample Comparisons
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
+            <div className="mt-5 flex flex-wrap justify-center gap-4 text-sm font-semibold">
+              <Link href="/pricing" className="text-white underline-offset-4 hover:underline">
+                View one-time credit packs
+              </Link>
+              <Link href="/blog" className="text-white underline-offset-4 hover:underline">
+                Read AI headshot guides
+              </Link>
+            </div>
           </div>
         </section>
       </main>

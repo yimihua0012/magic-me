@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useCallback, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import NextImage from 'next/image'
 import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/localized-navbar'
 import Footer from '@/components/layout/localized-footer'
@@ -914,12 +915,14 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
                           <div className="grid grid-cols-3 gap-3 sm:gap-4">
                             {photos.map((photo, index) => (
                               <div key={index} className="relative">
-                                <div className="aspect-square rounded-xl overflow-hidden bg-slate-200">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
+                                <div className="relative aspect-square rounded-xl overflow-hidden bg-slate-200">
+                                  <NextImage
                                     src={photo.preview}
                                     alt={`Upload ${index + 1}`}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    sizes="(min-width: 640px) 120px, 30vw"
+                                    className="object-cover"
+                                    unoptimized
                                   />
                                 </div>
 
