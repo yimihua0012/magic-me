@@ -30,6 +30,7 @@ const localizedLegalRoutes: SitemapRoute[] = [
   { path: '', changeFrequency: 'weekly', priority: 1 },
   { path: '/landing', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.9 },
+  { path: '/free-id-photo-tool', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/questions', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/sample', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/contact', changeFrequency: 'monthly', priority: 0.6 },
