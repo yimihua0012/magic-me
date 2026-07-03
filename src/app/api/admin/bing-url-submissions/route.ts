@@ -5,12 +5,76 @@ import { appConfig } from '@/lib/config'
 
 export const dynamic = 'force-dynamic'
 
-const BING_SUBMISSION_ENDPOINT = 'https://ssl.bing.com/webmaster/api.svc/json/SubmitUrlbatch'
+const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/IndexNow'
 const MAX_BING_BATCH_SIZE = 500
 const BING_SUBMISSION_TIMEOUT_MS = 30000
 
 type SubmissionBody = {
   urls?: unknown
+  host?: unknown
+  keyLocation?: unknown
+  urlList?: unknown
+}
+
+export async function GET(request: Request) {
+  try {
+    const user = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    if (!isAdminEmail(user.email)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const requestUrl = new URL(request.url)
+    const apiKey = resolveIndexNowKey()
+    if (!apiKey) {
+      return NextResponse.json(
+        {
+          error: 'Missing IndexNow key. Please set INDEXNOW_KEY on the server.',
+          missingConfig: 'INDEXNOW_KEY',
+          help: 'Generate it in Bing IndexNow, host the key text file, then add INDEXNOW_KEY to Vercel environment variables.',
+        },
+        { status: 500 },
+      )
+    }
+
+    const siteUrl = resolveSiteUrl([], requestUrl.searchParams.get('host'))
+    const keyLocation = `${siteUrl}/${apiKey}.txt`
+
+    const keyResponse = await fetch(keyLocation, {
+      method: 'GET',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(BING_SUBMISSION_TIMEOUT_MS),
+    })
+    const responseText = await keyResponse.text().catch(() => '')
+    const keyMatches = responseText.trim() === apiKey
+
+    if (!keyResponse.ok || !keyMatches) {
+      return NextResponse.json(
+        {
+          error: 'IndexNow key file is not reachable or does not match the configured key.',
+          status: keyResponse.status,
+          keyLocation,
+          keyMatches,
+          siteUrl,
+        },
+        { status: 502 },
+      )
+    }
+
+    return NextResponse.json({
+      siteUrl,
+      status: keyResponse.status,
+      endpoint: keyLocation,
+      keyLocation,
+      keyMatches,
+    })
+  } catch (error) {
+    console.error('[IndexNow Key Check] Error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }
 
 export async function POST(request: Request) {
@@ -24,29 +88,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const apiKey =
-      process.env.BING_WEBMASTER_API_KEY ||
-      process.env.BING_URL_SUBMISSION_API_KEY ||
-      process.env.BING_API_KEY
+    const body = await request.json().catch(() => null) as SubmissionBody | null
+    const apiKey = resolveIndexNowKey()
 
     if (!apiKey) {
       return NextResponse.json(
         {
-          error: 'Missing Bing API key. Please set BING_WEBMASTER_API_KEY on the server.',
-          missingConfig: 'BING_WEBMASTER_API_KEY',
+          error: 'Missing IndexNow key. Please set INDEXNOW_KEY on the server.',
+          missingConfig: 'INDEXNOW_KEY',
+          help: 'Generate it in Bing IndexNow, host the key text file, then add INDEXNOW_KEY to Vercel environment variables.',
         },
         { status: 500 },
       )
     }
 
-    const body = await request.json().catch(() => null) as SubmissionBody | null
-    const rawUrls = extractUrlCandidates(body?.urls)
+    const rawUrls = extractUrlCandidates(body?.urlList ?? body?.urls)
 
     if (rawUrls.length === 0) {
       return NextResponse.json({ error: 'At least one URL is required.' }, { status: 400 })
     }
 
-    const siteUrl = resolveSiteUrl(rawUrls)
+    const siteUrl = resolveSiteUrl(rawUrls, body?.host)
     const normalizedUrls = normalizeUrlsForSite(rawUrls, siteUrl)
 
     if (normalizedUrls.length === 0) {
@@ -63,8 +125,15 @@ export async function POST(request: Request) {
       )
     }
 
-    const submissionUrl = new URL(process.env.BING_URL_SUBMISSION_ENDPOINT || BING_SUBMISSION_ENDPOINT)
-    submissionUrl.searchParams.set('apikey', apiKey)
+    const submissionUrl = new URL(process.env.INDEXNOW_ENDPOINT || INDEXNOW_ENDPOINT)
+    const host = new URL(siteUrl).host
+    const keyLocation = resolveKeyLocation(body?.keyLocation, siteUrl, apiKey)
+    const indexNowBody = {
+      host,
+      key: apiKey,
+      keyLocation,
+      urlList: normalizedUrls,
+    }
 
     let bingResponse: Response
     try {
@@ -73,10 +142,7 @@ export async function POST(request: Request) {
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
         },
-        body: JSON.stringify({
-          siteUrl,
-          urlList: normalizedUrls,
-        }),
+        body: JSON.stringify(indexNowBody),
         cache: 'no-store',
         signal: AbortSignal.timeout(BING_SUBMISSION_TIMEOUT_MS),
       })
@@ -86,7 +152,9 @@ export async function POST(request: Request) {
         {
           error: 'Could not connect to Bing Webmaster Tools. Check server network access and try again.',
           details: errorMessage(fetchError),
+          endpoint: submissionUrl.origin + submissionUrl.pathname,
           siteUrl,
+          indexNowRequestPreview: previewIndexNowRequest(indexNowBody),
           submitted: normalizedUrls,
           count: normalizedUrls.length,
         },
@@ -106,9 +174,11 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error: 'Bing URL submission failed.',
+          error: readableBingError(parsedResponse),
           bingStatus: bingResponse.status,
           bingResponse: parsedResponse,
+          endpoint: submissionUrl.origin + submissionUrl.pathname,
+          indexNowRequestPreview: previewIndexNowRequest(indexNowBody),
         },
         { status: 502 },
       )
@@ -120,6 +190,8 @@ export async function POST(request: Request) {
       siteUrl,
       bingStatus: bingResponse.status,
       bingResponse: parsedResponse,
+      endpoint: submissionUrl.origin + submissionUrl.pathname,
+      indexNowRequestPreview: previewIndexNowRequest(indexNowBody),
     })
   } catch (error) {
     console.error('[Bing URL Submission] Error:', error)
@@ -130,6 +202,20 @@ export async function POST(request: Request) {
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message
   return typeof error === 'string' ? error : 'Unknown network error'
+}
+
+function resolveIndexNowKey() {
+  const rawKey =
+    process.env.INDEXNOW_KEY ||
+    process.env.BING_INDEXNOW_KEY ||
+    process.env.BING_WEBMASTER_API_KEY ||
+    ''
+
+  return sanitizeKey(rawKey)
+}
+
+function sanitizeKey(value: string) {
+  return value.trim().replace(/^['"]|['"]$/g, '')
 }
 
 function extractUrlCandidates(value: unknown) {
@@ -151,7 +237,11 @@ function extractUrlCandidates(value: unknown) {
   return []
 }
 
-function resolveSiteUrl(rawUrls: string[]) {
+function resolveSiteUrl(rawUrls: string[], hostInput?: unknown) {
+  if (typeof hostInput === 'string' && hostInput.trim()) {
+    return `https://${hostInput.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '')}`
+  }
+
   const configured = new URL(appConfig.url)
 
   if (configured.hostname === 'localhost') {
@@ -162,6 +252,14 @@ function resolveSiteUrl(rawUrls: string[]) {
   }
 
   return configured.origin
+}
+
+function resolveKeyLocation(value: unknown, siteUrl: string, apiKey: string) {
+  if (typeof value === 'string' && value.trim()) {
+    return value.trim()
+  }
+
+  return `${siteUrl}/${apiKey}.txt`
 }
 
 function normalizeUrlsForSite(rawUrls: string[], siteUrl: string) {
@@ -198,5 +296,27 @@ function parseBingResponse(value: string) {
     return JSON.parse(value) as unknown
   } catch {
     return value
+  }
+}
+
+function readableBingError(value: unknown) {
+  if (
+    value &&
+    typeof value === 'object' &&
+    'ErrorCode' in value &&
+    Number((value as { ErrorCode?: unknown }).ErrorCode) === 3
+  ) {
+    return 'Invalid IndexNow key. Confirm the key matches the hosted key file and the submitted URLs belong to the same host.'
+  }
+
+  return 'IndexNow URL submission failed.'
+}
+
+function previewIndexNowRequest(body: { host: string; key: string; keyLocation: string; urlList: string[] }) {
+  return {
+    host: body.host,
+    keyConfigured: Boolean(body.key),
+    keyLocation: body.keyLocation,
+    urlList: body.urlList,
   }
 }

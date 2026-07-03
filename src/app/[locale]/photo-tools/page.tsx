@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { isRoutedLocale, localePath } from '@/lib/i18n'
 
 type PageProps = {
@@ -18,5 +18,5 @@ export default async function LocalizedPhotoToolsRedirectPage({ params }: PagePr
     notFound()
   }
 
-  redirect(localePath(locale, '/free-id-photo-tool'))
+  permanentRedirect(localePath(locale, '/free-id-photo-tool'))
 }

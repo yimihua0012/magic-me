@@ -72,20 +72,6 @@ export default async function LocalizedHomeRoute({ params }: PageProps) {
   const routedLocale = locale as RoutedLocale
   const content = localizedHomeContent[routedLocale]
   const seo = getLocalizedSeo(routedLocale, 'home')
-  const faq = [
-    {
-      name: content.steps[0].title,
-      text: content.steps[0].text,
-    },
-    {
-      name: content.steps[1].title,
-      text: content.steps[1].text,
-    },
-    {
-      name: content.features[2].title,
-      text: content.features[2].text,
-    },
-  ]
 
   return (
     <>
@@ -94,7 +80,6 @@ export default async function LocalizedHomeRoute({ params }: PageProps) {
         title={content.title}
         description={content.description}
         keywords={seo.keywords}
-        faq={faq}
       />
       <LocalizedHomePage locale={routedLocale} content={content} />
     </>

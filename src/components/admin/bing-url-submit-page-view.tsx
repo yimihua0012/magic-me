@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/components/admin/admin-auth'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import { type Locale } from '@/lib/i18n'
-import { CheckCircle2, ExternalLink, Send, XCircle } from 'lucide-react'
+import { CheckCircle2, ExternalLink, KeyRound, Send, XCircle } from 'lucide-react'
 
 type SubmitResult = {
   count: number
@@ -14,6 +14,16 @@ type SubmitResult = {
   siteUrl: string
   bingStatus: number
   bingResponse: unknown
+}
+
+const DEFAULT_INDEXNOW_HOST = 'magic-headshot.com'
+
+type KeyCheckResult = {
+  siteUrl: string
+  status: number
+  endpoint: string
+  keyLocation: string
+  keyMatches: boolean
 }
 
 interface BingUrlSubmitPageViewProps {
@@ -31,10 +41,46 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
   const { accessToken, dashboardHref, isAuthorized, isCheckingAuth } = useAdminAuth(locale)
   const [urlsText, setUrlsText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCheckingKey, setIsCheckingKey] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<SubmitResult | null>(null)
+  const [keyCheckResult, setKeyCheckResult] = useState<KeyCheckResult | null>(null)
 
   const candidateCount = useMemo(() => new Set(parseUrlInput(urlsText)).size, [urlsText])
+
+  const handleCheckKey = async () => {
+    setError('')
+    setKeyCheckResult(null)
+
+    if (!accessToken) {
+      window.location.href = dashboardHref
+      return
+    }
+
+    setIsCheckingKey(true)
+    try {
+      const params = new URLSearchParams()
+      params.set('host', resolveIndexNowHost(parseUrlInput(urlsText)))
+
+      const response = await fetch(`/api/admin/bing-url-submissions?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Bing API key check failed.')
+      }
+
+      setKeyCheckResult(data as KeyCheckResult)
+    } catch (keyError) {
+      setError(readableSubmitError(keyError))
+    } finally {
+      setIsCheckingKey(false)
+    }
+  }
 
   const handleSubmit = async () => {
     setError('')
@@ -54,13 +100,20 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
     setIsSubmitting(true)
 
     try {
+      const host = resolveIndexNowHost(urls)
+      const urlList = normalizeIndexNowUrls(urls, host)
+      const indexNowRequest = {
+        host,
+        urlList,
+      }
+
       const response = await fetch('/api/admin/bing-url-submissions', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ urls }),
+        body: JSON.stringify(indexNowRequest),
       })
       const data = await response.json().catch(() => ({}))
 
@@ -99,15 +152,27 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
           />
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-500">Detected {candidateCount} URLs. Bing accepts up to 500 per batch.</p>
-            <Button
-              onClick={handleSubmit}
-              isLoading={isSubmitting}
-              disabled={candidateCount === 0 || isSubmitting}
-              className="w-full sm:w-auto"
-            >
-              <Send className="mr-2 h-4 w-4" />
-              Submit
-            </Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                variant="secondary"
+                onClick={handleCheckKey}
+                isLoading={isCheckingKey}
+                disabled={isCheckingKey}
+                className="w-full sm:w-auto"
+              >
+                <KeyRound className="mr-2 h-4 w-4" />
+                Check IndexNow Key
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                isLoading={isSubmitting}
+                disabled={candidateCount === 0 || isSubmitting}
+                className="w-full sm:w-auto"
+              >
+                <Send className="mr-2 h-4 w-4" />
+                Submit
+              </Button>
+            </div>
           </div>
         </Card>
 
@@ -151,8 +216,74 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
             </ul>
           </Card>
         )}
+
+        {keyCheckResult && (
+          <Card className="p-5 sm:p-6">
+            <div className="mb-4 flex items-center gap-3">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">IndexNow Key Valid</h2>
+                <p className="text-sm text-slate-500">
+                  Key file returned {keyCheckResult.status} for {keyCheckResult.siteUrl}.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <ResultMetric label="Key file" value={keyCheckResult.keyMatches ? 'Matched' : 'Mismatch'} />
+              <ResultMetric label="Status" value={String(keyCheckResult.status)} />
+              <div className="rounded-lg border border-slate-200 bg-white p-3">
+                <div className="text-xs font-semibold uppercase text-slate-500">Key location</div>
+                <div className="mt-1 break-all text-sm font-semibold text-slate-900">{keyCheckResult.keyLocation}</div>
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
     </AdminPageFrame>
+  )
+}
+
+function resolveIndexNowHost(urls: string[]) {
+  const firstAbsoluteUrl = urls.find((url) => /^https?:\/\//i.test(url))
+  if (!firstAbsoluteUrl) {
+    return DEFAULT_INDEXNOW_HOST
+  }
+
+  try {
+    return new URL(firstAbsoluteUrl).host
+  } catch {
+    return DEFAULT_INDEXNOW_HOST
+  }
+}
+
+function normalizeIndexNowUrls(urls: string[], host: string) {
+  const baseUrl = `https://${host}`
+  const seen = new Set<string>()
+  const normalized: string[] = []
+
+  for (const rawUrl of urls) {
+    try {
+      const url = new URL(rawUrl, baseUrl)
+      url.hash = ''
+      const href = url.toString()
+      if (!seen.has(href)) {
+        seen.add(href)
+        normalized.push(href)
+      }
+    } catch {
+    }
+  }
+
+  return normalized
+}
+
+function ResultMetric({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-3">
+      <div className="text-xs font-semibold uppercase text-slate-500">{label}</div>
+      <div className="mt-1 text-lg font-bold text-slate-900">{value || 'Unknown'}</div>
+    </div>
   )
 }
 

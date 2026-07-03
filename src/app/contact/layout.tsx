@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { WebPageJsonLd } from '@/components/seo/page-json-ld'
 import { languageAlternatesForPath } from '@/lib/i18n'
 
 export const metadata: Metadata = {
@@ -21,5 +22,16 @@ export default function ContactLayout({
 }: {
   children: React.ReactNode
 }) {
-  return children
+  return (
+    <>
+      <WebPageJsonLd
+        locale="en"
+        path="/contact"
+        type="ContactPage"
+        title="Contact Magic-Headshot AI Headshot Support"
+        description="Contact Magic-Headshot support for AI headshot billing, refunds, technical help, account questions, generation issues, and professional photo guidance."
+      />
+      {children}
+    </>
+  )
 }

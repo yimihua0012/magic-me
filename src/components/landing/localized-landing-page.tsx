@@ -140,6 +140,23 @@ export default function LocalizedLandingPage({ locale, content }: LocalizedLandi
         </div>
       </section>
 
+      <section className="content-auto bg-slate-50 py-12 sm:py-20">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="section-heading">{content.faqTitle}</h2>
+            <p className="section-subheading mx-auto mt-4">{content.faqText}</p>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2">
+            {content.faqs.map((faq) => (
+              <Card key={faq.question} className="p-5">
+                <h3 className="font-bold text-slate-900">{faq.question}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{faq.answer}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <Footer locale={locale} />
     </main>
   )

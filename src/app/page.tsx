@@ -172,25 +172,6 @@ const resourceLinks = [
   },
 ]
 
-const homeFaq = [
-  {
-    name: 'How to get professional headshots without a photographer?',
-    text: 'Use our AI headshot generator to get realistic headshots without hiring a photographer. Upload selfies, choose styles, and get high-likeness portraits in minutes.',
-  },
-  {
-    name: 'What is the best AI headshot generator for LinkedIn profile?',
-    text: 'Magic-Headshot creates realistic LinkedIn profile photos with a dedicated portrait model, fast generation, and styles for business, resume, and executive use.',
-  },
-  {
-    name: 'Can I get AI headshots with different backgrounds?',
-    text: 'Yes. Magic-Headshot offers multiple background and style options for different professional contexts and platforms.',
-  },
-  {
-    name: 'Do you offer professional headshots for team photos online?',
-    text: 'Yes. Teams can use Magic-Headshot to create consistent professional portraits for remote teams, company pages, and profile photos.',
-  },
-]
-
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-white">
@@ -199,7 +180,6 @@ export default function HomePage() {
         title="Realistic AI Headshot Generator for LinkedIn, Resume, and Profile Photos"
         description={appConfig.description}
         keywords={metadata.keywords as string[]}
-        faq={homeFaq}
       />
       <OAuthCodeRedirect />
       <Navbar />

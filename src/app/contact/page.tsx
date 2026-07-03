@@ -4,7 +4,6 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
 import Button from '@/components/ui/button'
-import { WebPageJsonLd } from '@/components/seo/page-json-ld'
 import { Mail, MapPin, MessageSquare, Send } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 import { useState } from 'react'
@@ -32,13 +31,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <WebPageJsonLd
-        locale="en"
-        path="/contact"
-        type="ContactPage"
-        title="Contact Magic-Headshot AI Headshot Support"
-        description="Contact Magic-Headshot support for AI headshot billing, refunds, technical help, account questions, generation issues, and professional photo guidance."
-      />
       <Navbar />
 
       <main className="pt-24 pb-16">

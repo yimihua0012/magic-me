@@ -635,7 +635,7 @@ export default function PhotoToolsWorkbench({
               >
                 <div className="aspect-square bg-slate-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo.url} alt="" className="h-full w-full object-cover" />
+                  <img src={photo.url} alt={photo.label} className="h-full w-full object-cover" />
                 </div>
                 <div className="p-2 text-xs text-slate-500">
                   <div className="truncate font-semibold text-slate-700">{photo.label}</div>

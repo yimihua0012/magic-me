@@ -5,7 +5,7 @@ import AdminPageFrame from '@/components/admin/admin-page-frame'
 import { useAdminAuth } from '@/components/admin/admin-auth'
 import Card from '@/components/ui/card'
 import { localePath, type Locale } from '@/lib/i18n'
-import { Activity, ArrowRight, CreditCard, Image, MousePointerClick, PackageCheck, SearchCheck, Sparkles } from 'lucide-react'
+import { Activity, ArrowRight, BookOpenText, CreditCard, Image, MousePointerClick, PackageCheck, SearchCheck, Sparkles } from 'lucide-react'
 
 interface AdminHomePageViewProps {
   locale?: Locale
@@ -41,11 +41,25 @@ const entries = [
     tone: 'text-orange-600 bg-orange-50',
   },
   {
+    title: 'Blog Content',
+    description: 'Create localized articles and publish SEO-ready static blog pages.',
+    href: '/dashboard/admin/blog',
+    icon: BookOpenText,
+    tone: 'text-teal-600 bg-teal-50',
+  },
+  {
     title: 'Bing URL Submit',
     description: 'Submit one or many URLs to Bing Webmaster Tools.',
     href: '/dashboard/admin/bing-url-submit',
     icon: SearchCheck,
     tone: 'text-blue-600 bg-blue-50',
+  },
+  {
+    title: 'Bing URL Inspect',
+    description: 'Check status, robots, canonical, sitemap inclusion, and open Bing live inspection.',
+    href: '/dashboard/admin/bing-url-inspect',
+    icon: SearchCheck,
+    tone: 'text-sky-600 bg-sky-50',
   },
   {
     title: 'Generation Records',

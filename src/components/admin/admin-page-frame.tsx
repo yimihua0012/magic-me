@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { localePath, type Locale } from '@/lib/i18n'
 import {
   Activity,
+  BookOpenText,
   CreditCard,
   Image,
   Home,
@@ -39,7 +40,9 @@ const menuItems = [
   { label: 'User Credits', href: '/dashboard/admin/users', icon: PackageCheck },
   { label: 'Generation Tasks', href: '/dashboard/admin/generations', icon: Sparkles },
   { label: 'Orders Payments', href: '/dashboard/admin/orders', icon: CreditCard },
+  { label: 'Blog Content', href: '/dashboard/admin/blog', icon: BookOpenText },
   { label: 'Bing URL Submit', href: '/dashboard/admin/bing-url-submit', icon: SearchCheck },
+  { label: 'Bing URL Inspect', href: '/dashboard/admin/bing-url-inspect', icon: SearchCheck },
   { label: 'Generation Records', href: '/dashboard/admin/generation-logs', icon: Activity },
   { label: 'Payment Audit', href: '/dashboard/admin/payment-audit', icon: CreditCard },
   { label: 'Conversion Events', href: '/dashboard/admin/conversion-events', icon: MousePointerClick },

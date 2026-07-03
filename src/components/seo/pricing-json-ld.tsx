@@ -2,6 +2,7 @@ import { PLANS, type PlanType } from '@backend/config/plans'
 import { appConfig } from '@/lib/config'
 import type { Currency } from '@/lib/currency'
 import { localePath, type Locale } from '@/lib/i18n'
+import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
 import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 
 interface PricingJsonLdProps {
@@ -58,6 +59,7 @@ export default function PricingJsonLd({
         description:
           planDescription?.(planId) ??
           `${plan.credits} AI headshots with ${plan.validityDays} days validity.`,
+        ...digitalMerchantPolicy(currency),
       }
     }),
   }

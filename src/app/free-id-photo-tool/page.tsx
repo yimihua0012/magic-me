@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import PublicPhotoToolsPageView from '@/components/photo-tools/public-photo-tools-page-view'
 import { languageAlternatesForPath } from '@/lib/i18n'
+import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
 
 const title = 'Free ID Photo Generator, Crop & Print Tool | Magic-Headshot'
 const description = 'Free online ID photo tool for resumes, job applications, exams, employee badges, student cards, and printable photo sheets.'
@@ -74,6 +75,7 @@ export default function FreeIdPhotoToolPage() {
       price: '0',
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
+      ...digitalMerchantPolicy('USD'),
     },
     provider: {
       '@id': `${siteUrl}/#organization`,

@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
-import { isRoutedLocale, localePath } from '@/lib/i18n'
+import { notFound } from 'next/navigation'
+import { isRoutedLocale } from '@/lib/i18n'
 
 type PageProps = {
   params: Promise<{
@@ -11,9 +11,9 @@ type PageProps = {
 export default async function LocalizedCatchAllRoute({ params }: PageProps) {
   const { locale } = await params
 
-  if (isRoutedLocale(locale)) {
-    redirect(localePath(locale))
+  if (!isRoutedLocale(locale)) {
+    notFound()
   }
 
-  redirect('/')
+  notFound()
 }

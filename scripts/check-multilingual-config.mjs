@@ -32,17 +32,17 @@ assert(currency.includes("fr: 'EUR'"), 'French default currency must be EUR')
 assert(currency.includes("de: 'EUR'"), 'German default currency must be EUR')
 assert(currency.includes("es: 'USD'"), 'Spanish default currency must be USD')
 assert(currency.includes('CURRENCY_FORMAT_LOCALE'), 'currency config must pin display formatting by currency')
-assert(currency.includes('return `JPY ￥${formattedAmount}`'), 'JPY display must use the JPY code and yen symbol')
+assert(currency.includes('return `JPY ${formattedAmount}`'), 'JPY display must use the JPY code without mojibake')
 assert(currency.includes('minimumFractionDigits: 2'), 'USD and EUR display must fix two fraction digits')
 
 const currencyFormatSamples = [
   { currency: 'USD', locale: 'en-US', amount: 19, expected: '$19.00' },
   { currency: 'EUR', locale: 'en-US', amount: 16.6, expected: '€16.60' },
-  { currency: 'JPY', locale: 'en-US', amount: 2900, expected: 'JPY ￥2,900' },
+  { currency: 'JPY', locale: 'en-US', amount: 2900, expected: 'JPY 2,900' },
 ]
 for (const sample of currencyFormatSamples) {
   if (sample.currency === 'JPY') {
-    const actual = `JPY ￥${new Intl.NumberFormat(sample.locale, {
+    const actual = `JPY ${new Intl.NumberFormat(sample.locale, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(sample.amount)}`
@@ -86,25 +86,48 @@ for (const planId of ['basic', 'pro', 'premium']) {
 }
 
 const middleware = read('src/middleware.ts')
-for (const route of ['', 'pricing', 'privacy', 'terms', 'refund', 'contact', 'questions', 'sample', 'landing', 'upload', 'login']) {
+for (const route of ['', 'blog', 'pricing', 'privacy', 'terms', 'refund', 'contact', 'questions', 'sample', 'landing', 'upload', 'login', 'dashboard/admin/blog']) {
   assert(middleware.includes(`'${route}'`), `middleware localizedRoutes missing ${route || 'home'}`)
 }
-assert(middleware.includes('blogPosts.map'), 'middleware must whitelist real English blog slugs only')
+assert(middleware.includes("const dynamicRootRoutes = new Set(['blog'"), 'middleware must allow dynamic English CMS blog slugs')
+assert(middleware.includes("const localizedDynamicRoutes = new Set(['blog'"), 'middleware must allow dynamic localized CMS blog slugs')
+assert(!middleware.includes("return redirectTo(request, '/')"), 'middleware must not redirect unknown URLs to home; allow real 404s')
+assert(!middleware.includes('localePath(firstSegment))'), 'middleware must not redirect unknown localized URLs to locale home; allow real 404s')
 
 const sitemap = read('src/lib/sitemap.ts')
 for (const route of ['/landing', '/pricing', '/questions', '/sample', '/contact', '/privacy', '/terms', '/refund']) {
   assert(sitemap.includes(`path: '${route}'`), `localized sitemap missing ${route}`)
 }
+assert(sitemap.includes('xmlns:image'), 'sitemap renderer must expose the image sitemap namespace when images are present')
+assert(sitemap.includes('<image:image>'), 'sitemap renderer must emit image sitemap entries')
+assert(sitemap.includes('getPublishedBlogPosts'), 'sitemap must include CMS blog posts')
+assert(sitemap.includes('localeHasPublishedCmsBlogPosts'), 'localized blog sitemap index route must only appear when localized CMS posts exist')
+assert(sitemap.includes('post.coverImage?.url'), 'sitemap must use CMS blog cover images for image SEO')
 assert(!sitemap.includes("path: '/upload'"), 'upload must not be listed in sitemap')
-assert(!sitemap.includes("path: '/blog'") || sitemap.indexOf("englishStaticRoutes") < sitemap.indexOf("path: '/blog'"), 'localized blog must not be listed in sitemap')
+assert(sitemap.includes("hasLocalizedBlog"), 'localized blog must be gated before being listed in sitemap')
 
 const robots = read('src/app/robots.ts')
+assert(robots.includes("'/api/og'"), 'robots must allow the dynamic OG image endpoint for crawlers')
+assert(robots.includes("'/api/icon'"), 'robots must allow the dynamic icon endpoint for crawlers')
 assert(robots.includes("...ROUTED_LOCALES.map((locale) => `/${locale}/upload`)"), 'robots must disallow localized upload pages')
 assert(robots.includes('getSitemapIndexEntries'), 'robots must list sitemap index entries')
 assert(read('src/app/sitemap.xml/route.ts').includes("sitemapXmlResponse('en')"), 'root sitemap must use the shared XML sitemap renderer')
 for (const locale of locales) {
   assert(read(`src/app/sitemap-${locale}.xml/route.ts`).includes(`sitemapXmlResponse('${locale}')`), `sitemap-${locale}.xml must use the shared XML sitemap renderer`)
 }
+
+assert(read('src/app/api/admin/blog-posts/route.ts').includes('revalidateBlogPaths'), 'admin blog save must revalidate blog and sitemap paths after publish')
+assert(read('src/app/api/admin/revalidate-blog/route.ts').includes('revalidateBlogPaths'), 'admin blog revalidate route must use shared revalidate helper')
+assert(read('src/components/admin/blog-content-page-view.tsx').includes('SEO enhancement JSON'), 'admin blog UI must expose structured SEO enhancement fields')
+assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('DEEPSEEK_KEY'), 'DeepSeek blog draft generation must keep the API key server-side')
+assert(read('src/components/admin/blog-content-page-view.tsx').includes('DeepSeek Draft Generator'), 'admin blog UI must expose the editable DeepSeek draft generator')
+assert(read('src/components/admin/blog-content-page-view.tsx').includes('draftUseCase'), 'admin blog UI must collect the basic use case before DeepSeek generation')
+assert(read('src/components/admin/blog-content-page-view.tsx').includes('Build Prompt'), 'admin blog UI must let admins review the generated prompt before generating the article')
+assert(read('src/components/admin/blog-content-page-view.tsx').includes('Generate Article'), 'admin blog UI must separate prompt review from article generation')
+assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('1000-1200 words'), 'DeepSeek blog draft prompt must constrain article length')
+assert(read('src/app/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'English admin blog page must render blog content manager')
+assert(read('src/app/[locale]/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'localized admin blog page must render blog content manager')
+assert(read('src/components/blog/blog-cover-image.tsx').includes('alt={alt}'), 'blog cover image component must preserve image alt text')
 
 const localizedNavbar = read('src/components/layout/localized-navbar.tsx')
 assert(localizedNavbar.includes('withSource'), 'localized navbar CTA links must include source')
@@ -162,7 +185,10 @@ assert(pageJsonLd.includes('defaultSeoImage'), 'page JSON-LD helper must default
 
 const homeJsonLd = read('src/components/seo/home-json-ld.tsx')
 assert(homeJsonLd.includes('Ai headshot-linkedin-professional.jpg'), 'home JSON-LD must use the stable static SEO image')
-assert(homeJsonLd.includes("'FAQPage'"), 'home JSON-LD must include FAQPage')
+assert(!homeJsonLd.includes("'FAQPage'"), 'home JSON-LD must not emit FAQPage unless the homepage renders matching visible FAQs')
+
+const localizedLandingPage = read('src/components/landing/localized-landing-page.tsx')
+assert(localizedLandingPage.includes('content.faqs.map'), 'localized landing page must visibly render FAQ items used by FAQPage JSON-LD')
 
 const localizedPricingPage = read('src/components/pricing/localized-pricing-page.tsx')
 assert(localizedPricingPage.includes('getDefaultCurrencyForLocale(locale)'), 'localized pricing must derive currency from the URL locale')
@@ -210,6 +236,15 @@ for (const href of ["href: '/pricing'", "href: '/sample'", "href: '/questions'"]
 const blogArticle = read('src/app/blog/[slug]/page.tsx')
 for (const link of ["href: '/sample'", "href: '/questions'", "href: '/pricing'"]) {
   assert(blogArticle.includes(link), `Blog article must link internally to ${link}`)
+}
+assert(blogArticle.includes('getBlogEnhancement'), 'Blog articles must use per-post enhancement content to reduce page similarity')
+assert(blogArticle.includes('enhancement.actionSteps'), 'Blog articles must render per-post action steps')
+assert(blogArticle.includes('enhancement.qualityChecks'), 'Blog articles must render per-post quality checks')
+const blogEnhancements = read('src/lib/blog-enhancements.ts')
+const seoContent = read('src/lib/seo-content.ts')
+const blogSlugMatches = [...seoContent.matchAll(/slug: '([^']+)'/g)].map((match) => match[1])
+for (const slug of blogSlugMatches) {
+  assert(blogEnhancements.includes(`${slug}: {`) || blogEnhancements.includes(`'${slug}': {`), `blog enhancement missing ${slug}`)
 }
 assert(read('src/app/questions/page.tsx').includes('View one-time credit packs'), 'Questions page must link toward pricing')
 assert(read('src/app/sample/page.tsx').includes('Browse AI headshot guides'), 'Sample page must link toward blog guides')

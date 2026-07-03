@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { ROUTED_LOCALES, localePath, type Locale, type RoutedLocale } from '@/lib/i18n'
-import { blogPosts } from '@/lib/seo-content'
+import { ROUTED_LOCALES, type Locale, type RoutedLocale } from '@/lib/i18n'
 
 const rootPageRoutes = new Set([
   '',
@@ -11,11 +10,13 @@ const rootPageRoutes = new Set([
   'dashboard',
   'dashboard/records',
   'dashboard/admin',
+  'dashboard/admin/blog',
   'dashboard/admin/styles',
   'dashboard/admin/users',
   'dashboard/admin/generations',
   'dashboard/admin/orders',
   'dashboard/admin/bing-url-submit',
+  'dashboard/admin/bing-url-inspect',
   'dashboard/admin/generation-logs',
   'dashboard/admin/payment-audit',
   'dashboard/admin/conversion-events',
@@ -33,13 +34,11 @@ const rootPageRoutes = new Set([
   'upload',
 ])
 
-const englishRoutes = new Set([
-  ...rootPageRoutes,
-  ...blogPosts.map((post) => `blog/${post.slug}`),
-])
+const englishRoutes = new Set(rootPageRoutes)
 
 const localizedRoutes = new Set([
   '',
+  'blog',
   'pricing',
   'privacy',
   'terms',
@@ -54,26 +53,21 @@ const localizedRoutes = new Set([
   'dashboard',
   'dashboard/records',
   'dashboard/admin',
+  'dashboard/admin/blog',
   'dashboard/admin/styles',
   'dashboard/admin/users',
   'dashboard/admin/generations',
   'dashboard/admin/orders',
   'dashboard/admin/bing-url-submit',
+  'dashboard/admin/bing-url-inspect',
   'dashboard/admin/generation-logs',
   'dashboard/admin/payment-audit',
   'dashboard/admin/conversion-events',
   'dashboard/bing-url-submit',
   'free-id-photo-tool',
 ])
-const dynamicRootRoutes = new Set(['generate', 'generations'])
-const localizedDynamicRoutes = new Set(['generate', 'generations'])
-
-function redirectTo(request: NextRequest, pathname: string) {
-  const url = request.nextUrl.clone()
-  url.pathname = pathname
-  url.search = ''
-  return NextResponse.redirect(url)
-}
+const dynamicRootRoutes = new Set(['blog', 'generate', 'generations'])
+const localizedDynamicRoutes = new Set(['blog', 'generate', 'generations'])
 
 function nextWithLocale(request: NextRequest, locale: Locale = 'en') {
   const requestHeaders = new Headers(request.headers)
@@ -110,7 +104,7 @@ export function middleware(request: NextRequest) {
       return nextWithLocale(request, firstSegment)
     }
 
-    return redirectTo(request, localePath(firstSegment))
+    return nextWithLocale(request, firstSegment)
   }
 
   if (englishRoutes.has(segments.join('/'))) {
@@ -121,7 +115,7 @@ export function middleware(request: NextRequest) {
     return nextWithLocale(request)
   }
 
-  return redirectTo(request, '/')
+  return nextWithLocale(request)
 }
 
 export const config = {

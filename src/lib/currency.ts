@@ -32,7 +32,7 @@ export function formatCurrency(amount: number, currency: Currency) {
       maximumFractionDigits: 0,
       minimumFractionDigits: 0,
     }).format(amount)
-    return `JPY ￥${formattedAmount}`
+    return `JPY ${formattedAmount}`
   }
 
   return new Intl.NumberFormat(CURRENCY_FORMAT_LOCALE[currency], {

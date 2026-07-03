@@ -1,4 +1,5 @@
 const BLOG_START_DATE = Date.UTC(2026, 5, 30)
+const BLOG_MODIFIED_DATE = '2026-07-03'
 const DAY_IN_MS = 24 * 60 * 60 * 1000
 
 const blogDateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -14,4 +15,8 @@ export function getBlogPublishDate(index: number) {
 
 export function getBlogPublishIsoDate(index: number) {
   return new Date(BLOG_START_DATE - index * DAY_IN_MS).toISOString().slice(0, 10)
+}
+
+export function getBlogModifiedIsoDate() {
+  return BLOG_MODIFIED_DATE
 }

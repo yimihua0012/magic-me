@@ -670,4 +670,14 @@ export const blogPosts = [
   },
 ] as const
 
-export type BlogPost = (typeof blogPosts)[number]
+export type BlogPost = {
+  slug: string
+  title: string
+  description: string
+  keywords: readonly string[]
+  intro: string
+  sections: readonly {
+    heading: string
+    body: string
+  }[]
+}

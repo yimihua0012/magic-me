@@ -9,6 +9,7 @@ import {
   localePath,
   type RoutedLocale,
 } from '@/lib/i18n'
+import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
 
 type PageProps = {
   params: Promise<{
@@ -184,6 +185,7 @@ export default async function LocalizedFreeIdPhotoToolPage({ params }: PageProps
       price: '0',
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
+      ...digitalMerchantPolicy('USD'),
     },
     provider: {
       '@id': `${siteUrl}/#organization`,
