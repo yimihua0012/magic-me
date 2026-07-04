@@ -7,7 +7,7 @@ import { LOCALES, type Locale } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
 
-const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/IndexNow'
+const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow'
 const MAX_BING_BATCH_SIZE = 500
 const BING_SUBMISSION_TIMEOUT_MS = 30000
 
@@ -180,10 +180,14 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error: readableBingError(parsedResponse),
+          error: readableBingError(parsedResponse, bingResponse.status),
           bingStatus: bingResponse.status,
           bingResponse: parsedResponse,
           endpoint: submissionUrl.origin + submissionUrl.pathname,
+          submitted: normalizedUrls,
+          count: normalizedUrls.length,
+          siteUrl,
+          keyLocation,
           indexNowRequestPreview: previewIndexNowRequest(indexNowBody),
         },
         { status: 502 },
@@ -275,17 +279,19 @@ function extractUrlCandidates(value: unknown) {
 }
 
 function resolveSiteUrl(rawUrls: string[], hostInput?: unknown) {
+  const configured = new URL(appConfig.url)
+
+  if (configured.hostname !== 'localhost') {
+    return configured.origin
+  }
+
   if (typeof hostInput === 'string' && hostInput.trim()) {
     return `https://${hostInput.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '')}`
   }
 
-  const configured = new URL(appConfig.url)
-
-  if (configured.hostname === 'localhost') {
-    const firstAbsoluteUrl = rawUrls.find((rawUrl) => /^https?:\/\//i.test(rawUrl))
-    if (firstAbsoluteUrl) {
-      return new URL(firstAbsoluteUrl).origin
-    }
+  const firstAbsoluteUrl = rawUrls.find((rawUrl) => /^https?:\/\//i.test(rawUrl))
+  if (firstAbsoluteUrl) {
+    return new URL(firstAbsoluteUrl).origin
   }
 
   return configured.origin
@@ -336,7 +342,11 @@ function parseBingResponse(value: string) {
   }
 }
 
-function readableBingError(value: unknown) {
+function readableBingError(value: unknown, status?: number) {
+  if (status === 403) {
+    return 'IndexNow rejected the request with 403. Confirm INDEXNOW_KEY is set on the server and the key file is reachable at keyLocation for the same host as the submitted URLs.'
+  }
+
   if (
     value &&
     typeof value === 'object' &&

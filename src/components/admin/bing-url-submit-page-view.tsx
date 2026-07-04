@@ -75,7 +75,7 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
     setIsCheckingKey(true)
     try {
       const params = new URLSearchParams()
-      params.set('host', resolveIndexNowHost(parseUrlInput(urlsText)))
+      params.set('host', DEFAULT_INDEXNOW_HOST)
 
       const response = await fetch(`/api/admin/bing-url-submissions?${params.toString()}`, {
         method: 'GET',
@@ -161,7 +161,7 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
     setIsSubmitting(true)
 
     try {
-      const host = resolveIndexNowHost(urls)
+      const host = DEFAULT_INDEXNOW_HOST
       const urlList = normalizeIndexNowUrls(urls, host)
       const indexNowRequest = {
         host,
@@ -335,19 +335,6 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
       </div>
     </AdminPageFrame>
   )
-}
-
-function resolveIndexNowHost(urls: string[]) {
-  const firstAbsoluteUrl = urls.find((url) => /^https?:\/\//i.test(url))
-  if (!firstAbsoluteUrl) {
-    return DEFAULT_INDEXNOW_HOST
-  }
-
-  try {
-    return new URL(firstAbsoluteUrl).host
-  } catch {
-    return DEFAULT_INDEXNOW_HOST
-  }
 }
 
 function normalizeIndexNowUrls(urls: string[], host: string) {
