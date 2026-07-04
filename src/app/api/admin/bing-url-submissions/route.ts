@@ -373,7 +373,7 @@ function parseBingResponse(value: string) {
 
 function readableBingError(value: unknown, status?: number) {
   if (status === 403) {
-    return 'IndexNow rejected the request with 403. Confirm INDEXNOW_KEY is set on the server and the key file is reachable at keyLocation for the same host as the submitted URLs.'
+    return `IndexNow rejected the request with 403: ${extractBingMessage(value) || 'the key is not authorized for this site.'}`
   }
 
   if (
@@ -386,6 +386,16 @@ function readableBingError(value: unknown, status?: number) {
   }
 
   return 'IndexNow URL submission failed.'
+}
+
+function extractBingMessage(value: unknown) {
+  if (!value || typeof value !== 'object') return ''
+
+  const response = value as { errorCode?: unknown; message?: unknown }
+  const code = typeof response.errorCode === 'string' ? response.errorCode : ''
+  const message = typeof response.message === 'string' ? response.message : ''
+
+  return [code, message].filter(Boolean).join(' - ')
 }
 
 function previewIndexNowRequest(body: IndexNowRequestBody) {
