@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { isAdminEmail } from '@/lib/admin'
 import { getCurrentUser } from '@/lib/auth/server'
+import { blogPath, getPublishedBlogPosts } from '@/lib/blog-store'
 import { appConfig } from '@/lib/config'
+import { LOCALES, type Locale } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +30,10 @@ export async function GET(request: Request) {
     }
 
     const requestUrl = new URL(request.url)
+    if (requestUrl.searchParams.get('action') === 'blog-urls') {
+      return NextResponse.json(await getPublishedBlogUrlsBefore(requestUrl.searchParams.get('before')))
+    }
+
     const apiKey = resolveIndexNowKey()
     if (!apiKey) {
       return NextResponse.json(
@@ -196,6 +202,37 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('[Bing URL Submission] Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+async function getPublishedBlogUrlsBefore(beforeInput: string | null) {
+  const before = beforeInput ? new Date(beforeInput) : new Date()
+  const cutoff = Number.isNaN(before.getTime()) ? new Date() : before
+  const siteUrl = appConfig.url.replace(/\/$/, '')
+  const urls: string[] = []
+  const seen = new Set<string>()
+
+  for (const locale of LOCALES) {
+    const posts = await getPublishedBlogPosts(locale as Locale)
+    for (const post of posts) {
+      const dateValue = post.publishedAt || post.updatedAt
+      const publishedTime = dateValue ? new Date(dateValue).getTime() : 0
+      if (publishedTime > cutoff.getTime()) continue
+
+      const url = `${siteUrl}${blogPath(post.locale, post.slug)}`
+      if (!seen.has(url)) {
+        seen.add(url)
+        urls.push(url)
+      }
+    }
+  }
+
+  urls.sort()
+
+  return {
+    before: cutoff.toISOString(),
+    count: urls.length,
+    urls,
   }
 }
 

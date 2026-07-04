@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/components/admin/admin-auth'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import { type Locale } from '@/lib/i18n'
-import { CheckCircle2, ExternalLink, KeyRound, Send, XCircle } from 'lucide-react'
+import { CheckCircle2, Clock3, ExternalLink, KeyRound, Send, XCircle } from 'lucide-react'
 
 type SubmitResult = {
   count: number
@@ -26,6 +26,12 @@ type KeyCheckResult = {
   keyMatches: boolean
 }
 
+type BlogUrlResult = {
+  before: string
+  count: number
+  urls: string[]
+}
+
 interface BingUrlSubmitPageViewProps {
   locale?: Locale
 }
@@ -37,14 +43,23 @@ function parseUrlInput(value: string) {
     .filter(Boolean)
 }
 
+function defaultBeforeValue() {
+  const now = new Date()
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+  return now.toISOString().slice(0, 16)
+}
+
 export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPageViewProps) {
   const { accessToken, dashboardHref, isAuthorized, isCheckingAuth } = useAdminAuth(locale)
   const [urlsText, setUrlsText] = useState('')
+  const [blogBefore, setBlogBefore] = useState(defaultBeforeValue)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isCheckingKey, setIsCheckingKey] = useState(false)
+  const [isLoadingBlogUrls, setIsLoadingBlogUrls] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<SubmitResult | null>(null)
   const [keyCheckResult, setKeyCheckResult] = useState<KeyCheckResult | null>(null)
+  const [blogUrlResult, setBlogUrlResult] = useState<BlogUrlResult | null>(null)
 
   const candidateCount = useMemo(() => new Set(parseUrlInput(urlsText)).size, [urlsText])
 
@@ -79,6 +94,52 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
       setError(readableSubmitError(keyError))
     } finally {
       setIsCheckingKey(false)
+    }
+  }
+
+  const handleFillBlogUrls = async () => {
+    setError('')
+    setResult(null)
+    setBlogUrlResult(null)
+
+    if (!accessToken) {
+      window.location.href = dashboardHref
+      return
+    }
+
+    setIsLoadingBlogUrls(true)
+
+    try {
+      const params = new URLSearchParams()
+      params.set('action', 'blog-urls')
+      if (blogBefore) params.set('before', new Date(blogBefore).toISOString())
+
+      const response = await fetch(`/api/admin/bing-url-submissions?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Could not load blog URLs.')
+      }
+
+      const urls = Array.isArray(data.urls)
+        ? data.urls.filter((url: unknown): url is string => typeof url === 'string')
+        : []
+
+      setUrlsText(urls.join('\n'))
+      setBlogUrlResult({
+        before: typeof data.before === 'string' ? data.before : new Date().toISOString(),
+        count: urls.length,
+        urls,
+      })
+    } catch (blogUrlError) {
+      setError(readableSubmitError(blogUrlError))
+    } finally {
+      setIsLoadingBlogUrls(false)
     }
   }
 
@@ -139,6 +200,38 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
     >
       <div className="space-y-6">
         <Card className="p-5 sm:p-6">
+          <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+              <label className="block text-sm font-semibold text-slate-700">
+                Fill published blog URLs before
+                <input
+                  type="datetime-local"
+                  value={blogBefore}
+                  onChange={(event) => setBlogBefore(event.target.value)}
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </label>
+              <Button
+                variant="secondary"
+                onClick={handleFillBlogUrls}
+                isLoading={isLoadingBlogUrls}
+                disabled={isLoadingBlogUrls}
+                className="w-full lg:w-auto"
+              >
+                <Clock3 className="mr-2 h-4 w-4" />
+                Fill Blog URLs
+              </Button>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              Loads published blog URLs whose publish/update time is before the selected time, then fills the submit box below.
+            </p>
+            {blogUrlResult && (
+              <p className="mt-2 text-sm font-semibold text-green-700">
+                Filled {blogUrlResult.count} blog URLs before {new Date(blogUrlResult.before).toLocaleString()}.
+              </p>
+            )}
+          </div>
+
           <label htmlFor="bing-urls" className="mb-2 block text-sm font-semibold text-slate-700">
             URLs
           </label>
