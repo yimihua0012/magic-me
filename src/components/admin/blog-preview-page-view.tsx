@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Compass, ListChecks, TriangleAlert } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Compass, TriangleAlert } from 'lucide-react'
 import AdminPageFrame from '@/components/admin/admin-page-frame'
 import { useAdminAuth } from '@/components/admin/admin-auth'
 import BlogCoverImage from '@/components/blog/blog-cover-image'
@@ -206,25 +206,6 @@ export default function BlogPreviewPageView({ id, locale = 'en' }: BlogPreviewPa
             </section>
           ))}
         </div>
-
-        {post.enhancement?.actionSteps?.length ? (
-          <section className="mt-12">
-            <div className="flex items-center gap-3">
-              <ListChecks className="h-6 w-6 text-primary-600" />
-              <h2 className="break-words text-2xl font-bold text-slate-950">Practical steps</h2>
-            </div>
-            <ol className="mt-5 space-y-3">
-              {post.enhancement.actionSteps.map((step, index) => (
-                <li key={step} className="flex gap-3 rounded-lg border border-slate-200 bg-white p-4">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
-                    {index + 1}
-                  </span>
-                  <span className="text-sm leading-6 text-slate-700">{step}</span>
-                </li>
-              ))}
-            </ol>
-          </section>
-        ) : null}
 
         {post.enhancement?.qualityChecks?.length || post.enhancement?.avoid?.length ? (
           <section className="mt-12 grid gap-5 md:grid-cols-[1.05fr_0.95fr]">

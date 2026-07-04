@@ -581,7 +581,6 @@ function BlogDraftPreview({ form }: { form: BlogFormState }) {
   const sections = parseJsonSafe<{ heading: string; body: string }[]>(form.sectionsJson, [])
   const enhancement = parseJsonSafe<{
     searchIntent?: string
-    actionSteps?: string[]
     qualityChecks?: { label: string; detail: string }[]
     avoid?: string[]
   }>(form.enhancementJson, {})
@@ -635,19 +634,6 @@ function BlogDraftPreview({ form }: { form: BlogFormState }) {
           </div>
         )}
 
-        {Array.isArray(enhancement.actionSteps) && enhancement.actionSteps.length > 0 && (
-          <section className="mt-8">
-            <h2 className="text-2xl font-bold text-slate-950">Practical steps</h2>
-            <ol className="mt-4 space-y-3">
-              {enhancement.actionSteps.map((step, index) => (
-                <li key={step} className="flex gap-3 rounded-lg border border-slate-200 p-4 text-sm leading-6 text-slate-700">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">{index + 1}</span>
-                  {step}
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
       </article>
     </div>
   )

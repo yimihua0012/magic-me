@@ -5,7 +5,7 @@ import AdminPageFrame from '@/components/admin/admin-page-frame'
 import { useAdminAuth } from '@/components/admin/admin-auth'
 import Card from '@/components/ui/card'
 import { localePath, type Locale } from '@/lib/i18n'
-import { Activity, ArrowRight, BookOpenText, CreditCard, Image, MousePointerClick, PackageCheck, SearchCheck, Sparkles } from 'lucide-react'
+import { Activity, ArrowRight, BookOpenText, CreditCard, Image, ListPlus, MousePointerClick, PackageCheck, SearchCheck, Sparkles } from 'lucide-react'
 
 interface AdminHomePageViewProps {
   locale?: Locale
@@ -46,6 +46,13 @@ const entries = [
     href: '/dashboard/admin/blog',
     icon: BookOpenText,
     tone: 'text-teal-600 bg-teal-50',
+  },
+  {
+    title: 'Keyword Research',
+    description: 'Pull Google-style related keyword suggestions into a copyable list.',
+    href: '/dashboard/admin/keyword-research',
+    icon: ListPlus,
+    tone: 'text-lime-700 bg-lime-50',
   },
   {
     title: 'Bing URL Submit',

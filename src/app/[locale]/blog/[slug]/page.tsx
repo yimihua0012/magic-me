@@ -64,11 +64,7 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
   const postIndex = posts.findIndex((item) => item.slug === post.slug)
   const fallbackPortrait = postIndex >= 0 && postIndex < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[postIndex] : null
   const image = post.coverImage || (fallbackPortrait ? { url: fallbackPortrait.src, alt: fallbackPortrait.alt } : null)
-  const related = post.enhancement?.relatedSlugs
-    ? post.enhancement.relatedSlugs
-        .map((relatedSlug) => posts.find((item) => item.slug === relatedSlug))
-        .filter((item): item is (typeof posts)[number] => Boolean(item))
-    : posts.filter((item) => item.slug !== post.slug).slice(0, 3)
+  const related = getRelatedPosts(posts, post.slug, post.enhancement?.relatedSlugs)
 
   return (
     <div className="min-h-screen bg-white">
@@ -115,22 +111,6 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
             ))}
           </div>
 
-          {post.enhancement?.actionSteps?.length ? (
-            <section className="content-auto mt-12">
-              <h2 className="break-words text-2xl font-bold text-slate-950">Practical steps</h2>
-              <ol className="mt-5 space-y-3">
-                {post.enhancement.actionSteps.map((step, index) => (
-                  <li key={step} className="flex gap-3 rounded-lg border border-slate-200 bg-white p-4">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
-                      {index + 1}
-                    </span>
-                    <span className="text-sm leading-6 text-slate-700">{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ) : null}
-
           <section className="content-auto mt-12 rounded-lg border border-primary-100 bg-primary-50 p-6">
             <h2 className="break-words text-2xl font-bold text-slate-950">Create your own professional headshots</h2>
             <p className="mt-3 text-sm leading-6 text-slate-700">
@@ -162,4 +142,30 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
       <Footer locale={routedLocale} />
     </div>
   )
+}
+
+function getRelatedPosts<T extends { slug: string }>(
+  posts: T[],
+  currentSlug: string,
+  relatedSlugs: string[] | undefined,
+) {
+  const related: T[] = []
+  const used = new Set([currentSlug])
+
+  for (const relatedSlug of relatedSlugs || []) {
+    const post = posts.find((item) => item.slug === relatedSlug)
+    if (!post || used.has(post.slug)) continue
+    used.add(post.slug)
+    related.push(post)
+    if (related.length >= 3) return related
+  }
+
+  for (const post of posts) {
+    if (used.has(post.slug)) continue
+    used.add(post.slug)
+    related.push(post)
+    if (related.length >= 3) return related
+  }
+
+  return related
 }

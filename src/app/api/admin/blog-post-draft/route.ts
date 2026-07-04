@@ -164,8 +164,7 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string) {
     '',
     'The prompt must ask for one practical SEO blog article about Magic-Headshot as an AI tool for creating professional headshot images from uploaded selfies.',
     'The prompt must be localized to the market and search behavior of the selected language, not a direct translation from English.',
-    'The prompt must ask the article to include concrete advice about source photo preparation, natural likeness, style choice, common mistakes, and how to evaluate generated results.',
-    'The prompt must not include unsupported discounts, legal claims, medical claims, or guarantees.',
+    'The prompt must include this rule: Do not include discounts, legal claims, medical claims, or guarantees.',
     'Critical: the prompt must require DeepSeek to return only one valid JSON object that can be parsed and saved by the blog CMS.',
     'The prompt must preserve these exact required JSON keys: slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
     'The prompt must preserve these field rules:',
@@ -213,7 +212,6 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[]) {
     `Confirmed localized search keywords: ${keywords.join(', ')}.`,
     'Product context: Magic-Headshot lets users upload selfies and generate professional headshot images for work-related profiles and online presence.',
     'Write for local search behavior and local reader expectations in the selected language. Do not directly translate English examples.',
-    'Include concrete advice about source photo preparation, natural likeness, style choice, common mistakes, and evaluating generated results.',
     'Return only the final JSON object.',
     'Return one JSON object with exactly these keys:',
     'slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
@@ -233,7 +231,7 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[]) {
     '- internalLinks must link only to public paths: /pricing, /sample, /questions, /blog, /free-id-photo-tool.',
     '- relatedSlugs can be an empty array.',
     '- localizedSlugs must include the selected locale mapped to slug.',
-    '- Do not invent discounts, legal claims, medical claims, or guarantees.',
+    '- Do not include discounts, legal claims, medical claims, or guarantees.',
     '- The JSON content must not include markdown code fences.',
   ].join('\n')
 }

@@ -100,7 +100,7 @@ for (const planId of ['basic', 'pro', 'premium']) {
 }
 
 const middleware = read('src/middleware.ts')
-for (const route of ['', 'blog', 'pricing', 'privacy', 'terms', 'refund', 'contact', 'questions', 'sample', 'landing', 'upload', 'login', 'dashboard/admin/blog', ...useCaseRoutes.map((route) => route.slice(1))]) {
+for (const route of ['', 'blog', 'pricing', 'privacy', 'terms', 'refund', 'contact', 'questions', 'sample', 'landing', 'upload', 'login', 'dashboard/admin/blog', 'dashboard/admin/keyword-research', ...useCaseRoutes.map((route) => route.slice(1))]) {
   assert(middleware.includes(`'${route}'`), `middleware localizedRoutes missing ${route || 'home'}`)
 }
 assert(middleware.includes("const dynamicRootRoutes = new Set(['blog'"), 'middleware must allow dynamic English CMS blog slugs')
@@ -147,6 +147,10 @@ assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('exactly two 
 assert(read('src/lib/blog-store.ts').includes('normalizeAdminBlogSlug'), 'admin blog save must normalize long AI-generated slugs')
 assert(read('src/app/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'English admin blog page must render blog content manager')
 assert(read('src/app/[locale]/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'localized admin blog page must render blog content manager')
+assert(read('src/app/api/admin/keyword-suggestions/route.ts').includes('suggestqueries.google.com'), 'admin keyword research must use Google-style suggestions server-side')
+assert(read('src/components/admin/keyword-research-page-view.tsx').includes('Related Keywords'), 'admin keyword research UI must expose a copyable related keyword box')
+assert(read('src/app/dashboard/admin/keyword-research/page.tsx').includes('KeywordResearchPageView'), 'English admin keyword research page must render keyword research UI')
+assert(read('src/app/[locale]/dashboard/admin/keyword-research/page.tsx').includes('KeywordResearchPageView'), 'localized admin keyword research page must render keyword research UI')
 assert(read('src/components/blog/blog-cover-image.tsx').includes('alt={alt}'), 'blog cover image component must preserve image alt text')
 
 const localizedNavbar = read('src/components/layout/localized-navbar.tsx')
@@ -291,8 +295,11 @@ for (const link of ["href: '/sample'", "href: '/questions'", "href: '/pricing'"]
   assert(blogArticle.includes(link), `Blog article must link internally to ${link}`)
 }
 assert(blogArticle.includes('getBlogEnhancement'), 'Blog articles must use per-post enhancement content to reduce page similarity')
-assert(blogArticle.includes('enhancement.actionSteps'), 'Blog articles must render per-post action steps')
 assert(blogArticle.includes('enhancement.qualityChecks'), 'Blog articles must render per-post quality checks')
+assert(!blogArticle.includes('Practical steps'), 'Blog articles must not render the Practical steps module')
+assert(!read('src/app/[locale]/blog/[slug]/page.tsx').includes('Practical steps'), 'Localized blog articles must not render the Practical steps module')
+assert(blogArticle.includes('getRelatedPosts(allPosts, post.slug'), 'Blog articles must backfill related posts when CMS related slugs are empty')
+assert(read('src/app/[locale]/blog/[slug]/page.tsx').includes('getRelatedPosts(posts, post.slug'), 'Localized blog articles must backfill related posts when CMS related slugs are empty')
 const blogEnhancements = read('src/lib/blog-enhancements.ts')
 const seoContent = read('src/lib/seo-content.ts')
 const blogSlugMatches = [...seoContent.matchAll(/slug: '([^']+)'/g)].map((match) => match[1])

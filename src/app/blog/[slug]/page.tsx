@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Compass, ListChecks, TriangleAlert } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Compass, TriangleAlert } from 'lucide-react'
 import BlogCoverImage from '@/components/blog/blog-cover-image'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
@@ -96,11 +96,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   const fallbackPortrait = postIndex >= 0 && postIndex < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[postIndex] : null
   const portrait = post.coverImage || (fallbackPortrait ? { url: fallbackPortrait.src, alt: fallbackPortrait.alt } : null)
   const enhancement = post.enhancement || getBlogEnhancement(post.slug)
-  const related = enhancement
-    ? enhancement.relatedSlugs
-        .map((relatedSlug) => allPosts.find((item) => item.slug === relatedSlug))
-        .filter((item): item is (typeof allPosts)[number] => Boolean(item))
-    : allPosts.filter((item) => item.slug !== post.slug).slice(0, 3)
+  const related = getRelatedPosts(allPosts, post.slug, enhancement?.relatedSlugs)
   const workflowLinks = getRenderableWorkflowLinks(enhancement?.internalLinks)
 
   return (
@@ -169,23 +165,6 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
           {enhancement && (
             <>
-              <section className="content-auto mt-12">
-                <div className="flex items-center gap-3">
-                  <ListChecks className="h-6 w-6 text-primary-600" />
-                  <h2 className="break-words text-2xl font-bold text-slate-950">Practical steps for this situation</h2>
-                </div>
-                <ol className="mt-5 space-y-3">
-                  {enhancement.actionSteps.map((step, index) => (
-                    <li key={step} className="flex gap-3 rounded-lg border border-slate-200 bg-white p-4">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
-                        {index + 1}
-                      </span>
-                      <span className="text-sm leading-6 text-slate-700">{step}</span>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-
               <section className="content-auto mt-12 grid gap-5 md:grid-cols-[1.05fr_0.95fr]">
                 <div className="rounded-lg border border-accent-100 bg-accent-50 p-5 sm:p-6">
                   <div className="flex items-center gap-3">
@@ -277,4 +256,30 @@ function getRenderableWorkflowLinks(
   ))
 
   return publicLinks.length > 0 ? publicLinks : defaultWorkflowLinks
+}
+
+function getRelatedPosts<T extends { slug: string }>(
+  posts: T[],
+  currentSlug: string,
+  relatedSlugs: string[] | undefined,
+) {
+  const related: T[] = []
+  const used = new Set([currentSlug])
+
+  for (const relatedSlug of relatedSlugs || []) {
+    const post = posts.find((item) => item.slug === relatedSlug)
+    if (!post || used.has(post.slug)) continue
+    used.add(post.slug)
+    related.push(post)
+    if (related.length >= 3) return related
+  }
+
+  for (const post of posts) {
+    if (used.has(post.slug)) continue
+    used.add(post.slug)
+    related.push(post)
+    if (related.length >= 3) return related
+  }
+
+  return related
 }
