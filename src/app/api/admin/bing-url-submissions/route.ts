@@ -134,11 +134,15 @@ export async function POST(request: Request) {
     const submissionUrl = new URL(process.env.INDEXNOW_ENDPOINT || INDEXNOW_ENDPOINT)
     const host = new URL(siteUrl).host
     const keyLocation = resolveKeyLocation(body?.keyLocation, siteUrl, apiKey)
-    const indexNowBody = {
+    const keyCheck = await checkIndexNowKeyFile(keyLocation, apiKey)
+
+    const indexNowBody: IndexNowRequestBody = {
       host,
       key: apiKey,
-      keyLocation,
       urlList: normalizedUrls,
+    }
+    if (typeof body?.keyLocation === 'string' && body.keyLocation.trim()) {
+      indexNowBody.keyLocation = keyLocation
     }
 
     let bingResponse: Response
@@ -188,6 +192,7 @@ export async function POST(request: Request) {
           count: normalizedUrls.length,
           siteUrl,
           keyLocation,
+          keyCheck,
           indexNowRequestPreview: previewIndexNowRequest(indexNowBody),
         },
         { status: 502 },
@@ -202,6 +207,8 @@ export async function POST(request: Request) {
       bingResponse: parsedResponse,
       endpoint: submissionUrl.origin + submissionUrl.pathname,
       indexNowRequestPreview: previewIndexNowRequest(indexNowBody),
+      keyLocation,
+      keyCheck,
     })
   } catch (error) {
     console.error('[Bing URL Submission] Error:', error)
@@ -305,6 +312,37 @@ function resolveKeyLocation(value: unknown, siteUrl: string, apiKey: string) {
   return `${siteUrl}/${apiKey}.txt`
 }
 
+type IndexNowRequestBody = {
+  host: string
+  key: string
+  keyLocation?: string
+  urlList: string[]
+}
+
+async function checkIndexNowKeyFile(keyLocation: string, apiKey: string) {
+  try {
+    const response = await fetch(keyLocation, {
+      method: 'GET',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(BING_SUBMISSION_TIMEOUT_MS),
+    })
+    const text = await response.text().catch(() => '')
+    const keyMatches = text.trim() === apiKey
+
+    return {
+      ok: response.ok && keyMatches,
+      status: response.status,
+      keyMatches,
+    }
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      keyMatches: false,
+    }
+  }
+}
+
 function normalizeUrlsForSite(rawUrls: string[], siteUrl: string) {
   const site = new URL(siteUrl)
   const seen = new Set<string>()
@@ -359,7 +397,7 @@ function readableBingError(value: unknown, status?: number) {
   return 'IndexNow URL submission failed.'
 }
 
-function previewIndexNowRequest(body: { host: string; key: string; keyLocation: string; urlList: string[] }) {
+function previewIndexNowRequest(body: IndexNowRequestBody) {
   return {
     host: body.host,
     keyConfigured: Boolean(body.key),
