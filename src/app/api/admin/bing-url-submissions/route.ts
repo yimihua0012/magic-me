@@ -7,7 +7,7 @@ import { LOCALES, type Locale } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
 
-const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow'
+const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/IndexNow'
 const MAX_BING_BATCH_SIZE = 500
 const BING_SUBMISSION_TIMEOUT_MS = 30000
 
@@ -131,7 +131,6 @@ export async function POST(request: Request) {
       )
     }
 
-    const submissionUrl = new URL(process.env.INDEXNOW_ENDPOINT || INDEXNOW_ENDPOINT)
     const host = new URL(siteUrl).host
     const keyLocation = resolveKeyLocation(body?.keyLocation, siteUrl, apiKey)
     const keyCheck = await checkIndexNowKeyFile(keyLocation, apiKey)
@@ -139,12 +138,11 @@ export async function POST(request: Request) {
     const indexNowBody: IndexNowRequestBody = {
       host,
       key: apiKey,
+      keyLocation,
       urlList: normalizedUrls,
     }
-    if (typeof body?.keyLocation === 'string' && body.keyLocation.trim()) {
-      indexNowBody.keyLocation = keyLocation
-    }
 
+    const submissionUrl = new URL(process.env.INDEXNOW_ENDPOINT || INDEXNOW_ENDPOINT)
     let bingResponse: Response
     try {
       bingResponse = await fetch(submissionUrl.toString(), {
@@ -157,7 +155,6 @@ export async function POST(request: Request) {
         signal: AbortSignal.timeout(BING_SUBMISSION_TIMEOUT_MS),
       })
     } catch (fetchError) {
-      console.error('[Bing URL Submission] Network error:', fetchError)
       return NextResponse.json(
         {
           error: 'Could not connect to Bing Webmaster Tools. Check server network access and try again.',
@@ -176,12 +173,6 @@ export async function POST(request: Request) {
     const parsedResponse = parseBingResponse(responseText)
 
     if (!bingResponse.ok) {
-      console.error('[Bing URL Submission] Failed:', {
-        status: bingResponse.status,
-        siteUrl,
-        body: parsedResponse,
-      })
-
       return NextResponse.json(
         {
           error: readableBingError(parsedResponse, bingResponse.status),
