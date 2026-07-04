@@ -86,7 +86,8 @@ export default function PricingPage() {
             </h1>
             <p className="mx-auto max-w-2xl text-sm text-slate-600 sm:text-lg lg:text-xl">
               One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business
-              portraits, and team pages.
+              portraits, and team pages. Compare credit packs before you upload, see what each plan includes, and choose
+              the package that matches how many professional styles you want to generate.
             </p>
           </div>
 

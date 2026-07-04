@@ -90,24 +90,32 @@ function homeName(locale: Locale) {
 }
 
 export function BreadcrumbJsonLd({ locale, path, currentName, parent }: BreadcrumbJsonLdProps) {
-  const items = [
-    {
-      name: homeName(locale),
-      item: pageUrl(locale, '/'),
-    },
-    ...(parent
-      ? [
-          {
-            name: parent.name,
-            item: pageUrl(locale, parent.path),
-          },
-        ]
-      : []),
-    {
-      name: currentName,
-      item: pageUrl(locale, path),
-    },
-  ]
+  const isHomePage = path === '/' || path === ''
+  const items = isHomePage
+    ? [
+        {
+          name: homeName(locale),
+          item: pageUrl(locale, '/'),
+        },
+      ]
+    : [
+        {
+          name: homeName(locale),
+          item: pageUrl(locale, '/'),
+        },
+        ...(parent
+          ? [
+              {
+                name: parent.name,
+                item: pageUrl(locale, parent.path),
+              },
+            ]
+          : []),
+        {
+          name: currentName,
+          item: pageUrl(locale, path),
+        },
+      ]
 
   const jsonLd = {
     '@context': 'https://schema.org',

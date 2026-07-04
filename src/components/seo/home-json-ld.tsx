@@ -2,6 +2,7 @@ import { appConfig } from '@/lib/config'
 import { getDefaultCurrencyForLocale } from '@/lib/currency'
 import { localePath, type Locale } from '@/lib/i18n'
 import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
+import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 
 interface HomeJsonLdProps {
   locale: Locale
@@ -39,19 +40,17 @@ export default function HomeJsonLd({ locale, title, description, keywords }: Hom
           offerCount: '3',
           ...digitalMerchantPolicy(currency),
         },
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: '4.8',
-          ratingCount: '10000',
-        },
       },
     ],
   }
 
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <BreadcrumbJsonLd locale={locale} path="/" currentName={title} />
+    </>
   )
 }

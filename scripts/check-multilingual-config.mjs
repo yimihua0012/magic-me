@@ -4,6 +4,20 @@ import { join } from 'node:path'
 const root = process.cwd()
 const locales = ['es', 'fr', 'de', 'ja']
 const currencies = ['USD', 'EUR', 'JPY']
+const useCaseRoutes = [
+  '/ai-headshot-linkedin',
+  '/ai-headshot-corporate',
+  '/ai-headshot-resume',
+  '/ai-headshot-studio-style',
+  '/ai-headshot-professional-photo',
+]
+const useCaseSeoPages = [
+  'aiHeadshotLinkedIn',
+  'aiHeadshotCorporate',
+  'aiHeadshotResume',
+  'aiHeadshotStudioStyle',
+  'aiHeadshotProfessionalPhoto',
+]
 
 function read(path) {
   return readFileSync(join(root, path), 'utf8')
@@ -86,7 +100,7 @@ for (const planId of ['basic', 'pro', 'premium']) {
 }
 
 const middleware = read('src/middleware.ts')
-for (const route of ['', 'blog', 'pricing', 'privacy', 'terms', 'refund', 'contact', 'questions', 'sample', 'landing', 'upload', 'login', 'dashboard/admin/blog']) {
+for (const route of ['', 'blog', 'pricing', 'privacy', 'terms', 'refund', 'contact', 'questions', 'sample', 'landing', 'upload', 'login', 'dashboard/admin/blog', ...useCaseRoutes.map((route) => route.slice(1))]) {
   assert(middleware.includes(`'${route}'`), `middleware localizedRoutes missing ${route || 'home'}`)
 }
 assert(middleware.includes("const dynamicRootRoutes = new Set(['blog'"), 'middleware must allow dynamic English CMS blog slugs')
@@ -95,7 +109,7 @@ assert(!middleware.includes("return redirectTo(request, '/')"), 'middleware must
 assert(!middleware.includes('localePath(firstSegment))'), 'middleware must not redirect unknown localized URLs to locale home; allow real 404s')
 
 const sitemap = read('src/lib/sitemap.ts')
-for (const route of ['/landing', '/pricing', '/questions', '/sample', '/contact', '/privacy', '/terms', '/refund']) {
+for (const route of ['/landing', '/pricing', '/questions', '/sample', '/contact', '/privacy', '/terms', '/refund', ...useCaseRoutes]) {
   assert(sitemap.includes(`path: '${route}'`), `localized sitemap missing ${route}`)
 }
 assert(sitemap.includes('xmlns:image'), 'sitemap renderer must expose the image sitemap namespace when images are present')
@@ -121,10 +135,16 @@ assert(read('src/app/api/admin/revalidate-blog/route.ts').includes('revalidateBl
 assert(read('src/components/admin/blog-content-page-view.tsx').includes('SEO enhancement JSON'), 'admin blog UI must expose structured SEO enhancement fields')
 assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('DEEPSEEK_KEY'), 'DeepSeek blog draft generation must keep the API key server-side')
 assert(read('src/components/admin/blog-content-page-view.tsx').includes('DeepSeek Draft Generator'), 'admin blog UI must expose the editable DeepSeek draft generator')
-assert(read('src/components/admin/blog-content-page-view.tsx').includes('draftUseCase'), 'admin blog UI must collect the basic use case before DeepSeek generation')
-assert(read('src/components/admin/blog-content-page-view.tsx').includes('Build Prompt'), 'admin blog UI must let admins review the generated prompt before generating the article')
+assert(read('src/components/admin/blog-content-page-view.tsx').includes('draftRelatedTerms'), 'admin blog UI must collect related terms before DeepSeek generation')
+assert(read('src/components/admin/blog-content-page-view.tsx').includes('Prepare Keywords'), 'admin blog UI must let DeepSeek prepare localized keywords and a reviewable prompt')
 assert(read('src/components/admin/blog-content-page-view.tsx').includes('Generate Article'), 'admin blog UI must separate prompt review from article generation')
-assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('1000-1200 words'), 'DeepSeek blog draft prompt must constrain article length')
+assert(read('src/components/admin/blog-content-page-view.tsx').includes('Admin Preview'), 'admin blog UI must expose saved draft previews before publish')
+assert(read('src/components/admin/blog-preview-page-view.tsx').includes('/api/admin/blog-posts/${id}'), 'admin blog preview must load saved posts by ID')
+assert(read('src/app/dashboard/admin/blog/preview/[id]/page.tsx').includes('BlogPreviewPageView'), 'English admin blog preview route must render saved draft previews')
+assert(read('src/app/[locale]/dashboard/admin/blog/preview/[id]/page.tsx').includes('BlogPreviewPageView'), 'localized admin blog preview route must render saved draft previews')
+assert(read('src/app/api/admin/blog-post-draft/route.ts').includes("mode === 'prepare'"), 'DeepSeek blog draft generation must support keyword and prompt preparation')
+assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('exactly two localized search keywords'), 'DeepSeek preparation must return two localized search keywords')
+assert(read('src/lib/blog-store.ts').includes('normalizeAdminBlogSlug'), 'admin blog save must normalize long AI-generated slugs')
 assert(read('src/app/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'English admin blog page must render blog content manager')
 assert(read('src/app/[locale]/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'localized admin blog page must render blog content manager')
 assert(read('src/components/blog/blog-cover-image.tsx').includes('alt={alt}'), 'blog cover image component must preserve image alt text')
@@ -133,6 +153,9 @@ const localizedNavbar = read('src/components/layout/localized-navbar.tsx')
 assert(localizedNavbar.includes('withSource'), 'localized navbar CTA links must include source')
 assert(localizedNavbar.includes('LOCALE_LABELS'), 'localized navbar must expose language switching')
 assert(localizedNavbar.includes('localizedLayoutContent'), 'localized navbar must use localized layout copy')
+for (const route of useCaseRoutes.map((route) => route.slice(1))) {
+  assert(localizedNavbar.includes(`route === '${route}'`), `localized navbar language switch must preserve ${route}`)
+}
 
 const localizedFooter = read('src/components/layout/localized-footer.tsx')
 assert(localizedFooter.includes('withSource'), 'localized footer links must include source')
@@ -177,6 +200,13 @@ const pricingJsonLd = read('src/components/seo/pricing-json-ld.tsx')
 assert(pricingJsonLd.includes('priceCurrency: currency'), 'pricing JSON-LD must use the active locale default currency')
 assert(pricingJsonLd.includes('BreadcrumbJsonLd'), 'pricing JSON-LD must include BreadcrumbList')
 assert(pricingJsonLd.includes('Ai headshot-linkedin-professional.jpg'), 'pricing JSON-LD must use the stable static SEO image')
+assert(pricingJsonLd.includes("'@graph'"), 'pricing JSON-LD must share merchant policies through @graph to avoid duplicate shipping details per offer')
+assert(pricingJsonLd.includes('digitalDeliveryPolicy(currency)'), 'pricing JSON-LD must define delivery policy once per page')
+const merchantStructuredData = read('src/lib/merchant-structured-data.ts')
+assert(merchantStructuredData.includes('digitalDeliveryPolicyId(currency)'), 'merchant structured data must expose shared delivery policy IDs')
+assert(merchantStructuredData.includes('shippingDetails: {') && merchantStructuredData.includes("'@id': digitalDeliveryPolicyId(currency)"), 'offers must reference shared shippingDetails instead of repeating deliveryTime and shippingRate')
+assert(merchantStructuredData.includes('MerchantReturnFiniteReturnWindow'), 'merchant return policy must reflect the 30-day refund policy')
+assert(merchantStructuredData.includes('merchantReturnDays: 30'), 'merchant return policy must expose 30 return days')
 
 const pageJsonLd = read('src/components/seo/page-json-ld.tsx')
 assert(pageJsonLd.includes('BreadcrumbJsonLd'), 'page JSON-LD helper must expose BreadcrumbList')
@@ -200,7 +230,7 @@ const localizedSeo = read('src/lib/localized-seo.ts')
 for (const locale of locales) {
   assert(localizedSeo.includes(`${locale}: {`), `localized SEO missing ${locale}`)
 }
-for (const page of ['home', 'landing', 'pricing', 'contact', 'questions', 'sample', 'upload']) {
+for (const page of ['home', 'landing', 'pricing', 'contact', 'questions', 'sample', 'upload', ...useCaseSeoPages]) {
   assert(localizedSeo.includes(`${page}: {`), `localized SEO missing ${page}`)
 }
 for (const route of [
@@ -211,9 +241,32 @@ for (const route of [
   'src/app/[locale]/questions/page.tsx',
   'src/app/[locale]/sample/page.tsx',
   'src/app/[locale]/upload/page.tsx',
+  'src/app/[locale]/ai-headshot-linkedin/page.tsx',
+  'src/app/[locale]/ai-headshot-corporate/page.tsx',
+  'src/app/[locale]/ai-headshot-resume/page.tsx',
+  'src/app/[locale]/ai-headshot-studio-style/page.tsx',
+  'src/app/[locale]/ai-headshot-professional-photo/page.tsx',
 ]) {
   assert(read(route).includes('getLocalizedSeo'), `${route} must use localized SEO keywords`)
 }
+
+const useCasePages = read('src/lib/use-case-pages.ts')
+const useCasePageView = read('src/components/use-case/use-case-page-view.tsx')
+for (const route of useCaseRoutes) {
+  const slug = route.slice(1)
+  assert(useCasePages.includes(`'${slug}': {`), `use-case localized content missing ${slug}`)
+  assert(read(`src/app/${slug}/page.tsx`).includes('buildUseCasePageMetadata'), `${slug} English page must expose metadata`)
+  assert(read(`src/app/[locale]/${slug}/page.tsx`).includes('buildUseCasePageMetadata'), `${slug} localized page must expose metadata`)
+}
+for (const locale of ['en', ...locales]) {
+  assert(useCasePages.includes(`${locale}: {`), `use-case content missing ${locale}`)
+}
+assert(useCasePages.includes('relatedLinks'), 'use-case pages must define internal related links')
+assert(useCasePages.includes('cases:'), 'use-case pages must define local use cases')
+assert(useCasePageView.includes('FaqPageJsonLd'), 'use-case pages must emit FAQPage JSON-LD')
+assert(useCasePageView.includes('WebPageJsonLd'), 'use-case pages must emit WebPage JSON-LD')
+assert(useCasePageView.includes('content.faqs.map'), 'use-case page must visibly render FAQ items used by FAQPage JSON-LD')
+assert(useCasePageView.includes('content.relatedLinks.map'), 'use-case page must visibly render internal links')
 
 const keywordStrategy = read('SEO_KEYWORD_STRATEGY.zh-CN.md')
 for (const keyword of ['AI headshot generator', 'AI headshots for LinkedIn', 'AI resume photo generator', 'professional headshots without photographer']) {

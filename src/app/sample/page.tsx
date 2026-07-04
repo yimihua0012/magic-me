@@ -52,7 +52,8 @@ export default function SamplePage() {
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
               Explore real Magic-Headshot comparison groups: one original reference photo and two generated AI
               headshots for LinkedIn, AI resume photo generator use cases, business portrait AI generator styles, and
-              professional headshots without photographer scheduling.
+              professional headshots without photographer scheduling. Use these examples to judge likeness, background
+              direction, wardrobe tone, and how different portrait styles can support a more credible public profile.
             </p>
             <div className="mt-7">
               <KeywordStrip keywords={coreSeoKeywords.slice(0, 6)} />

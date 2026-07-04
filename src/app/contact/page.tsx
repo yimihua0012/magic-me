@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
@@ -40,7 +41,9 @@ export default function ContactPage() {
               Contact Magic-Headshot AI Headshot Support
             </h1>
             <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-              Have questions about {appConfig.name}, AI headshot generation, professional photos, LinkedIn photo results, billing, refunds, or your account? Reach out and we&apos;ll respond as soon as possible.
+              Have questions about {appConfig.name}, AI headshot generation, professional photos, LinkedIn photo results,
+              billing, refunds, or your account? Reach out with the issue, order detail, or workflow question you need
+              help with, and we&apos;ll route it to the right support context as soon as possible.
             </p>
           </div>
 
@@ -182,6 +185,21 @@ export default function ContactPage() {
               </Card>
             </div>
           </div>
+
+          <Card className="mt-8 p-6">
+            <h2 className="mb-3 text-xl font-semibold text-slate-900">Helpful support resources</h2>
+            <div className="grid gap-3 text-sm sm:grid-cols-3">
+              <Link href="/pricing" className="font-medium text-primary-600 hover:underline">
+                Compare pricing
+              </Link>
+              <Link href="/questions" className="font-medium text-primary-600 hover:underline">
+                Read common questions
+              </Link>
+              <Link href="/refund" className="font-medium text-primary-600 hover:underline">
+                Check refund policy
+              </Link>
+            </div>
+          </Card>
         </div>
       </main>
 

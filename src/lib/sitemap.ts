@@ -34,6 +34,11 @@ const blogImages = blogGeneratedPortraitImages.map((image) => image.src)
 const englishStaticRoutes: SitemapRoute[] = [
   { path: '', changeFrequency: 'weekly', priority: 1, images: homeImages },
   { path: '/landing', changeFrequency: 'monthly', priority: 0.7, images: ['/landing-headshot-showcase.png'] },
+  { path: '/ai-headshot-linkedin', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: '/ai-headshot-corporate', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: '/ai-headshot-resume', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: '/ai-headshot-studio-style', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: '/ai-headshot-professional-photo', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.9, images: [defaultSeoImage] },
   { path: '/free-id-photo-tool', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/questions', changeFrequency: 'monthly', priority: 0.8 },
@@ -48,6 +53,11 @@ const englishStaticRoutes: SitemapRoute[] = [
 const localizedStaticRoutes: SitemapRoute[] = [
   { path: '', changeFrequency: 'weekly', priority: 1, images: homeImages },
   { path: '/landing', changeFrequency: 'monthly', priority: 0.7, images: ['/landing-headshot-showcase.png'] },
+  { path: '/ai-headshot-linkedin', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: '/ai-headshot-corporate', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: '/ai-headshot-resume', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: '/ai-headshot-studio-style', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: '/ai-headshot-professional-photo', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.9, images: [defaultSeoImage] },
   { path: '/free-id-photo-tool', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/questions', changeFrequency: 'monthly', priority: 0.8 },

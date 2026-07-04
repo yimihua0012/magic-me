@@ -84,10 +84,7 @@ function staticPostToMeta(post: BlogPost): BlogPostWithMeta {
 
 function rowToPost(row: BlogPostRow): BlogPostWithMeta {
   const fallbackEnhancement = blogEnhancements[row.slug]
-  const mergedEnhancement = {
-    ...fallbackEnhancement,
-    ...(row.seo_enhancement || {}),
-  } as BlogEnhancement | undefined
+  const mergedEnhancement = normalizeEnhancement(fallbackEnhancement, row.seo_enhancement)
   const content = row.content || {}
 
   return {
@@ -115,6 +112,54 @@ function rowToPost(row: BlogPostRow): BlogPostWithMeta {
     localizedSlugs: row.localized_slugs || { [row.locale]: row.slug },
     source: 'cms',
   }
+}
+
+function normalizeEnhancement(
+  fallback: BlogEnhancement | undefined,
+  input: Partial<BlogEnhancement> | null | undefined,
+) {
+  const merged = {
+    ...(fallback || {}),
+    ...(input || {}),
+  } as Partial<BlogEnhancement>
+
+  if (Array.isArray(merged.internalLinks)) {
+    merged.internalLinks = merged.internalLinks.filter(isPublicInternalLink)
+  }
+
+  if (isCompleteEnhancement(merged)) {
+    return merged
+  }
+
+  return fallback
+}
+
+function isCompleteEnhancement(value: Partial<BlogEnhancement> | undefined): value is BlogEnhancement {
+  return Boolean(
+    value &&
+    typeof value.category === 'string' &&
+    typeof value.audience === 'string' &&
+    typeof value.searchIntent === 'string' &&
+    typeof value.uniqueAngle === 'string' &&
+    Array.isArray(value.actionSteps) &&
+    Array.isArray(value.qualityChecks) &&
+    Array.isArray(value.avoid) &&
+    Array.isArray(value.internalLinks) &&
+    value.internalLinks.every(isPublicInternalLink) &&
+    Array.isArray(value.relatedSlugs)
+  )
+}
+
+function isPublicInternalLink(value: unknown): value is BlogEnhancement['internalLinks'][number] {
+  if (!value || typeof value !== 'object') return false
+
+  const link = value as Partial<BlogEnhancement['internalLinks'][number]>
+  return Boolean(
+    typeof link.href === 'string' &&
+    /^\/(?!api(?:\/|$)|dashboard(?:\/|$)|upload(?:\/|$)|generate(?:\/|$)|generations(?:\/|$)|login(?:\/|$)|auth(?:\/|$))/.test(link.href) &&
+    typeof link.label === 'string' &&
+    typeof link.reason === 'string'
+  )
 }
 
 function mergeWithStaticFallback(cmsPosts: BlogPostWithMeta[], locale: Locale) {
@@ -177,6 +222,26 @@ export async function getCmsPublishedBlogPosts(locale: Locale) {
 export async function getPublishedBlogPost(slug: string, locale: Locale = 'en') {
   const posts = await getPublishedBlogPosts(locale)
   return posts.find((post) => post.slug === slug)
+}
+
+export async function getAdminBlogPostById(id: string) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('blog_posts')
+      .select(publishedColumns)
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      console.warn('[Blog Store] Could not read admin blog post:', error.message)
+      return null
+    }
+
+    return rowToPost(data as unknown as BlogPostRow)
+  } catch (error) {
+    console.warn('[Blog Store] Could not read admin blog post.', error)
+    return null
+  }
 }
 
 export async function getPublishedBlogSlugs(locale: Locale = 'en') {
@@ -317,38 +382,47 @@ export async function listAdminBlogPosts(options: { locale?: Locale; status?: st
 }
 
 export async function upsertAdminBlogPost(input: BlogPostInput, userId: string) {
-  const errors = validateBlogPostInput(input)
+  const slug = normalizeAdminBlogSlug(input.slug, input.title, input.keywords)
+  const normalizedInput = {
+    ...input,
+    slug,
+    localizedSlugs: {
+      ...(input.localizedSlugs || {}),
+      [input.locale]: slug,
+    },
+  }
+  const errors = validateBlogPostInput(normalizedInput)
   if (errors.length > 0) {
     return { ok: false as const, errors }
   }
 
   const payload = {
-    locale: input.locale,
-    translation_group_id: input.translationGroupId || undefined,
-    source_post_id: input.sourcePostId || null,
-    slug: input.slug,
-    status: input.status,
-    title: input.title.trim(),
-    description: input.description.trim(),
-    keywords: input.keywords.map((keyword) => keyword.trim()).filter(Boolean),
-    category: input.category?.trim() || null,
-    cover_image_url: input.coverImageUrl?.trim() || null,
-    cover_image_alt: input.coverImageAlt?.trim() || null,
-    intro: input.intro.trim(),
-    content: { sections: input.sections },
-    seo_enhancement: input.enhancement || {},
+    locale: normalizedInput.locale,
+    translation_group_id: normalizedInput.translationGroupId || undefined,
+    source_post_id: normalizedInput.sourcePostId || null,
+    slug: normalizedInput.slug,
+    status: normalizedInput.status,
+    title: normalizedInput.title.trim(),
+    description: normalizedInput.description.trim(),
+    keywords: normalizedInput.keywords.map((keyword) => keyword.trim()).filter(Boolean),
+    category: normalizedInput.category?.trim() || null,
+    cover_image_url: normalizedInput.coverImageUrl?.trim() || null,
+    cover_image_alt: normalizedInput.coverImageAlt?.trim() || null,
+    intro: normalizedInput.intro.trim(),
+    content: { sections: normalizedInput.sections },
+    seo_enhancement: normalizedInput.enhancement || {},
     localized_slugs: {
-      ...(input.localizedSlugs || {}),
-      [input.locale]: input.slug,
+      ...(normalizedInput.localizedSlugs || {}),
+      [normalizedInput.locale]: normalizedInput.slug,
     },
-    published_at: input.status === 'published' ? new Date().toISOString() : null,
+    published_at: normalizedInput.status === 'published' ? new Date().toISOString() : null,
     updated_by: userId,
     created_by: userId,
   }
 
   const { created_by: _createdBy, ...updatePayload } = payload
-  const request = input.id
-    ? supabaseAdmin.from('blog_posts').update(updatePayload).eq('id', input.id).select(publishedColumns).single()
+  const request = normalizedInput.id
+    ? supabaseAdmin.from('blog_posts').update(updatePayload).eq('id', normalizedInput.id).select(publishedColumns).single()
     : supabaseAdmin.from('blog_posts').insert(payload).select(publishedColumns).single()
 
   const { data, error } = await request
@@ -357,4 +431,33 @@ export async function upsertAdminBlogPost(input: BlogPostInput, userId: string) 
   }
 
   return { ok: true as const, post: rowToPost(data as unknown as BlogPostRow) }
+}
+
+function normalizeAdminBlogSlug(slug: string, title: string, keywords: string[]) {
+  const candidate = slugifySlug(slug || title || keywords[0] || '')
+  if (candidate && candidate.length <= 56) return candidate
+
+  const shortCandidate = candidate
+    .split('-')
+    .filter(Boolean)
+    .slice(0, 6)
+    .join('-')
+
+  if (shortCandidate && shortCandidate.length <= 56) return shortCandidate
+
+  return `post-${randomShortId()}`
+}
+
+function slugifySlug(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-')
+}
+
+function randomShortId() {
+  return Math.random().toString(36).slice(2, 10)
 }

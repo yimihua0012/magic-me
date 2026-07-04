@@ -202,7 +202,9 @@ export default function HomePage() {
               </h1>
               
               <p className="mt-3 sm:mt-6 text-base sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0">
-                Pay once to add credits, choose the styles you want, then generate and deduct only the styles you selected.
+                Pay once to add credits, choose the professional styles you want, then generate and deduct only the
+                styles you selected. Use the finished portraits for LinkedIn, resumes, business profiles, team pages,
+                or personal branding when you need a realistic headshot without booking a photographer.
               </p>
               
               <div className="relative z-10 mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4 sm:justify-center lg:justify-start">

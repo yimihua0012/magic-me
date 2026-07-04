@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
@@ -34,7 +35,12 @@ export default function TermsPage() {
 
       <main className="pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-8">Magic-Headshot AI Headshot Terms of Service</h1>
+          <h1 className="mb-4 text-3xl font-bold text-slate-900">Magic-Headshot AI Headshot Terms of Service</h1>
+          <p className="mb-8 text-base leading-7 text-slate-600">
+            Review the rules for using Magic-Headshot to create AI headshots, including account requirements, acceptable
+            photo uploads, generated portrait rights, payments, refunds, and support contact paths. These terms clarify
+            how the service should be used for LinkedIn photos, resumes, business portraits, and team profile images.
+          </p>
           
           <div className="space-y-6 text-slate-600">
             <Card className="p-6">
@@ -113,6 +119,21 @@ export default function TermsPage() {
               <p>
                 For questions about these Terms, please contact us at: support@mail.magic-headshot.com
               </p>
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="mb-3 text-xl font-semibold text-slate-900">Related service policies</h2>
+              <div className="grid gap-3 text-sm sm:grid-cols-3">
+                <Link href="/privacy" className="font-medium text-primary-600 hover:underline">
+                  Privacy policy
+                </Link>
+                <Link href="/refund" className="font-medium text-primary-600 hover:underline">
+                  Refund policy
+                </Link>
+                <Link href="/pricing" className="font-medium text-primary-600 hover:underline">
+                  View pricing
+                </Link>
+              </div>
             </Card>
 
             <p className="text-sm text-slate-500 mt-8">

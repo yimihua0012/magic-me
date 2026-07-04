@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { safeReturnTo } from '@/lib/auth-return'
+import { loginPathForReturn, safeReturnTo } from '@/lib/auth-return'
 import { supabase } from '@/lib/supabase/client'
 
 export default function AuthCompletePage() {
@@ -23,9 +23,10 @@ function AuthCompleteContent() {
       const accessToken = searchParams.get('access_token')
       const refreshToken = searchParams.get('refresh_token')
       const returnTo = safeReturnTo(searchParams.get('returnTo'))
+      const loginErrorHref = `${loginPathForReturn(returnTo)}&error=session_missing`
 
       if (!accessToken || !refreshToken) {
-        router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}&error=session_missing`)
+        router.replace(loginErrorHref)
         return
       }
 
@@ -36,7 +37,7 @@ function AuthCompleteContent() {
 
       if (error) {
         setMessage('Sign-in could not be saved. Redirecting...')
-        router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}&error=session_missing`)
+        router.replace(loginErrorHref)
         return
       }
 

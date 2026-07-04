@@ -45,7 +45,9 @@ export default async function BlogPage() {
             </h1>
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
               Twenty static guides covering Magic-Headshot, AI image generation, AI headshots for LinkedIn, professional
-              headshots without photographer sessions, AI resume photo generator workflows, and realistic business portraits.
+              headshots without photographer sessions, AI resume photo generator workflows, and realistic business
+              portraits. Browse practical advice on what to upload, how to choose styles, where to use the results, and
+              how to keep professional profile photos believable.
             </p>
             <div className="mt-7">
               <KeywordStrip keywords={coreSeoKeywords.slice(0, 6)} />

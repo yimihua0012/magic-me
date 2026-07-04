@@ -10,6 +10,7 @@ import {
   type RoutedLocale,
 } from '@/lib/i18n'
 import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
+import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 
 type PageProps = {
   params: Promise<{
@@ -202,6 +203,7 @@ export default async function LocalizedFreeIdPhotoToolPage({ params }: PageProps
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <BreadcrumbJsonLd locale={routedLocale} path="/free-id-photo-tool" currentName={content.title} />
       <PublicPhotoToolsPageView locale={routedLocale} />
     </>
   )

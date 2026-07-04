@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
@@ -33,7 +34,12 @@ export default function RefundPage() {
 
       <main className="pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-8 text-3xl font-bold text-slate-900">Magic-Headshot AI Headshot Refund Policy</h1>
+          <h1 className="mb-4 text-3xl font-bold text-slate-900">Magic-Headshot AI Headshot Refund Policy</h1>
+          <p className="mb-8 text-base leading-7 text-slate-600">
+            Read how Magic-Headshot reviews refund requests for AI headshot purchases, unused credits, payment disputes,
+            and generation-related issues. This page explains eligibility, timing, what information to include, and how
+            approved refunds affect credits or generated portrait access.
+          </p>
 
           <div className="space-y-6 text-slate-600">
             <Card className="p-6">
@@ -105,6 +111,21 @@ export default function RefundPage() {
                 Email: support@mail.magic-headshot.com<br />
                 Support hours: Monday-Friday, 9 AM-6 PM EST
               </p>
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="mb-3 text-xl font-semibold text-slate-900">Related billing resources</h2>
+              <div className="grid gap-3 text-sm sm:grid-cols-3">
+                <Link href="/pricing" className="font-medium text-primary-600 hover:underline">
+                  View credit packs
+                </Link>
+                <Link href="/questions" className="font-medium text-primary-600 hover:underline">
+                  Read billing questions
+                </Link>
+                <Link href="/contact" className="font-medium text-primary-600 hover:underline">
+                  Contact support
+                </Link>
+              </div>
             </Card>
 
             <p className="mt-8 text-sm text-slate-500">

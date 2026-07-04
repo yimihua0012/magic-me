@@ -15,6 +15,7 @@ import { withSource } from '@/lib/navigation-source'
 interface NavbarProps {
   onOpenAuthModal?: () => void
   locale?: Locale
+  solid?: boolean
 }
 
 type IdleWindow = Window & {
@@ -22,7 +23,7 @@ type IdleWindow = Window & {
   cancelIdleCallback?: (handle: number) => void
 }
 
-export default function Navbar({ onOpenAuthModal, locale = 'en' }: NavbarProps) {
+export default function Navbar({ onOpenAuthModal, locale = 'en', solid = true }: NavbarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
@@ -163,7 +164,7 @@ export default function Navbar({ onOpenAuthModal, locale = 'en' }: NavbarProps) 
   return (
     <>
       <nav className={`fixed left-0 right-0 top-0 z-40 safe-top transition-all duration-300 ${
-        isScrolled
+        solid || isScrolled
           ? 'border-b border-slate-200/50 bg-white/80 shadow-sm backdrop-blur-navbar'
           : 'bg-transparent'
       }`}>
@@ -338,6 +339,11 @@ function getLocalizedSwitchPath(pathname: string) {
   const route = routeSegments.join('/')
 
   if (
+    route === 'ai-headshot-corporate' ||
+    route === 'ai-headshot-linkedin' ||
+    route === 'ai-headshot-professional-photo' ||
+    route === 'ai-headshot-resume' ||
+    route === 'ai-headshot-studio-style' ||
     route === 'pricing' ||
     route === 'privacy' ||
     route === 'terms' ||

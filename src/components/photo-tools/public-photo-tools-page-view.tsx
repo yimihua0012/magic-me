@@ -9,6 +9,7 @@ import LocalizedFooter from '@/components/layout/localized-footer'
 import Button from '@/components/ui/button'
 import { CheckCircle2, FileText, ImagePlus, Printer, ShieldAlert, Sparkles } from 'lucide-react'
 import { localePath, type Locale } from '@/lib/i18n'
+import { localizedLayoutContent } from '@/lib/localized-layout-content'
 import { withSource } from '@/lib/navigation-source'
 
 type SeoContent = {
@@ -37,7 +38,7 @@ const pageContent: Record<Locale, {
   en: {
     eyebrow: 'Free ID Photo Tool',
     title: 'Free ID Photo Generator, Crop & Print',
-    description: 'Upload a local portrait, generate ID photo sizes, crop passport photos, change background colors, and download a printable layout sheet.',
+    description: 'Upload a local portrait, generate common ID photo sizes, crop passport-style images, change background colors, and download a printable layout sheet for resumes, exams, badges, student cards, or everyday document photos.',
     generate: 'Generate Transparent PNG Portrait',
     sourceDescription: 'Upload a local PNG, JPG, or WebP portrait. Transparent PNG works best for background color changes.',
     upload: 'Upload Local Image',
@@ -47,7 +48,7 @@ const pageContent: Record<Locale, {
   es: {
     eyebrow: 'Herramienta gratis de foto de carnet',
     title: 'Generador, recorte e impresion gratis de foto de carnet',
-    description: 'Sube un retrato local, elige tamanos comunes por pais, cambia el fondo y descarga una hoja lista para imprimir.',
+    description: 'Sube un retrato local, elige tamanos comunes por pais, cambia el fondo y descarga una hoja lista para imprimir para CV, examenes, credenciales, tarjetas de estudiante y fotos de uso diario.',
     generate: 'Generar retrato PNG transparente',
     sourceDescription: 'Sube un retrato local PNG, JPG o WebP. Un PNG transparente funciona mejor para cambiar el fondo.',
     upload: 'Subir imagen local',
@@ -57,7 +58,7 @@ const pageContent: Record<Locale, {
   fr: {
     eyebrow: 'Outil gratuit de photo d identite',
     title: 'Generateur, recadrage et impression de photo d identite gratuits',
-    description: 'Importez un portrait local, choisissez des formats courants par pays, changez le fond et telechargez une planche imprimable.',
+    description: 'Importez un portrait local, choisissez des formats courants par pays, changez le fond et telechargez une planche imprimable pour CV, examens, badges, cartes etudiant et petites photos du quotidien.',
     generate: 'Generer un portrait PNG transparent',
     sourceDescription: 'Importez un portrait PNG, JPG ou WebP. Un PNG transparent fonctionne mieux pour changer le fond.',
     upload: 'Importer une image locale',
@@ -67,7 +68,7 @@ const pageContent: Record<Locale, {
   de: {
     eyebrow: 'Kostenloses Ausweisfoto Tool',
     title: 'Kostenloser Ausweisfoto Generator, Zuschnitt und Druck',
-    description: 'Lade ein lokales Portrat hoch, wahle gangige Landergroessen, andere den Hintergrund und lade einen Druckbogen herunter.',
+    description: 'Lade ein lokales Portrat hoch, wahle gangige Landergroessen, andere den Hintergrund und lade einen Druckbogen fur Lebenslauf, Prufungen, Mitarbeiterausweise, Studentenkarten und Alltagsfotos herunter.',
     generate: 'Transparentes PNG Portrat erstellen',
     sourceDescription: 'Lade ein lokales PNG-, JPG- oder WebP-Portrat hoch. Transparente PNGs eignen sich am besten fur Hintergrundfarben.',
     upload: 'Lokales Bild hochladen',
@@ -77,7 +78,7 @@ const pageContent: Record<Locale, {
   ja: {
     eyebrow: '無料の証明写真ツール',
     title: '無料の証明写真作成・トリミング・印刷',
-    description: 'ローカル画像をアップロードし、国や地域でよく使われるサイズを選び、背景色を変更して印刷用シートをダウンロードできます。',
+    description: 'ローカル画像をアップロードし、国や地域でよく使われるサイズを選び、背景色を変更して、履歴書、試験、社員証、学生証、日常書類向けの印刷用シートをダウンロードできます。',
     generate: '透明PNGポートレートを生成',
     sourceDescription: 'PNG、JPG、WebP のローカル画像をアップロードできます。背景色の変更には透明PNGが最適です。',
     upload: 'ローカル画像をアップロード',
@@ -260,7 +261,13 @@ interface PublicPhotoToolsPageViewProps {
 export default function PublicPhotoToolsPageView({ locale = 'en' }: PublicPhotoToolsPageViewProps) {
   const content = pageContent[locale]
   const seo = seoContent[locale]
+  const layout = localizedLayoutContent[locale].footer
   const uploadHref = withSource(localePath(locale, '/upload'), `free_id_photo_tool_generate_png_${locale}`)
+  const resourceLinks = [
+    { href: localePath(locale, '/pricing'), label: layout.pricing },
+    { href: localePath(locale, '/sample'), label: layout.samples },
+    { href: localePath(locale, '/questions'), label: layout.questions },
+  ]
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -322,6 +329,17 @@ export default function PublicPhotoToolsPageView({ locale = 'en' }: PublicPhotoT
                     <h3 className="font-semibold text-slate-900">{faq.question}</h3>
                     <p className="mt-2 text-sm leading-6 text-slate-600">{faq.answer}</p>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <h2 className="text-xl font-bold text-slate-900">{layout.resources}</h2>
+              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                {resourceLinks.map((item) => (
+                  <Link key={item.href} href={item.href} className="font-medium text-blue-600 hover:underline">
+                    {item.label}
+                  </Link>
                 ))}
               </div>
             </div>

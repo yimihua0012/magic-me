@@ -1,26 +1,29 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { appConfig } from '@/lib/config'
+import { safeReturnTo } from '@/lib/auth-return'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name } = await request.json()
+    const { email, password, name, returnTo } = await request.json()
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
     }
 
     const supabase = await createClient()
+    const callbackUrl = new URL('/api/auth/callback', appConfig.url)
+    callbackUrl.searchParams.set('returnTo', safeReturnTo(returnTo, '/dashboard'))
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: name },
-        emailRedirectTo: `${appConfig.url}/api/auth/callback`,
+        emailRedirectTo: callbackUrl.toString(),
       },
     })
 

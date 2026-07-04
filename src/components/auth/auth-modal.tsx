@@ -31,16 +31,21 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setSuccess('')
 
     try {
+      const currentReturnTo = safeReturnTo(`${window.location.pathname}${window.location.search}`, '/dashboard')
+
       if (mode === 'register') {
         if (password.length < 8) {
           throw new Error('Password must be at least 8 characters')
         }
+        const callbackUrl = new URL('/api/auth/callback', window.location.origin)
+        callbackUrl.searchParams.set('returnTo', currentReturnTo)
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { full_name: name },
-            emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+            emailRedirectTo: callbackUrl.toString(),
           },
         })
         if (error) throw error
@@ -65,14 +70,14 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
   const handleGoogleAuth = async () => {
     setIsLoading(true)
-    const currentPath = `${window.location.pathname}${window.location.search}`
-    window.location.href = `/api/auth/google?returnTo=${encodeURIComponent(safeReturnTo(currentPath, '/dashboard'))}`
+    const currentReturnTo = safeReturnTo(`${window.location.pathname}${window.location.search}`, '/dashboard')
+    window.location.href = `/api/auth/google?returnTo=${encodeURIComponent(currentReturnTo)}`
   }
 
   const handleXAuth = async () => {
     setIsLoading(true)
-    const currentPath = `${window.location.pathname}${window.location.search}`
-    window.location.href = `/api/auth/x?returnTo=${encodeURIComponent(safeReturnTo(currentPath, '/dashboard'))}`
+    const currentReturnTo = safeReturnTo(`${window.location.pathname}${window.location.search}`, '/dashboard')
+    window.location.href = `/api/auth/x?returnTo=${encodeURIComponent(currentReturnTo)}`
   }
 
   return (

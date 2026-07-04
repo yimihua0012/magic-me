@@ -11,6 +11,7 @@ import { loginPathForReturn } from '@/lib/auth-return'
 
 interface NavbarProps {
   onOpenAuthModal?: () => void
+  solid?: boolean
 }
 
 type IdleWindow = Window & {
@@ -18,7 +19,7 @@ type IdleWindow = Window & {
   cancelIdleCallback?: (handle: number) => void
 }
 
-export default function Navbar({ onOpenAuthModal }: NavbarProps) {
+export default function Navbar({ onOpenAuthModal, solid = true }: NavbarProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -126,7 +127,7 @@ export default function Navbar({ onOpenAuthModal }: NavbarProps) {
   return (
     <>
       <nav className={`fixed left-0 right-0 top-0 z-40 safe-top transition-all duration-300 ${
-        isScrolled
+        solid || isScrolled
           ? 'border-b border-slate-200/50 bg-white/80 shadow-sm backdrop-blur-navbar'
           : 'bg-transparent'
       }`}>

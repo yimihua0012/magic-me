@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import PublicPhotoToolsPageView from '@/components/photo-tools/public-photo-tools-page-view'
 import { languageAlternatesForPath } from '@/lib/i18n'
 import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
+import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 
 const title = 'Free ID Photo Generator, Crop & Print Tool | Magic-Headshot'
 const description = 'Free online ID photo tool for resumes, job applications, exams, employee badges, student cards, and printable photo sheets.'
@@ -91,6 +92,7 @@ export default function FreeIdPhotoToolPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <BreadcrumbJsonLd locale="en" path="/free-id-photo-tool" currentName={title} />
       <PublicPhotoToolsPageView />
     </>
   )

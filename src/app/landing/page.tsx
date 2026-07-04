@@ -159,7 +159,9 @@ export default function LandingPage() {
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg lg:mx-0">
-              Turn everyday selfies into realistic business portraits for LinkedIn, resumes, company bios, and personal branding. Pay once, choose styles, and generate only what you need.
+              Turn everyday selfies into realistic business portraits for LinkedIn, resumes, company bios, and personal
+              branding. Pay once, choose styles, and generate only what you need, with a workflow built for professionals
+              who want a credible profile photo without waiting for a studio session.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">

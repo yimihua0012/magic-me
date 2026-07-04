@@ -26,7 +26,7 @@ export const localizedPricingContent: Record<Exclude<Locale, 'en'>, LocalizedPri
   es: {
     title: 'Precios del generador de retratos IA',
     description:
-      'Compra créditos una vez y genera retratos profesionales realistas para LinkedIn, CV y perfiles de negocio.',
+      'Compra créditos una vez y genera retratos profesionales realistas para LinkedIn, CV y perfiles de negocio. Compara qué incluye cada paquete antes de subir fotos y elige según la cantidad de estilos que necesitas.',
     mostPopular: 'Más popular',
     perPurchase: 'pago único',
     headshots: 'retratos',
@@ -57,7 +57,7 @@ export const localizedPricingContent: Record<Exclude<Locale, 'en'>, LocalizedPri
   fr: {
     title: 'Tarifs du générateur de portraits IA',
     description:
-      'Achetez des crédits une seule fois et générez des portraits professionnels réalistes pour LinkedIn, CV et profils business.',
+      'Achetez des crédits une seule fois et générez des portraits professionnels réalistes pour LinkedIn, CV et profils business. Comparez les packs avant d’importer vos photos et choisissez selon le nombre de styles voulus.',
     mostPopular: 'Le plus populaire',
     perPurchase: 'paiement unique',
     headshots: 'portraits',
@@ -88,7 +88,7 @@ export const localizedPricingContent: Record<Exclude<Locale, 'en'>, LocalizedPri
   de: {
     title: 'Preise fur den KI-Headshot-Generator',
     description:
-      'Kaufe Credits einmalig und erstelle realistische professionelle Headshots fur LinkedIn, Lebenslauf und Business-Profile.',
+      'Kaufe Credits einmalig und erstelle realistische professionelle Headshots fur LinkedIn, Lebenslauf und Business-Profile. Vergleiche die Pakete vor dem Upload und wahle nach der Anzahl der gewunschten Stile.',
     mostPopular: 'Am beliebtesten',
     perPurchase: 'Einmalzahlung',
     headshots: 'Headshots',
@@ -119,7 +119,7 @@ export const localizedPricingContent: Record<Exclude<Locale, 'en'>, LocalizedPri
   ja: {
     title: 'AIヘッドショット生成の料金',
     description:
-      '一度クレジットを購入して、LinkedIn、履歴書、ビジネスプロフィール向けのリアルなプロ写真を生成できます。',
+      '一度クレジットを購入して、LinkedIn、履歴書、ビジネスプロフィール向けのリアルなプロ写真を生成できます。写真をアップロードする前に各プランの内容を比較し、必要なスタイル数に合わせて選べます。',
     mostPopular: '人気',
     perPurchase: '一回払い',
     headshots: '枚のヘッドショット',
@@ -148,3 +148,106 @@ export const localizedPricingContent: Record<Exclude<Locale, 'en'>, LocalizedPri
     ],
   },
 }
+
+Object.assign(localizedPricingContent, {
+  es: {
+    title: 'Precios del generador de retratos con IA',
+    description:
+      'Compra créditos una vez y genera retratos profesionales para LinkedIn, CV y perfiles de negocio. Elige el paquete según la cantidad de estilos que quieres probar.',
+    mostPopular: 'Más popular',
+    perPurchase: 'pago único',
+    headshots: 'retratos',
+    validityTemplate: '{days} días de validez',
+    choosePlanTemplate: 'Elegir {planName}',
+    checkoutUnavailable: 'Pago no disponible para esta moneda todavía',
+    validityRule: 'La validez empieza con tu primera generación, no en la fecha de compra.',
+    highlights: {
+      resolution: 'Resolución 1024x1024',
+      downloads: 'Descargas ilimitadas',
+      commercial: 'Uso comercial incluido',
+      priority: 'Procesamiento prioritario',
+      emailSupport: 'Soporte por email',
+      dedicatedSupport: 'Soporte dedicado',
+    },
+    faqTitle: 'Preguntas rápidas sobre precios',
+    faq: [
+      { question: '¿Es una suscripción?', answer: 'No. Es un pago único que añade créditos a tu cuenta.' },
+      { question: '¿Cuándo empieza la validez?', answer: 'La validez empieza con tu primera generación, no en la fecha de compra.' },
+    ],
+  },
+  fr: {
+    title: 'Tarifs du générateur de portraits IA',
+    description:
+      'Achetez des crédits une seule fois et générez des portraits professionnels pour LinkedIn, CV et profils business. Choisissez le pack selon le nombre de styles à tester.',
+    mostPopular: 'Le plus populaire',
+    perPurchase: 'paiement unique',
+    headshots: 'portraits',
+    validityTemplate: '{days} jours de validité',
+    choosePlanTemplate: 'Choisir {planName}',
+    checkoutUnavailable: 'Paiement indisponible pour cette devise pour le moment',
+    validityRule: 'La validité commence à la première génération, pas à la date d achat.',
+    highlights: {
+      resolution: 'Résolution 1024x1024',
+      downloads: 'Téléchargements illimités',
+      commercial: 'Usage commercial inclus',
+      priority: 'Traitement prioritaire',
+      emailSupport: 'Support par e-mail',
+      dedicatedSupport: 'Support dédié',
+    },
+    faqTitle: 'Questions rapides sur les tarifs',
+    faq: [
+      { question: 'Est-ce un abonnement ?', answer: 'Non. Il s agit d un paiement unique qui ajoute des crédits à votre compte.' },
+      { question: 'Quand commence la validité ?', answer: 'La validité commence lors de votre première génération, pas à la date d achat.' },
+    ],
+  },
+  de: {
+    title: 'Preise für den KI-Headshot-Generator',
+    description:
+      'Kaufe Credits einmalig und erstelle professionelle Headshots für LinkedIn, Lebenslauf und Business-Profile. Wähle das Paket nach der Anzahl der Stile, die du testen möchtest.',
+    mostPopular: 'Am beliebtesten',
+    perPurchase: 'Einmalzahlung',
+    headshots: 'Headshots',
+    validityTemplate: '{days} Tage gültig',
+    choosePlanTemplate: '{planName} wählen',
+    checkoutUnavailable: 'Zahlung für diese Währung ist noch nicht verfügbar',
+    validityRule: 'Die Gültigkeit beginnt mit der ersten Generierung, nicht mit dem Kaufdatum.',
+    highlights: {
+      resolution: 'Auflösung 1024x1024',
+      downloads: 'Unbegrenzte Downloads',
+      commercial: 'Kommerzielle Nutzung inklusive',
+      priority: 'Priorisierte Verarbeitung',
+      emailSupport: 'E-Mail-Support',
+      dedicatedSupport: 'Dedizierter Support',
+    },
+    faqTitle: 'Kurze Fragen zu den Preisen',
+    faq: [
+      { question: 'Ist das ein Abonnement?', answer: 'Nein. Es ist eine Einmalzahlung, mit der Credits zu deinem Konto hinzugefügt werden.' },
+      { question: 'Wann beginnt die Gültigkeit?', answer: 'Die Gültigkeit beginnt mit deiner ersten Generierung, nicht mit dem Kaufdatum.' },
+    ],
+  },
+  ja: {
+    title: 'AIヘッドショット生成の料金',
+    description:
+      'クレジットを一度購入し、LinkedIn、履歴書、会社プロフィール向けの仕事用写真を生成できます。試したいスタイル数に合わせてプランを選べます。',
+    mostPopular: '人気',
+    perPurchase: '一回払い',
+    headshots: '枚のヘッドショット',
+    validityTemplate: '{days}日間有効',
+    choosePlanTemplate: '{planName}を選択',
+    checkoutUnavailable: 'この通貨での支払いはまだ利用できません',
+    validityRule: '有効期間は購入日ではなく、初回生成時に開始します。',
+    highlights: {
+      resolution: '1024x1024 解像度',
+      downloads: '無制限ダウンロード',
+      commercial: '商用利用可能',
+      priority: '優先処理',
+      emailSupport: 'メールサポート',
+      dedicatedSupport: '専用サポート',
+    },
+    faqTitle: '料金についてのよくある質問',
+    faq: [
+      { question: 'サブスクリプションですか？', answer: 'いいえ。一回払いでアカウントにクレジットを追加します。' },
+      { question: '有効期間はいつ始まりますか？', answer: '購入日ではなく、最初の生成を開始した時点から有効期間が始まります。' },
+    ],
+  },
+} satisfies Record<Exclude<Locale, 'en'>, LocalizedPricingContent>)

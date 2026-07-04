@@ -45,7 +45,9 @@ export default function QuestionsPage() {
             </h1>
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
               Clear answers about Magic-Headshot, AI headshots for LinkedIn, professional headshots without photographer
-              sessions, AI resume photo generator workflows, likeness, upload quality, and business profile use.
+              sessions, AI resume photo generator workflows, likeness, upload quality, and business profile use. Start
+              here before buying credits or uploading selfies so you know how the generation flow, photo choices, and
+              commercial usage fit your profile goals.
             </p>
             <div className="mt-7">
               <KeywordStrip keywords={coreSeoKeywords.slice(0, 5)} />

@@ -44,7 +44,7 @@ export const localizedHomeContent: Record<Exclude<Locale, 'en'>, LocalizedHomeCo
     badge: 'Generador de retratos IA para LinkedIn',
     heading: 'Retratos profesionales con IA en minutos',
     subheading:
-      'Compra créditos una vez, elige los estilos que necesitas y genera retratos profesionales realistas para tus perfiles.',
+      'Compra créditos una vez, elige los estilos que necesitas y genera retratos profesionales realistas para LinkedIn, CV, perfiles de negocio y páginas de equipo, sin reservar una sesión de fotos.',
     primaryCta: 'Ver precios',
     secondaryCta: 'Subir fotos',
     highlights: ['Pago único, sin suscripción', 'Créditos por estilo seleccionado', 'Descargas en alta resolución'],
@@ -96,7 +96,7 @@ export const localizedHomeContent: Record<Exclude<Locale, 'en'>, LocalizedHomeCo
     badge: 'Générateur de portraits IA pour LinkedIn',
     heading: 'Portraits professionnels IA en quelques minutes',
     subheading:
-      'Achetez des crédits une seule fois, choisissez les styles dont vous avez besoin et générez des portraits réalistes pour vos profils.',
+      'Achetez des crédits une seule fois, choisissez les styles dont vous avez besoin et générez des portraits réalistes pour LinkedIn, CV, profils business et pages d’équipe, sans réserver de séance photo.',
     primaryCta: 'Voir les prix',
     secondaryCta: 'Importer des photos',
     highlights: ['Paiement unique, sans abonnement', 'Crédits déduits par style choisi', 'Téléchargements haute résolution'],
@@ -148,7 +148,7 @@ export const localizedHomeContent: Record<Exclude<Locale, 'en'>, LocalizedHomeCo
     badge: 'KI-Headshot-Generator fur LinkedIn',
     heading: 'Professionelle KI-Headshots in Minuten',
     subheading:
-      'Kaufe Credits einmalig, wahle die benotigten Stile und erstelle realistische professionelle Headshots fur deine Profile.',
+      'Kaufe Credits einmalig, wahle die benotigten Stile und erstelle realistische professionelle Headshots fur LinkedIn, Lebenslauf, Business-Profile und Teamseiten, ohne einen Fototermin zu planen.',
     primaryCta: 'Preise ansehen',
     secondaryCta: 'Fotos hochladen',
     highlights: ['Einmalzahlung, kein Abo', 'Credits pro ausgewahltem Stil', 'Downloads in hoher Auflosung'],
@@ -200,7 +200,7 @@ export const localizedHomeContent: Record<Exclude<Locale, 'en'>, LocalizedHomeCo
     badge: 'LinkedIn向けAIヘッドショット生成',
     heading: 'プロ向けAIヘッドショットを数分で作成',
     subheading:
-      '一度クレジットを購入し、必要なスタイルを選んで、プロフィール用のリアルなヘッドショットを生成できます。',
+      '一度クレジットを購入し、必要なスタイルを選んで、LinkedIn、履歴書、ビジネスプロフィール、チームページに使えるリアルなヘッドショットを、写真スタジオなしで生成できます。',
     primaryCta: '料金を見る',
     secondaryCta: '写真をアップロード',
     highlights: ['サブスクリプションなしの一回払い', '選択したスタイルごとにクレジット消費', '高解像度ダウンロード'],

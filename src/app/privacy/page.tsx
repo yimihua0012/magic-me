@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
@@ -33,7 +34,12 @@ export default function PrivacyPage() {
 
       <main className="pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-8 text-3xl font-bold text-slate-900">Magic-Headshot AI Headshot Privacy Policy</h1>
+          <h1 className="mb-4 text-3xl font-bold text-slate-900">Magic-Headshot AI Headshot Privacy Policy</h1>
+          <p className="mb-8 text-base leading-7 text-slate-600">
+            Read how Magic-Headshot handles account details, uploaded photos, generated AI headshots, payment metadata,
+            support requests, cookies, retention, and deletion rights. This policy explains what data is needed for
+            portrait generation, which service providers may process it, and how to contact us about privacy requests.
+          </p>
 
           <div className="space-y-6 text-slate-600">
             <Card className="p-6">
@@ -149,6 +155,21 @@ export default function PrivacyPage() {
                 If you have questions or requests about this Privacy Policy, contact us at:<br />
                 <span className="text-primary-600">support@mail.magic-headshot.com</span>
               </p>
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="mb-3 text-xl font-semibold text-slate-900">Related AI headshot resources</h2>
+              <div className="grid gap-3 text-sm sm:grid-cols-3">
+                <Link href="/questions" className="font-medium text-primary-600 hover:underline">
+                  Read common questions
+                </Link>
+                <Link href="/sample" className="font-medium text-primary-600 hover:underline">
+                  Compare sample results
+                </Link>
+                <Link href="/pricing" className="font-medium text-primary-600 hover:underline">
+                  View credit packs
+                </Link>
+              </div>
             </Card>
 
             <p className="mt-8 text-sm text-slate-500">

@@ -9,10 +9,10 @@ export const dynamic = 'force-dynamic'
 const DEEPSEEK_TIMEOUT_MS = 60000
 
 type DraftBody = {
+  mode?: unknown
   locale?: unknown
   keywords?: unknown
-  useCase?: unknown
-  brief?: unknown
+  relatedTerms?: unknown
   prompt?: unknown
 }
 
@@ -50,15 +50,21 @@ export async function POST(request: Request) {
     ? body.locale as Locale
     : 'en'
   const keywords = normalizeKeywords(body?.keywords)
-  const useCase = typeof body?.useCase === 'string' ? body.useCase.trim() : ''
-  const brief = typeof body?.brief === 'string' ? body.brief.trim() : ''
+  const relatedTerms = typeof body?.relatedTerms === 'string' ? body.relatedTerms.trim() : ''
   const reviewedPrompt = typeof body?.prompt === 'string' ? body.prompt.trim() : ''
+  const mode = body?.mode === 'prepare' ? 'prepare' : 'article'
 
-  if (keywords.length === 0) {
-    return NextResponse.json({ error: 'Enter at least one keyword.' }, { status: 400 })
+  if (mode === 'prepare' && !relatedTerms) {
+    return NextResponse.json({ error: 'Enter related terms first.' }, { status: 400 })
   }
 
-  const prompt = reviewedPrompt || buildBlogDraftPrompt(locale, keywords, useCase, brief)
+  if (mode === 'article' && keywords.length === 0) {
+    return NextResponse.json({ error: 'Confirm two localized search keywords first.' }, { status: 400 })
+  }
+
+  const prompt = mode === 'prepare'
+    ? buildKeywordAndPromptPrompt(locale, relatedTerms)
+    : withCmsJsonRequirements(reviewedPrompt || buildBlogDraftPrompt(locale, keywords), locale)
   const endpoint = resolveDeepSeekEndpoint()
   const model = process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-chat'
 
@@ -114,6 +120,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'DeepSeek did not return valid JSON.' }, { status: 502 })
   }
 
+  if (mode === 'prepare') {
+    const preparedKeywords = readStringArray(parsedDraft.keywords).slice(0, 2)
+    const preparedPrompt = readString(parsedDraft.prompt)
+
+    if (preparedKeywords.length !== 2 || !preparedPrompt) {
+      return NextResponse.json({ error: 'DeepSeek did not return two keywords and a prompt.' }, { status: 502 })
+    }
+
+    return NextResponse.json({
+      keywords: preparedKeywords,
+      prompt: preparedPrompt,
+    })
+  }
+
   const draft = normalizeGeneratedDraft(parsedDraft, locale, keywords)
   const validationErrors = validateBlogPostInput(draft)
 
@@ -123,7 +143,7 @@ export async function POST(request: Request) {
   })
 }
 
-function buildBlogDraftPrompt(locale: Locale, keywords: string[], useCase: string, brief: string) {
+function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string) {
   const languageNames: Record<Locale, string> = {
     en: 'English',
     es: 'Spanish',
@@ -134,13 +154,67 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[], useCase: strin
   const language = languageNames[locale]
 
   return [
-    'You will receive only a basic content brief. First decide the best SEO article angle, structure, search intent, and writing prompt internally. Then return the final article JSON only.',
+    'You are preparing a localized SEO blog draft for Magic-Headshot.',
+    `Target language: ${language}. Locale: ${locale}.`,
+    `User-provided related terms: ${relatedTerms}.`,
+    '',
+    'Task:',
+    '1. Return exactly two localized search keywords that real users in this language would commonly search.',
+    '2. Build one detailed article-generation prompt in the same target language for the editor to review.',
+    '',
+    'The prompt must ask for one practical SEO blog article about Magic-Headshot as an AI tool for creating professional headshot images from uploaded selfies.',
+    'The prompt must be localized to the market and search behavior of the selected language, not a direct translation from English.',
+    'The prompt must ask the article to include concrete advice about source photo preparation, natural likeness, style choice, common mistakes, and how to evaluate generated results.',
+    'The prompt must not include unsupported discounts, legal claims, medical claims, or guarantees.',
+    'Critical: the prompt must require DeepSeek to return only one valid JSON object that can be parsed and saved by the blog CMS.',
+    'The prompt must preserve these exact required JSON keys: slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
+    'The prompt must preserve these field rules:',
+    '- slug must be lowercase English letters/numbers/hyphens only.',
+    '- description must be 120-160 characters and match the visible article.',
+    '- keywords must be an array of 5-8 search phrases.',
+    '- coverImageUrl should be an empty string unless a site-local image path is known.',
+    '- coverImageAlt must describe the intended cover image in the article language.',
+    '- intro must be 80-140 words.',
+    '- visible article body should be about 1000-1200 words total.',
+    '- sections must be an array of 5-7 objects, each with heading and body.',
+    '- enhancement must include category, audience, searchIntent, uniqueAngle, actionSteps, qualityChecks, avoid, internalLinks, relatedSlugs.',
+    '- actionSteps must be 4-6 practical steps.',
+    '- qualityChecks must be 3 objects with label and detail.',
+    '- avoid must be 3-5 strings.',
+    '- internalLinks must link only to public paths: /pricing, /sample, /questions, /blog, /free-id-photo-tool.',
+    '- relatedSlugs can be an empty array.',
+    '- localizedSlugs must include the selected locale mapped to slug.',
+    '- no markdown fences and no commentary outside JSON.',
+    '',
+    'Return only valid JSON with exactly these keys:',
+    'keywords, prompt',
+    '',
+    'JSON rules:',
+    '- keywords must be an array of exactly 2 strings.',
+    '- prompt must be a detailed string that can be sent directly to DeepSeek to generate the article JSON.',
+    '- Do not include markdown fences.',
+    '- Do not include commentary outside JSON.',
+  ].join('\n')
+}
+
+function buildBlogDraftPrompt(locale: Locale, keywords: string[]) {
+  const languageNames: Record<Locale, string> = {
+    en: 'English',
+    es: 'Spanish',
+    fr: 'French',
+    de: 'German',
+    ja: 'Japanese',
+  }
+  const language = languageNames[locale]
+
+  return [
+    'Write one localized SEO blog article for Magic-Headshot.',
     `Language: ${language}. Locale: ${locale}.`,
-    `Keyword cluster: ${keywords.join(', ')}.`,
-    `Use case: ${useCase || 'professional AI headshots for LinkedIn, resumes, company profiles, teams, and personal branding.'}`,
-    `Additional notes: ${brief || 'Create a practical, trustworthy article for Magic-Headshot users.'}`,
-    'Product context: Magic-Headshot is an AI avatar, photo, and professional image generation tool. Users upload selfies and generate realistic professional portraits.',
-    'Important: do not reveal your internal prompt, outline planning, or reasoning. Return only the final JSON object.',
+    `Confirmed localized search keywords: ${keywords.join(', ')}.`,
+    'Product context: Magic-Headshot lets users upload selfies and generate professional headshot images for work-related profiles and online presence.',
+    'Write for local search behavior and local reader expectations in the selected language. Do not directly translate English examples.',
+    'Include concrete advice about source photo preparation, natural likeness, style choice, common mistakes, and evaluating generated results.',
+    'Return only the final JSON object.',
     'Return one JSON object with exactly these keys:',
     'slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
     'Rules:',
@@ -161,6 +235,39 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[], useCase: strin
     '- localizedSlugs must include the selected locale mapped to slug.',
     '- Do not invent discounts, legal claims, medical claims, or guarantees.',
     '- The JSON content must not include markdown code fences.',
+  ].join('\n')
+}
+
+function withCmsJsonRequirements(prompt: string, locale: Locale) {
+  const hasRequiredKeys =
+    prompt.includes('slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs') ||
+    (prompt.includes('slug') && prompt.includes('localizedSlugs') && prompt.includes('sections') && prompt.includes('enhancement'))
+
+  if (hasRequiredKeys) return prompt
+
+  return [
+    prompt,
+    '',
+    'Mandatory CMS output format:',
+    'Return only one valid JSON object that can be parsed and saved by the blog CMS.',
+    'Required JSON keys: slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
+    'Rules:',
+    '- slug must be lowercase English letters/numbers/hyphens only.',
+    '- description must be 120-160 characters and match the visible article.',
+    '- keywords must be an array of 5-8 search phrases.',
+    '- coverImageUrl should be an empty string unless a site-local image path is known.',
+    '- coverImageAlt must describe the intended cover image in the article language.',
+    '- intro must be 80-140 words.',
+    '- visible article body should be about 1000-1200 words total.',
+    '- sections must be an array of 5-7 objects, each with heading and body.',
+    '- enhancement must include category, audience, searchIntent, uniqueAngle, actionSteps, qualityChecks, avoid, internalLinks, relatedSlugs.',
+    '- actionSteps must be 4-6 practical steps.',
+    '- qualityChecks must be 3 objects with label and detail.',
+    '- avoid must be 3-5 strings.',
+    '- internalLinks must link only to public paths: /pricing, /sample, /questions, /blog, /free-id-photo-tool.',
+    '- relatedSlugs can be an empty array.',
+    `- localizedSlugs must include ${locale} mapped to slug.`,
+    '- Do not include markdown fences or commentary outside JSON.',
   ].join('\n')
 }
 

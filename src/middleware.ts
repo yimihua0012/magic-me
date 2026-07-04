@@ -5,6 +5,11 @@ const rootPageRoutes = new Set([
   '',
   'auth',
   'auth/complete',
+  'ai-headshot-corporate',
+  'ai-headshot-linkedin',
+  'ai-headshot-professional-photo',
+  'ai-headshot-resume',
+  'ai-headshot-studio-style',
   'blog',
   'contact',
   'dashboard',
@@ -38,6 +43,11 @@ const englishRoutes = new Set(rootPageRoutes)
 
 const localizedRoutes = new Set([
   '',
+  'ai-headshot-corporate',
+  'ai-headshot-linkedin',
+  'ai-headshot-professional-photo',
+  'ai-headshot-resume',
+  'ai-headshot-studio-style',
   'blog',
   'pricing',
   'privacy',

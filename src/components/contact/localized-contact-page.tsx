@@ -1,13 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Mail, MapPin, MessageSquare, Send } from 'lucide-react'
 import Navbar from '@/components/layout/localized-navbar'
 import Footer from '@/components/layout/localized-footer'
 import Card from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import { appConfig } from '@/lib/config'
-import type { RoutedLocale } from '@/lib/i18n'
+import { localePath, type RoutedLocale } from '@/lib/i18n'
+import { localizedLayoutContent } from '@/lib/localized-layout-content'
 import type { LocalizedContactContent } from '@/lib/localized-marketing-content'
 
 interface LocalizedContactPageProps {
@@ -19,6 +21,7 @@ export default function LocalizedContactPage({ locale, content }: LocalizedConta
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const layout = localizedLayoutContent[locale].footer
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -132,6 +135,21 @@ export default function LocalizedContactPage({ locale, content }: LocalizedConta
               </Card>
             </div>
           </div>
+
+          <Card className="mt-8 p-6">
+            <h2 className="mb-3 text-xl font-semibold text-slate-900">{layout.resources}</h2>
+            <div className="grid gap-3 text-sm sm:grid-cols-3">
+              <Link href={localePath(locale, '/pricing')} className="font-medium text-primary-600 hover:underline">
+                {layout.pricing}
+              </Link>
+              <Link href={localePath(locale, '/questions')} className="font-medium text-primary-600 hover:underline">
+                {layout.questions}
+              </Link>
+              <Link href={localePath(locale, '/refund')} className="font-medium text-primary-600 hover:underline">
+                {layout.refund}
+              </Link>
+            </div>
+          </Card>
         </div>
       </main>
 

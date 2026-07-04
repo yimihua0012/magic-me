@@ -1,8 +1,10 @@
+import Link from 'next/link'
 import Card from '@/components/ui/card'
 import Footer from '@/components/layout/localized-footer'
 import Navbar from '@/components/layout/localized-navbar'
 import { appConfig } from '@/lib/config'
-import type { RoutedLocale } from '@/lib/i18n'
+import { localePath, type RoutedLocale } from '@/lib/i18n'
+import { localizedLayoutContent } from '@/lib/localized-layout-content'
 import type { LegalPageContent } from '@/lib/localized-legal-content'
 
 interface LocalizedLegalPageProps {
@@ -11,6 +13,8 @@ interface LocalizedLegalPageProps {
 }
 
 export default function LocalizedLegalPage({ locale, content }: LocalizedLegalPageProps) {
+  const layout = localizedLayoutContent[locale].footer
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar locale={locale} />
@@ -19,6 +23,7 @@ export default function LocalizedLegalPage({ locale, content }: LocalizedLegalPa
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <p className="mb-4 text-sm font-semibold text-primary-600">{appConfig.name}</p>
           <h1 className="mb-5 text-3xl font-bold text-slate-900">{content.heading}</h1>
+          <p className="mb-6 text-base leading-7 text-slate-600">{content.description}</p>
           <div className="mb-8 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             {content.notice}
           </div>
@@ -48,6 +53,21 @@ export default function LocalizedLegalPage({ locale, content }: LocalizedLegalPa
                 )}
               </Card>
             ))}
+
+            <Card className="p-6">
+              <h2 className="mb-3 text-xl font-semibold text-slate-900">{layout.resources}</h2>
+              <div className="grid gap-3 text-sm sm:grid-cols-3">
+                <Link href={localePath(locale, '/pricing')} className="font-medium text-primary-600 hover:underline">
+                  {layout.pricing}
+                </Link>
+                <Link href={localePath(locale, '/questions')} className="font-medium text-primary-600 hover:underline">
+                  {layout.questions}
+                </Link>
+                <Link href={localePath(locale, '/contact')} className="font-medium text-primary-600 hover:underline">
+                  {layout.contact}
+                </Link>
+              </div>
+            </Card>
 
             <p className="mt-8 text-sm text-slate-500">Last Updated: {content.lastUpdated}</p>
           </div>

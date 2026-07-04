@@ -60,12 +60,15 @@ export default function LoginPageView({ locale = 'en' }: LoginPageViewProps) {
         data = result.data
         if (result.error) throw result.error
       } else {
+        const callbackUrl = new URL('/api/auth/callback', window.location.origin)
+        callbackUrl.searchParams.set('returnTo', returnTo || homeFallback)
+
         const result = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { full_name: name },
-            emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+            emailRedirectTo: callbackUrl.toString(),
           },
         })
         data = result.data

@@ -12,6 +12,7 @@ import { getBlogPublishDate } from '@/lib/blog-dates'
 import { getBlogEnhancement } from '@/lib/blog-enhancements'
 import { getBlogLanguageAlternates, getPublishedBlogPost, getPublishedBlogPosts, getPublishedBlogSlugs } from '@/lib/blog-store'
 
+
 type BlogArticlePageProps = {
   params: Promise<{
     slug: string
@@ -100,7 +101,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
         .map((relatedSlug) => allPosts.find((item) => item.slug === relatedSlug))
         .filter((item): item is (typeof allPosts)[number] => Boolean(item))
     : allPosts.filter((item) => item.slug !== post.slug).slice(0, 3)
-  const workflowLinks = enhancement?.internalLinks || defaultWorkflowLinks
+  const workflowLinks = getRenderableWorkflowLinks(enhancement?.internalLinks)
 
   return (
     <StaticMarketingShell>
@@ -263,4 +264,17 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
       </main>
     </StaticMarketingShell>
   )
+}
+
+function getRenderableWorkflowLinks(
+  links: { href?: string; label?: string; reason?: string }[] | undefined,
+) {
+  const publicLinks = (links || []).filter((item): item is { href: string; label: string; reason: string } => (
+    typeof item.href === 'string' &&
+    /^\/(?!api(?:\/|$)|dashboard(?:\/|$)|upload(?:\/|$)|generate(?:\/|$)|generations(?:\/|$)|login(?:\/|$)|auth(?:\/|$))/.test(item.href) &&
+    typeof item.label === 'string' &&
+    typeof item.reason === 'string'
+  ))
+
+  return publicLinks.length > 0 ? publicLinks : defaultWorkflowLinks
 }

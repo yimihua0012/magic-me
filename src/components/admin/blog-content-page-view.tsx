@@ -87,10 +87,8 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
   const [selectedStatus, setSelectedStatus] = useState<BlogStatus | 'all'>('all')
   const [query, setQuery] = useState('')
   const [draftLocale, setDraftLocale] = useState<Locale>('en')
+  const [draftRelatedTerms, setDraftRelatedTerms] = useState('')
   const [draftKeywords, setDraftKeywords] = useState('')
-  const [draftUseCase, setDraftUseCase] = useState('LinkedIn profile photos, resumes, business profiles, and realistic professional portraits')
-  const [draftBrief, setDraftBrief] = useState('')
-  const [draftWordCount, setDraftWordCount] = useState('1000-1200')
   const [draftPrompt, setDraftPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -103,7 +101,8 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     const status = selectedStatus === 'all' ? 'all statuses' : selectedStatus
     return `${selectedLocale.toUpperCase()} · ${status}`
   }, [selectedLocale, selectedStatus])
-  const publicPreviewHref = form.slug ? localePath(form.locale, `/blog/${form.slug}`) : ''
+  const publicPreviewHref = form.status === 'published' && form.slug ? localePath(form.locale, `/blog/${form.slug}`) : ''
+  const adminPreviewHref = form.id ? localePath(locale, `/dashboard/admin/blog/preview/${form.id}`) : ''
 
   const loadPosts = useCallback(async () => {
     if (!accessToken) return
@@ -165,21 +164,57 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     setError('')
   }
 
-  const buildPromptForReview = () => {
-    if (!draftKeywords.trim()) {
-      setError('Enter at least one keyword before building the prompt.')
+  const prepareDraftPrompt = async () => {
+    if (!accessToken) {
+      window.location.href = dashboardHref
       return
     }
 
+    if (!draftRelatedTerms.trim()) {
+      setError('Enter related terms before preparing keywords and prompt.')
+      return
+    }
+
+    setIsGenerating(true)
     setError('')
-    setMessage('Prompt generated. Review it, adjust if needed, then generate the article.')
-    setDraftPrompt(buildArticlePrompt({
-      locale: draftLocale,
-      keywords: draftKeywords,
-      useCase: draftUseCase,
-      brief: draftBrief,
-      wordCount: draftWordCount,
-    }))
+    setMessage('')
+
+    try {
+      const response = await fetch('/api/admin/blog-post-draft', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mode: 'prepare',
+          locale: draftLocale,
+          relatedTerms: draftRelatedTerms,
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Could not prepare localized keywords and prompt.')
+      }
+
+      const preparedKeywords = Array.isArray(data.keywords)
+        ? data.keywords.filter((item: unknown): item is string => typeof item === 'string').slice(0, 2)
+        : []
+      const preparedPrompt = typeof data.prompt === 'string' ? data.prompt : ''
+
+      if (preparedKeywords.length !== 2 || !preparedPrompt) {
+        throw new Error('DeepSeek did not return two keywords and a prompt.')
+      }
+
+      setDraftKeywords(preparedKeywords.join(', '))
+      setDraftPrompt(preparedPrompt)
+      setMessage('Localized keywords and article prompt prepared. Review them, edit if needed, then generate the article.')
+    } catch (prepareError) {
+      setError(prepareError instanceof Error ? prepareError.message : 'Could not prepare localized keywords and prompt.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const generateDraft = async () => {
@@ -200,17 +235,10 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          mode: 'article',
           locale: draftLocale,
           keywords: draftKeywords,
-          useCase: draftUseCase,
-          brief: draftBrief,
-          prompt: draftPrompt || buildArticlePrompt({
-            locale: draftLocale,
-            keywords: draftKeywords,
-            useCase: draftUseCase,
-            brief: draftBrief,
-            wordCount: draftWordCount,
-          }),
+          prompt: draftPrompt,
         }),
       })
       const data = await response.json().catch(() => ({}))
@@ -299,7 +327,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
         throw new Error(errors || 'Could not save blog post.')
       }
 
-      setMessage(data.post?.status === 'published' ? 'Saved, published, and revalidated.' : 'Saved.')
+      setMessage(data.post?.status === 'published' ? 'Saved, published, and public URL revalidated.' : 'Saved as draft. Publish it before opening the public URL.')
       if (data.post) editPost(data.post as BlogPostAdminItem)
       await loadPosts()
     } catch (saveError) {
@@ -364,7 +392,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
             <Sparkles className="h-5 w-5 text-blue-600" />
             <h2 className="text-lg font-bold text-slate-900">DeepSeek Draft Generator</h2>
           </div>
-          <div className="grid gap-3 lg:grid-cols-[160px_minmax(0,1fr)_140px_auto_auto]">
+          <div className="grid gap-3 lg:grid-cols-[160px_minmax(0,1fr)_auto_auto]">
             <select
               value={draftLocale}
               onChange={(event) => setDraftLocale(event.target.value as Locale)}
@@ -375,42 +403,30 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
               ))}
             </select>
             <input
-              value={draftKeywords}
+              value={draftRelatedTerms}
               onChange={(event) => {
-                setDraftKeywords(event.target.value)
+                setDraftRelatedTerms(event.target.value)
               }}
-              placeholder="Keyword cluster, separated by commas"
+              placeholder="Related terms only, e.g. AI headshot, consultant photo, team profile"
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
             />
-            <input
-              value={draftWordCount}
-              onChange={(event) => setDraftWordCount(event.target.value)}
-              placeholder="1000-1200"
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
-            />
-            <Button variant="secondary" onClick={buildPromptForReview} disabled={!draftKeywords.trim()}>
-              Build Prompt
+            <Button variant="secondary" onClick={prepareDraftPrompt} isLoading={isGenerating} disabled={isGenerating || !draftRelatedTerms.trim()}>
+              Prepare Keywords
             </Button>
-            <Button onClick={generateDraft} isLoading={isGenerating} disabled={isGenerating || !draftKeywords.trim()}>
+            <Button onClick={generateDraft} isLoading={isGenerating} disabled={isGenerating || !draftKeywords.trim() || !draftPrompt.trim()}>
               Generate Article
             </Button>
           </div>
           <input
-            value={draftUseCase}
-            onChange={(event) => setDraftUseCase(event.target.value)}
-            placeholder="Use case, audience, or scenario"
+            value={draftKeywords}
+            onChange={(event) => setDraftKeywords(event.target.value)}
+            placeholder="DeepSeek will return exactly 2 localized search keywords here."
             className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
-          />
-          <textarea
-            value={draftBrief}
-            onChange={(event) => setDraftBrief(event.target.value)}
-            placeholder="Optional basic notes: article angle, target reader, product detail, competitor gap, local market need. Article should stay around 1000-1200 words."
-            className={`${inputClass} mt-3 min-h-28`}
           />
           <textarea
             value={draftPrompt}
             onChange={(event) => setDraftPrompt(event.target.value)}
-            placeholder="Click Build Prompt to generate the article prompt for review."
+            placeholder="Click Prepare Keywords to generate two localized search keywords and the article prompt for review."
             className={`${monoInputClass} mt-3 min-h-64`}
           />
         </Card>
@@ -523,8 +539,19 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
               <Button variant="secondary" onClick={() => savePost('archived')} disabled={isSaving}>Archive</Button>
               <Button variant="secondary" onClick={() => setShowPreview((current) => !current)}>
                 <Eye className="mr-2 h-4 w-4" />
-                {showPreview ? 'Hide Preview' : 'Preview'}
+                {showPreview ? 'Hide Inline Preview' : 'Inline Preview'}
               </Button>
+              {adminPreviewHref && (
+                <a
+                  href={adminPreviewHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-6 py-3 text-base font-semibold text-slate-700 transition-all duration-200 hover:border-slate-400 hover:bg-slate-50"
+                >
+                  Admin Preview
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              )}
               {publicPreviewHref && (
                 <a
                   href={publicPreviewHref}
@@ -548,57 +575,6 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
   function setField<Key extends keyof BlogFormState>(key: Key, value: BlogFormState[Key]) {
     setForm((current) => ({ ...current, [key]: value }))
   }
-}
-
-function buildArticlePrompt(input: {
-  locale: Locale
-  keywords: string
-  useCase: string
-  brief: string
-  wordCount: string
-}) {
-  const languageNames: Record<Locale, string> = {
-    en: 'English',
-    es: 'Spanish',
-    fr: 'French',
-    de: 'German',
-    ja: 'Japanese',
-  }
-  const language = languageNames[input.locale]
-  const keywords = input.keywords.trim()
-  const useCase = input.useCase.trim() || 'LinkedIn profile photos, resumes, business profiles, and realistic professional portraits'
-  const wordCount = input.wordCount.trim() || '1000-1200'
-  const brief = input.brief.trim()
-
-  return [
-    `We are Magic-Headshot, an AI avatar, photo, and professional image generation tool. Users upload selfies and create realistic professional headshots for LinkedIn, resumes, business profiles, teams, websites, and personal branding.`,
-    '',
-    `Please write one SEO-friendly blog article in ${language}.`,
-    `Main topic / keyword cluster: ${keywords}.`,
-    `Primary use case: ${useCase}.`,
-    `Target article length: about ${wordCount} words.`,
-    brief ? `Additional notes from the editor: ${brief}.` : 'Additional notes from the editor: none.',
-    '',
-    'Before writing, decide the best search intent and article angle, but do not show your reasoning.',
-    'The article should avoid generic filler. Include concrete advice about photo preparation, realistic likeness, style choice, professional use cases, and common mistakes.',
-    '',
-    'Return only a valid JSON object that can be saved by our blog CMS.',
-    'Required JSON keys: slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
-    '',
-    'JSON requirements:',
-    '- slug: lowercase English letters, numbers, and hyphens only.',
-    '- title: clear, natural, and keyword-aligned.',
-    '- description: 120-160 characters, matching visible article content.',
-    '- keywords: 5-8 natural search phrases.',
-    '- coverImageUrl: empty string unless a site-local path is known.',
-    '- coverImageAlt: descriptive alt text in the article language.',
-    '- intro: 80-140 words.',
-    '- sections: 5-7 objects with heading and body; each body about 100-150 words.',
-    '- enhancement: include category, audience, searchIntent, uniqueAngle, actionSteps, qualityChecks, avoid, internalLinks, relatedSlugs.',
-    '- internalLinks: only use public paths: /pricing, /sample, /questions, /blog, /free-id-photo-tool.',
-    '- Do not invent discounts, legal claims, medical claims, guarantees, or unavailable product features.',
-    '- No markdown fences. No commentary outside JSON.',
-  ].join('\n')
 }
 
 function BlogDraftPreview({ form }: { form: BlogFormState }) {
