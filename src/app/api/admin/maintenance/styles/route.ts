@@ -5,6 +5,8 @@ import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
 
+const DEEPSEEK_TIMEOUT_MS = 60000
+
 type StyleUpdates = {
   name?: unknown
   category?: unknown
@@ -18,6 +20,8 @@ type StyleUpdates = {
 }
 
 type StyleCreateInput = {
+  action?: unknown
+  direction?: unknown
   id?: unknown
   name?: unknown
   category?: unknown
@@ -28,6 +32,11 @@ type StyleCreateInput = {
   style_order?: unknown
   localized_names?: unknown
   localized_category_labels?: unknown
+}
+
+type DeepSeekResponse = {
+  choices?: { message?: { content?: string | null } }[]
+  error?: { message?: string }
 }
 
 export async function POST(request: Request) {
@@ -44,6 +53,10 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null) as StyleCreateInput | null
     if (!body) {
       return NextResponse.json({ error: 'Style data is required' }, { status: 400 })
+    }
+
+    if (body.action === 'draft') {
+      return generateStyleDraft(body)
     }
 
     const name = stringField(body.name, 'name')
@@ -121,6 +134,40 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ style: data })
   } catch (error) {
     console.error('[Admin Style Maintenance] Error:', error)
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    if (!isAdminEmail(user.email)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const body = await request.json().catch(() => null) as { id?: unknown } | null
+    if (!body || typeof body.id !== 'string' || !body.id.trim()) {
+      return NextResponse.json({ error: 'Style id is required' }, { status: 400 })
+    }
+
+    const styleId = body.id.trim()
+    const { error } = await supabaseAdmin
+      .from('headshot_styles')
+      .delete()
+      .eq('id', styleId)
+
+    if (error) {
+      console.error('[Admin Style Maintenance] Delete error:', error)
+      return NextResponse.json({ error: 'Failed to delete style' }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, id: styleId })
+  } catch (error) {
+    console.error('[Admin Style Maintenance] Delete error:', error)
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 })
   }
 }
@@ -205,4 +252,163 @@ function slugify(value: string) {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+async function generateStyleDraft(body: StyleCreateInput) {
+  const apiKey = (process.env.DEEPSEEK_KEY || process.env.DEEPSEEK_API_KEY || '').trim()
+  if (!apiKey) {
+    return NextResponse.json({ error: 'Missing DEEPSEEK_KEY on the server.' }, { status: 500 })
+  }
+
+  const direction = typeof body.direction === 'string' ? body.direction.trim() : ''
+  const category = typeof body.category === 'string' ? body.category.trim() : ''
+
+  if (!direction) {
+    return NextResponse.json({ error: 'Enter a style direction first.' }, { status: 400 })
+  }
+
+  const endpoint = resolveDeepSeekEndpoint()
+  const model = process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-chat'
+
+  let response: Response
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.6,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: 'You create safe image-generation style presets. Return only valid JSON.',
+          },
+          {
+            role: 'user',
+            content: buildStyleDraftPrompt(direction, category),
+          },
+        ],
+      }),
+      signal: AbortSignal.timeout(DEEPSEEK_TIMEOUT_MS),
+      cache: 'no-store',
+    })
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Could not connect to DeepSeek.', details: errorMessage(error) },
+      { status: 502 },
+    )
+  }
+
+  const raw = await response.text()
+  const parsedResponse = parseJson<DeepSeekResponse>(raw)
+  if (!response.ok) {
+    return NextResponse.json(
+      { error: parsedResponse?.error?.message || 'DeepSeek style generation failed.', status: response.status },
+      { status: 502 },
+    )
+  }
+
+  const content = parsedResponse?.choices?.[0]?.message?.content || raw
+  const parsedDraft = parseJson<Record<string, unknown>>(stripJsonFence(content))
+  if (!parsedDraft) {
+    return NextResponse.json({ error: 'DeepSeek did not return valid JSON.' }, { status: 502 })
+  }
+
+  const name = readString(parsedDraft.name)
+  const prompt = readString(parsedDraft.prompt)
+  const negative = readString(parsedDraft.negative)
+  const resolvedCategory = readString(parsedDraft.category) || category
+
+  if (!name || !resolvedCategory || !prompt || !negative) {
+    return NextResponse.json({ error: 'DeepSeek did not return complete style data.' }, { status: 502 })
+  }
+
+  return NextResponse.json({
+    style: {
+      id: slugify(readString(parsedDraft.id) || name),
+      name,
+      category: slugifyCategory(resolvedCategory),
+      prompt,
+      negative,
+      is_active: true,
+      category_order: readInteger(parsedDraft.category_order),
+      style_order: readInteger(parsedDraft.style_order),
+      localized_names: readPlainRecord(parsedDraft.localized_names),
+      localized_category_labels: readPlainRecord(parsedDraft.localized_category_labels),
+    },
+  })
+}
+
+function buildStyleDraftPrompt(direction: string, category: string) {
+  return [
+    'Create one headshot style preset for an AI portrait generator.',
+    `Style direction from admin: ${direction}.`,
+    `Requested category: ${category || 'choose the best existing-style category slug such as professional, artistic, lifestyle, seasonal, creative'}.`,
+    '',
+    'Return only one JSON object with exactly these keys:',
+    'id, name, category, prompt, negative, is_active, category_order, style_order, localized_names, localized_category_labels.',
+    '',
+    'Rules:',
+    '- id must be lowercase English letters, numbers, and underscores only.',
+    '- name must be a concise English display name.',
+    '- category must be a lowercase slug.',
+    '- prompt must be a vivid comma-separated image prompt suitable for portrait generation, not a bland template.',
+    '- For non-professional categories, make the style visibly beautiful, ethereal, stunning, cinematic, and memorable; include clear lighting, color palette, wardrobe/background mood, composition, and finish.',
+    '- For professional categories, keep it polished and credible, but still visually refined and premium.',
+    '- negative must be a concise comma-separated negative prompt.',
+    '- prompt and negative must avoid real brand names, copyrighted character names, public figures, official agency names, national flags, government emblems, readable text, logos, watermarks, and political symbols unless the admin explicitly asks for generic symbolic styling.',
+    '- localized_names must include es, fr, de, ja display-name translations.',
+    '- localized_category_labels must include es, fr, de, ja category-label translations.',
+    '- is_active must be true.',
+    '- category_order and style_order should be integers; use 0 if unsure.',
+    '- No markdown fences. No commentary outside JSON.',
+  ].join('\n')
+}
+
+function resolveDeepSeekEndpoint() {
+  const baseUrl = process.env.DEEPSEEK_BASE_URL?.trim() || 'https://api.deepseek.com'
+  if (baseUrl.endsWith('/chat/completions')) return baseUrl
+  return `${baseUrl.replace(/\/$/, '')}/chat/completions`
+}
+
+function parseJson<T>(value: string): T | null {
+  try {
+    return JSON.parse(value) as T
+  } catch {
+    return null
+  }
+}
+
+function stripJsonFence(value: string) {
+  return value
+    .trim()
+    .replace(/^```(?:json)?/i, '')
+    .replace(/```$/i, '')
+    .trim()
+}
+
+function readString(value: unknown) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function readInteger(value: unknown) {
+  const numeric = Number(value)
+  return Number.isInteger(numeric) && numeric >= 0 && numeric <= 10000 ? numeric : 0
+}
+
+function readPlainRecord(value: unknown) {
+  return isPlainObject(value) ? value : {}
+}
+
+function slugifyCategory(value: string) {
+  return slugify(value).replace(/_/g, '-')
+}
+
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
+  return typeof error === 'string' ? error : 'Unknown network error'
 }

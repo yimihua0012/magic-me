@@ -100,7 +100,7 @@ for (const planId of ['basic', 'pro', 'premium']) {
 }
 
 const middleware = read('src/middleware.ts')
-for (const route of ['', 'blog', 'pricing', 'privacy', 'terms', 'refund', 'contact', 'questions', 'sample', 'landing', 'upload', 'login', 'dashboard/admin/blog', 'dashboard/admin/keyword-research', ...useCaseRoutes.map((route) => route.slice(1))]) {
+for (const route of ['', 'blog', 'pricing', 'privacy', 'terms', 'refund', 'contact', 'questions', 'sample', 'ai-headshot-examples', 'landing', 'upload', 'login', 'dashboard/admin/blog', 'dashboard/admin/sample-pictures', 'dashboard/admin/keyword-research', ...useCaseRoutes.map((route) => route.slice(1))]) {
   assert(middleware.includes(`'${route}'`), `middleware localizedRoutes missing ${route || 'home'}`)
 }
 assert(middleware.includes("const dynamicRootRoutes = new Set(['blog'"), 'middleware must allow dynamic English CMS blog slugs')
@@ -112,6 +112,7 @@ const sitemap = read('src/lib/sitemap.ts')
 for (const route of ['/landing', '/pricing', '/questions', '/sample', '/contact', '/privacy', '/terms', '/refund', ...useCaseRoutes]) {
   assert(sitemap.includes(`path: '${route}'`), `localized sitemap missing ${route}`)
 }
+assert(sitemap.includes('sampleGalleryPath'), 'localized sitemap missing /ai-headshot-examples')
 assert(sitemap.includes('xmlns:image'), 'sitemap renderer must expose the image sitemap namespace when images are present')
 assert(sitemap.includes('<image:image>'), 'sitemap renderer must emit image sitemap entries')
 assert(sitemap.includes('getPublishedBlogPosts'), 'sitemap must include CMS blog posts')
@@ -142,11 +143,32 @@ assert(read('src/components/admin/blog-content-page-view.tsx').includes('Admin P
 assert(read('src/components/admin/blog-preview-page-view.tsx').includes('/api/admin/blog-posts/${id}'), 'admin blog preview must load saved posts by ID')
 assert(read('src/app/dashboard/admin/blog/preview/[id]/page.tsx').includes('BlogPreviewPageView'), 'English admin blog preview route must render saved draft previews')
 assert(read('src/app/[locale]/dashboard/admin/blog/preview/[id]/page.tsx').includes('BlogPreviewPageView'), 'localized admin blog preview route must render saved draft previews')
+assert(read('src/app/api/admin/maintenance/styles/route.ts').includes('export async function DELETE'), 'style maintenance must support deleting styles')
+assert(read('src/app/api/admin/maintenance/styles/route.ts').includes("body.action === 'draft'"), 'style maintenance must support DeepSeek style draft generation')
+assert(read('src/app/api/admin/maintenance/styles/route.ts').includes('DEEPSEEK_KEY'), 'style maintenance draft generation must keep DeepSeek server-side')
+assert(read('src/components/admin/admin-maintenance-page-view.tsx').includes('Generate Style Draft'), 'style maintenance UI must expose DeepSeek style draft generation')
+assert(read('src/components/admin/admin-maintenance-page-view.tsx').includes('Delete'), 'style maintenance UI must expose a delete entry')
 assert(read('src/app/api/admin/blog-post-draft/route.ts').includes("mode === 'prepare'"), 'DeepSeek blog draft generation must support keyword and prompt preparation')
 assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('exactly two localized search keywords'), 'DeepSeek preparation must return two localized search keywords')
 assert(read('src/lib/blog-store.ts').includes('normalizeAdminBlogSlug'), 'admin blog save must normalize long AI-generated slugs')
 assert(read('src/app/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'English admin blog page must render blog content manager')
 assert(read('src/app/[locale]/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'localized admin blog page must render blog content manager')
+assert(read('backend/db/migrations/021_sample_pictures.sql').includes('localized_alt JSONB'), 'sample picture SQL must include localized alt text')
+assert(read('backend/db/migrations/021_sample_pictures.sql').includes('localized_title JSONB'), 'sample picture SQL must include localized titles')
+assert(read('backend/db/migrations/021_sample_pictures.sql').includes('localized_style_name JSONB'), 'sample picture SQL must include localized style names')
+assert(read('backend/db/migrations/022_sample_picture_categories.sql').includes('localized_category JSONB'), 'sample picture category SQL must include localized categories')
+assert(read('backend/db/migrations/022_sample_picture_categories.sql').includes('category TEXT'), 'sample picture category SQL must include category field')
+assert(read('src/app/api/admin/sample-pictures/route.ts').includes("bucket = 'sample-pictures'"), 'admin sample pictures API must upload to sample-pictures bucket')
+assert(read('src/app/api/admin/sample-pictures/route.ts').includes('localized_category'), 'admin sample pictures API must save localized categories')
+assert(read('src/components/admin/sample-pictures-page-view.tsx').includes('canvas.toBlob'), 'admin sample pictures UI must compress images before upload')
+assert(read('src/components/admin/sample-pictures-page-view.tsx').includes('image.width'), 'admin sample picture compression must preserve dimensions')
+assert(read('src/components/admin/sample-pictures-page-view.tsx').includes('datalist id="sample-picture-categories"'), 'admin sample picture UI must allow existing or new categories')
+assert(read('src/app/dashboard/admin/sample-pictures/page.tsx').includes('SamplePicturesPageView'), 'English admin sample picture page must render manager')
+assert(read('src/app/[locale]/dashboard/admin/sample-pictures/page.tsx').includes('SamplePicturesPageView'), 'localized admin sample picture page must render manager')
+assert(read('src/app/ai-headshot-examples/page.tsx').includes('SampleGalleryPage'), 'English sample gallery page must render gallery')
+assert(read('src/app/[locale]/ai-headshot-examples/page.tsx').includes('SampleGalleryPage'), 'localized sample gallery page must render gallery')
+assert(read('src/components/seo/sample-gallery-page.tsx').includes('loading="lazy"'), 'sample gallery images must lazy load')
+assert(read('src/components/seo/sample-gallery-page.tsx').includes('groupPicturesByCategory'), 'sample gallery must group pictures by category')
 assert(read('src/app/api/admin/keyword-suggestions/route.ts').includes('suggestqueries.google.com'), 'admin keyword research must use Google-style suggestions server-side')
 assert(read('src/components/admin/keyword-research-page-view.tsx').includes('Related Keywords'), 'admin keyword research UI must expose a copyable related keyword box')
 assert(read('src/app/dashboard/admin/keyword-research/page.tsx').includes('KeywordResearchPageView'), 'English admin keyword research page must render keyword research UI')
@@ -160,6 +182,7 @@ assert(localizedNavbar.includes('localizedLayoutContent'), 'localized navbar mus
 for (const route of useCaseRoutes.map((route) => route.slice(1))) {
   assert(localizedNavbar.includes(`route === '${route}'`), `localized navbar language switch must preserve ${route}`)
 }
+assert(localizedNavbar.includes("route === 'ai-headshot-examples'"), 'localized navbar language switch must preserve ai-headshot-examples')
 
 const localizedFooter = read('src/components/layout/localized-footer.tsx')
 assert(localizedFooter.includes('withSource'), 'localized footer links must include source')

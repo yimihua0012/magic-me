@@ -340,6 +340,7 @@ function getLocalizedSwitchPath(pathname: string) {
 
   if (
     route === 'ai-headshot-corporate' ||
+    route === 'ai-headshot-examples' ||
     route === 'ai-headshot-linkedin' ||
     route === 'ai-headshot-professional-photo' ||
     route === 'ai-headshot-resume' ||

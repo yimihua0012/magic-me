@@ -5,7 +5,7 @@ import AdminPageFrame from '@/components/admin/admin-page-frame'
 import { useAdminAuth } from '@/components/admin/admin-auth'
 import Card from '@/components/ui/card'
 import { localePath, type Locale } from '@/lib/i18n'
-import { Activity, ArrowRight, BookOpenText, CreditCard, Image, ListPlus, MousePointerClick, PackageCheck, SearchCheck, Sparkles } from 'lucide-react'
+import { Activity, ArrowRight, BookOpenText, CreditCard, Image, ImagePlus, ListPlus, MousePointerClick, PackageCheck, SearchCheck, Sparkles } from 'lucide-react'
 
 interface AdminHomePageViewProps {
   locale?: Locale
@@ -46,6 +46,13 @@ const entries = [
     href: '/dashboard/admin/blog',
     icon: BookOpenText,
     tone: 'text-teal-600 bg-teal-50',
+  },
+  {
+    title: 'Sample Pictures',
+    description: 'Upload compressed gallery examples and manage localized image metadata.',
+    href: '/dashboard/admin/sample-pictures',
+    icon: ImagePlus,
+    tone: 'text-fuchsia-600 bg-fuchsia-50',
   },
   {
     title: 'Keyword Research',

@@ -145,162 +145,162 @@ const STYLE_CONFIGS: Record<string, StyleConfig> = {
     id: 'oil_painting',
     name: 'Oil Painting',
     category: 'artistic',
-    prompt: 'classical oil painting portrait, van gogh style, thick brushstrokes, impasto technique, artistic, textured canvas, museum quality fine art',
-    negative: 'photograph, digital art, smooth, 3d render, photography, modern, pixel perfect, clean lines'
+    prompt: 'breathtakingly beautiful classical oil painting portrait, rich impasto brush texture, luminous skin tones, deep jewel-toned background, dramatic gallery lighting, ornate fine-art composition, stunning museum masterpiece energy',
+    negative: 'photograph, digital art, smooth plastic skin, 3d render, flat lighting, modern snapshot, clean vector lines, watermark, text, logo'
   },
   watercolor_art: {
     id: 'watercolor_art',
     name: 'Watercolor Art',
     category: 'artistic',
-    prompt: 'watercolor portrait painting, soft watercolor wash, delicate brushwork, artistic, elegant, fine art, gallery quality',
-    negative: 'photograph, digital art, sharp lines, 3d render, modern, pixel perfect'
+    prompt: 'ethereal beautiful watercolor portrait, translucent pigment washes, delicate paper grain, blooming color edges, soft luminous background, airy elegant mood, dreamy handcrafted fine-art illustration, gallery-ready finish',
+    negative: 'photograph, harsh ink outlines, 3d render, plastic skin, heavy shadows, pixel-perfect vector art, watermark, text, logo'
   },
   anime_illustration: {
     id: 'anime_illustration',
     name: 'Anime Illustration',
     category: 'artistic',
-    prompt: 'studio ghibli anime portrait, soft watercolor background, gentle expression, hand drawn animation style, beautiful illustration, pastel colors, whimsical',
+    prompt: 'beautiful premium hand-drawn anime portrait, expressive cinematic eyes, soft painted background, gentle magical atmosphere, refined linework, pastel color harmony, warm storybook lighting, stunning animation key-art quality',
     negative: 'realistic, 3d, photograph, dark, scary, horror, mature, photorealistic'
   },
   cyberpunk_neon: {
     id: 'cyberpunk_neon',
     name: 'Cyberpunk Neon',
     category: 'artistic',
-    prompt: 'cyberpunk portrait, neon lights, futuristic city background, tech wear, holographic elements, night, high contrast, edgy, blade runner aesthetic',
-    negative: 'daylight, natural, rural, vintage, historical, bright sunny, countryside'
+    prompt: 'stunning cyberpunk neon portrait, rain-slick futuristic street, holographic glow, electric magenta and cyan rim light, sleek techwear, cinematic night atmosphere, sharp high-contrast editorial composition, breathtaking futuristic beauty',
+    negative: 'daylight, rural countryside, vintage historical styling, flat lighting, dull colors, casual office, brand logos, text, watermark'
   },
   pixel_art_retro: {
     id: 'pixel_art_retro',
     name: 'Pixel Art Retro',
     category: 'artistic',
-    prompt: 'retro pixel art portrait, 16-bit video game style, nostalgic, colorful pixels, retro gaming aesthetic, 80s 90s style',
-    negative: 'photograph, modern, realistic, 3d, high resolution, smooth'
+    prompt: 'strikingly beautiful vintage editorial portrait, classic magazine photography, refined retro wardrobe, cinematic film tones, elegant composition, soft studio lighting, premium fashion portrait, collectible cover-image presence',
+    negative: 'pixel art, 16-bit, low resolution, blocky pixels, cartoon, video game style, blurry, distorted face, watermark, text, logo'
   },
   pop_art_comic: {
     id: 'pop_art_comic',
     name: 'Pop Art Comic',
     category: 'artistic',
-    prompt: 'pop art portrait, andy warhol style, bold colors, comic book aesthetic, vibrant, graphic design, art museum quality',
-    negative: 'photograph, realistic, dark, dull, muted colors, boring'
+    prompt: 'stunning electric pop art portrait, bold screen-print color blocks, oversized graphic shadows, crisp halftone texture, confident poster composition, playful comic energy, beautiful high-saturation gallery wall impact',
+    negative: 'photograph, realistic skin rendering, muted colors, muddy shadows, dull composition, low contrast, watermark, text, logo'
   },
   coffee_shop: {
     id: 'coffee_shop',
     name: 'Coffee Shop',
     category: 'lifestyle',
-    prompt: 'cozy coffee shop portrait, warm atmosphere, casual outfit, relaxed smile, soft natural lighting, urban café background',
+    prompt: 'beautiful cinematic coffee shop portrait, amber window light, textured wood tables, soft steam atmosphere, relaxed stylish outfit, intimate urban cafe background, dreamy editorial lifestyle mood, shallow depth of field',
     negative: 'formal, corporate, dark, cold, harsh lighting, studio'
   },
   beach_golden_hour: {
     id: 'beach_golden_hour',
     name: 'Beach Golden Hour',
     category: 'lifestyle',
-    prompt: 'beach portrait, golden hour sunset, ocean waves background, linen white shirt, warm lighting, relaxed natural smile, shallow depth of field, 8k',
+    prompt: 'breathtaking luxury beach golden hour portrait, glowing sunset horizon, soft ocean spray, wind-touched linen styling, warm bronze rim light, relaxed natural smile, beautiful travel editorial composition, shallow depth of field',
     negative: 'studio, formal suit, winter, snow, dark, indoor, harsh lighting, overcast'
   },
   autumn_park: {
     id: 'autumn_park',
     name: 'Autumn Park',
     category: 'lifestyle',
-    prompt: 'autumn park portrait, fallen leaves, warm orange tones, cozy sweater, gentle smile, golden autumn light, peaceful atmosphere',
+    prompt: 'beautiful romantic autumn park portrait, golden canopy of leaves, warm copper and amber tones, cozy layered sweater, gentle confident smile, cinematic backlight, crisp fall air atmosphere, stunning editorial lifestyle finish',
     negative: 'summer, beach, bright sun, harsh lighting, cold winter, studio'
   },
   city_street: {
     id: 'city_street',
     name: 'City Street',
     category: 'lifestyle',
-    prompt: 'urban street portrait, city background, stylish casual outfit, street photography style, candid natural pose, modern city vibe',
+    prompt: 'stunning stylish urban street portrait, layered city lights, modern architecture depth, confident candid pose, polished streetwear-inspired outfit, editorial street photography energy, crisp natural motion and beautiful premium bokeh',
     negative: 'studio, formal, boring background, dark, blurry'
   },
   library_study: {
     id: 'library_study',
     name: 'Library Study',
     category: 'lifestyle',
-    prompt: 'library portrait, bookshelf background, intellectual look, cozy sweater, gentle expression, warm lighting, studious atmosphere',
+    prompt: 'beautiful atmospheric library portrait, tall bookshelves, warm brass reading lamps, refined intellectual styling, calm thoughtful expression, cozy textured sweater, cinematic scholar mood, elegant depth and dreamy soft shadows',
     negative: 'casual, party, bright neon, modern tech, dark, blurry'
   },
   garden_spring: {
     id: 'garden_spring',
     name: 'Garden Spring',
     category: 'lifestyle',
-    prompt: 'spring garden portrait, cherry blossoms, floral background, pastel colors, soft dress, gentle smile, fresh spring atmosphere',
+    prompt: 'ethereal enchanted spring garden portrait, layered blossom branches, pastel floral haze, soft elegant outfit, fresh luminous skin tones, gentle smile, dreamy natural backlight, stunning romantic editorial garden atmosphere',
     negative: 'winter, dark, cold, formal suit, studio, harsh lighting'
   },
   spring_blossom: {
     id: 'spring_blossom',
     name: 'Spring Blossom',
     category: 'seasonal',
-    prompt: 'spring portrait, cherry blossoms, pink flowers, soft pastel colors, gentle lighting, fresh spring atmosphere, floral background',
+    prompt: 'radiant beautiful spring blossom portrait, pink petals floating in soft air, pastel floral tunnel background, fresh luminous lighting, elegant seasonal styling, joyful renewal mood, stunning romantic portrait finish',
     negative: 'winter, dark, cold, harsh lighting, autumn, summer heat'
   },
   summer_sunshine: {
     id: 'summer_sunshine',
     name: 'Summer Sunshine',
     category: 'seasonal',
-    prompt: 'summer portrait, bright sunshine, warm golden tones, casual summer outfit, beach or park setting, happy smile, vibrant energy',
+    prompt: 'vivid stunning summer sunshine portrait, sparkling golden light, lush outdoor color, breezy warm-weather styling, happy confident expression, energetic travel-magazine mood, beautiful crisp highlights and vibrant contrast',
     negative: 'winter, cold, dark, studio, formal, overcast'
   },
   autumn_foliage: {
     id: 'autumn_foliage',
     name: 'Autumn Foliage',
     category: 'seasonal',
-    prompt: 'autumn portrait, golden autumn leaves, warm orange red tones, cozy sweater, gentle smile, fall atmosphere',
+    prompt: 'cinematic beautiful autumn foliage portrait, fiery red and gold leaves, glowing late-afternoon backlight, cozy refined styling, gentle smile, rich seasonal color grading, stunning warm storybook atmosphere',
     negative: 'summer, beach, bright sun, winter snow, studio'
   },
   winter_snow: {
     id: 'winter_snow',
     name: 'Winter Snow',
     category: 'seasonal',
-    prompt: 'winter portrait, gentle snowfall, cozy winter coat, rosy cheeks, soft magical lighting, snowflakes, warm smile, fairytale atmosphere',
+    prompt: 'magical beautiful winter snow portrait, delicate falling snow, elegant winter coat, rosy cheeks, blue-hour sparkle, warm glowing smile, ethereal fairytale frost atmosphere, stunning cinematic holiday-card finish',
     negative: 'summer, beach, hot, sweating, bright sun, tropical, shorts, sand'
   },
   black_white_classic: {
     id: 'black_white_classic',
     name: 'Black & White Classic',
     category: 'classic',
-    prompt: 'timeless black and white portrait, high contrast, film noir style, dramatic shadows, classic hollywood, leica monochrome, fine art photography',
-    negative: 'color, neon, modern digital effects, filters, overexposed, flat lighting'
+    prompt: 'timeless beautiful black and white portrait, sculptural contrast, elegant silver-gelatin film texture, dramatic cheekbone shadows, classic studio glamour, stunning fine-art monochrome composition, iconic gallery print presence',
+    negative: 'color, neon, cheap filters, overexposed highlights, flat lighting, muddy gray tones, watermark, text, logo'
   },
   vintage_film: {
     id: 'vintage_film',
     name: 'Vintage Film',
     category: 'classic',
-    prompt: 'vintage film portrait, film grain texture, retro colors, nostalgic feel, 1950s 1960s style, warm tones, classic photography',
+    prompt: 'beautiful vintage film portrait, tactile grain texture, nostalgic mid-century wardrobe cues, warm faded color palette, soft lens bloom, dreamy cinematic magazine composition, timeless analog photography mood',
     negative: 'modern digital, high tech, neon, futuristic, clean digital art'
   },
   rembrandt_lighting: {
     id: 'rembrandt_lighting',
     name: 'Rembrandt Lighting',
     category: 'classic',
-    prompt: 'rembrandt lighting portrait, dramatic chiaroscuro, classical painting style, theatrical lighting, fine art portrait, museum quality',
+    prompt: 'stunning dramatic chiaroscuro portrait, precise triangular cheek light, deep velvet shadows, painterly classical atmosphere, dignified pose, beautiful museum-quality fine-art lighting, powerful cinematic depth',
     negative: 'flat lighting, bright even lighting, modern digital, casual, boring'
   },
   soft_glamour: {
     id: 'soft_glamour',
     name: 'Soft Glamour',
     category: 'classic',
-    prompt: 'soft glamour portrait, soft diffused lighting, elegant pose, glamorous look, professional makeup, high-end beauty photography',
-    negative: 'harsh lighting, casual, unprofessional, dark, blurry, distorted'
+    prompt: 'stunning soft glamour beauty portrait, luminous diffused key light, polished makeup, silky highlights, elegant pose, refined wardrobe, premium magazine beauty retouching, beautiful luxurious yet natural finish',
+    negative: 'harsh lighting, casual snapshot, messy styling, heavy distortion, plastic skin, blurry, watermark, text, logo'
   },
   superhero_style: {
     id: 'superhero_style',
     name: 'Superhero',
     category: 'creative',
-    prompt: 'superhero movie poster portrait, marvel style, dramatic lighting, dynamic pose, cape, heroic, cinematic, epic, professional cosplay quality',
-    negative: 'casual, everyday, normal clothes, boring, dull, ordinary background'
+    prompt: 'stunning original superhero movie-poster portrait, dramatic storm-lit sky, dynamic heroic pose, sculpted cape movement, powerful rim lighting, epic cinematic scale, beautiful premium fantasy costume design, no franchise branding',
+    negative: 'known superhero costume, franchise logo, brand emblem, casual clothes, ordinary background, dull lighting, weapon, text, watermark'
   },
   royal_portrait: {
     id: 'royal_portrait',
     name: 'Royal Portrait',
     category: 'creative',
-    prompt: 'royal portrait painting, classical renaissance style, regal attire, crown, luxurious background, oil painting texture, museum masterpiece',
+    prompt: 'breathtaking regal royal portrait painting, opulent palace backdrop, embroidered ceremonial attire, jewel-toned fabrics, refined crown-like ornament, dignified posture, luminous oil texture, stunning museum masterpiece grandeur',
     negative: 'modern, casual, everyday, boring, plain background, digital art'
   },
   astronaut_space: {
     id: 'astronaut_space',
     name: 'Astronaut Space',
     category: 'creative',
-    prompt: 'astronaut portrait, space background, stars galaxies, space suit, helmet, sci-fi aesthetic, cinematic, epic space exploration',
-    negative: 'earth, normal clothes, casual, boring, plain background, dark'
+    prompt: 'breathtaking cinematic astronaut portrait, deep starfield and glowing nebula backdrop, sleek generic space suit, reflective helmet details, blue-white rim lighting, stunning sci-fi exploration mood, beautiful cosmic atmosphere, no real-world agency branding, no national symbols',
+    negative: 'NASA logo, NASA text, space agency logo, national flag, flag patch, country flag, official insignia, mission patch, government emblem, earth, normal clothes, casual, boring, plain background, text, watermark'
   }
 }
 

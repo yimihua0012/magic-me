@@ -7,7 +7,7 @@ import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Input from '@/components/ui/input'
 import { type Locale } from '@/lib/i18n'
-import { AlertCircle, CheckCircle2, Edit3, PackagePlus, Plus, RefreshCw, RotateCw, Save, Search } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Edit3, PackagePlus, Plus, RefreshCw, RotateCw, Save, Search, Sparkles, Trash2 } from 'lucide-react'
 
 export type AdminMaintenanceSection = 'styles' | 'users' | 'generations' | 'orders'
 
@@ -110,6 +110,9 @@ export default function AdminMaintenancePageView({ locale = 'en', section }: Adm
   const [pageSize, setPageSize] = useState(20)
   const [styleMode, setStyleMode] = useState<'create' | 'edit'>('edit')
   const [editingStyle, setEditingStyle] = useState<StyleEditState | null>(null)
+  const [styleDirection, setStyleDirection] = useState('')
+  const [styleDraftCategory, setStyleDraftCategory] = useState('artistic')
+  const [isGeneratingStyleDraft, setIsGeneratingStyleDraft] = useState(false)
   const [editingUser, setEditingUser] = useState<UserEditState | null>(null)
   const [editingPackage, setEditingPackage] = useState<PackageEditState | null>(null)
   const titles = fallback[section]
@@ -167,6 +170,17 @@ export default function AdminMaintenancePageView({ locale = 'en', section }: Adm
     return data.rows.find((row) => row.id === editingStyle.id) || null
   }, [data, editingStyle])
 
+  const styleCategories = useMemo(() => {
+    const categories = new Set(['professional', 'artistic', 'lifestyle', 'seasonal', 'creative'])
+    if (data?.type === 'styles') {
+      for (const row of data.rows) {
+        const category = String(row.category || '').trim()
+        if (category) categories.add(category)
+      }
+    }
+    return Array.from(categories)
+  }, [data])
+
   const startCreateStyle = () => {
     setSuccess('')
     setError('')
@@ -201,6 +215,55 @@ export default function AdminMaintenancePageView({ locale = 'en', section }: Adm
       localized_names: String(row.localized_names || '{}'),
       localized_category_labels: String(row.localized_category_labels || '{}'),
     })
+  }
+
+  const generateStyleDraft = async () => {
+    if (!accessToken) return
+    if (!styleDirection.trim()) {
+      setError('Enter a style direction first.')
+      return
+    }
+
+    setError('')
+    setSuccess('')
+    setIsGeneratingStyleDraft(true)
+
+    try {
+      const response = await fetch('/api/admin/maintenance/styles', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'draft',
+          direction: styleDirection,
+          category: styleDraftCategory,
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Could not generate style draft.')
+      }
+
+      const style = data.style || {}
+      setStyleMode('create')
+      setEditingStyle({
+        id: typeof style.id === 'string' ? style.id : '',
+        name: typeof style.name === 'string' ? style.name : '',
+        category: typeof style.category === 'string' ? style.category : styleDraftCategory,
+        prompt: typeof style.prompt === 'string' ? style.prompt : '',
+        negative: typeof style.negative === 'string' ? style.negative : '',
+        is_active: typeof style.is_active === 'boolean' ? style.is_active : true,
+        category_order: Number(style.category_order || 0),
+        style_order: Number(style.style_order || 0),
+        localized_names: JSON.stringify(isRecord(style.localized_names) ? style.localized_names : {}, null, 2),
+        localized_category_labels: JSON.stringify(isRecord(style.localized_category_labels) ? style.localized_category_labels : {}, null, 2),
+      })
+      setSuccess('Style draft generated. Review the form, then click Create Style to save it.')
+    } catch (draftError) {
+      setError(draftError instanceof Error ? draftError.message : 'Could not generate style draft.')
+    } finally {
+      setIsGeneratingStyleDraft(false)
+    }
   }
 
   const startEditUser = (row: AdminRow) => {
@@ -295,6 +358,21 @@ export default function AdminMaintenancePageView({ locale = 'en', section }: Adm
 
     const ok = await runMutation(request, styleMode === 'create' ? 'Style created.' : 'Style saved.')
     if (ok) setEditingStyle(null)
+  }
+
+  const deleteStyle = async (styleId: string) => {
+    if (!accessToken || !styleId) return
+
+    const confirmed = window.confirm(`Delete style "${styleId}"? This cannot be undone.`)
+    if (!confirmed) return
+
+    const ok = await runMutation(fetch('/api/admin/maintenance/styles', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: styleId }),
+    }), 'Style deleted.')
+
+    if (ok && editingStyle?.id === styleId) setEditingStyle(null)
   }
 
   const saveUser = async () => {
@@ -432,6 +510,23 @@ export default function AdminMaintenancePageView({ locale = 'en', section }: Adm
           </div>
         )}
 
+        {section === 'styles' && (
+          <Card className="p-5 sm:p-6">
+            <FormHeader title="Generate Style Draft" description="Enter a style direction, choose a type, then let DeepSeek prepare editable style data." onCancel={() => {
+              setStyleDirection('')
+              setStyleDraftCategory('artistic')
+            }} />
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto] md:items-end">
+              <Textarea label="Style Direction" value={styleDirection} onChange={setStyleDirection} rows={3} />
+              <Select label="Type" value={styleDraftCategory} options={styleCategories} onChange={setStyleDraftCategory} />
+              <Button onClick={() => void generateStyleDraft()} isLoading={isGeneratingStyleDraft} disabled={isGeneratingStyleDraft || !styleDirection.trim()}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Try
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {editingStyle && (
           <Card className="p-5 sm:p-6">
             <FormHeader title={styleMode === 'create' ? 'New Style' : 'Edit Style'} description={styleMode === 'create' ? 'Create a new selectable headshot style.' : editingStyle.id} onCancel={() => setEditingStyle(null)} />
@@ -567,10 +662,16 @@ export default function AdminMaintenancePageView({ locale = 'en', section }: Adm
                         <td className="whitespace-nowrap px-4 py-3">
                           <div className="flex gap-2">
                             {section === 'styles' && (
-                              <Button variant="secondary" size="sm" onClick={() => startEditStyle(row)}>
-                                <Edit3 className="mr-2 h-4 w-4" />
-                                Edit
-                              </Button>
+                              <>
+                                <Button variant="secondary" size="sm" onClick={() => startEditStyle(row)}>
+                                  <Edit3 className="mr-2 h-4 w-4" />
+                                  Edit
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => void deleteStyle(String(row.id || ''))}>
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </Button>
+                              </>
                             )}
                             {section === 'users' && (
                               <Button variant="secondary" size="sm" onClick={() => startEditUser(row)}>
@@ -695,6 +796,10 @@ function parseJsonField(value: string, fieldName: string) {
   } catch {
     throw new Error(`${fieldName} must be valid JSON.`)
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }
 
 function toDateTimeLocal(value: string) {

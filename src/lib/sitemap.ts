@@ -3,6 +3,8 @@ import { appConfig } from '@/lib/config'
 import { blogGeneratedPortraitImages, blogPosts, sampleComparisons } from '@/lib/seo-content'
 import { DEFAULT_LOCALE, LOCALES, ROUTED_LOCALES, type Locale, localePath } from '@/lib/i18n'
 import { getPublishedBlogPosts, localeHasPublishedCmsBlogPosts } from '@/lib/blog-store'
+import { getSamplePictures } from '@/lib/sample-pictures'
+import { sampleGalleryPath } from '@/lib/sample-gallery-content'
 
 const siteUrl = appConfig.url.replace(/\/$/, '')
 const lastModified = new Date('2026-07-03T00:00:00.000Z')
@@ -35,6 +37,7 @@ const englishStaticRoutes: SitemapRoute[] = [
   { path: '', changeFrequency: 'weekly', priority: 1, images: homeImages },
   { path: '/landing', changeFrequency: 'monthly', priority: 0.7, images: ['/landing-headshot-showcase.png'] },
   { path: '/ai-headshot-linkedin', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: sampleGalleryPath, changeFrequency: 'weekly', priority: 0.8 },
   { path: '/ai-headshot-corporate', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
   { path: '/ai-headshot-resume', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
   { path: '/ai-headshot-studio-style', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
@@ -54,6 +57,7 @@ const localizedStaticRoutes: SitemapRoute[] = [
   { path: '', changeFrequency: 'weekly', priority: 1, images: homeImages },
   { path: '/landing', changeFrequency: 'monthly', priority: 0.7, images: ['/landing-headshot-showcase.png'] },
   { path: '/ai-headshot-linkedin', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
+  { path: sampleGalleryPath, changeFrequency: 'weekly', priority: 0.8 },
   { path: '/ai-headshot-corporate', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
   { path: '/ai-headshot-resume', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
   { path: '/ai-headshot-studio-style', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
@@ -93,9 +97,10 @@ function toSitemapEntry(locale: Locale, route: SitemapRoute): SitemapEntry {
 
 export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[]> {
   const publishedPosts = await getPublishedBlogPosts(locale)
+  const samplePictureImages = (await getSamplePictures(locale)).map((picture) => picture.imageUrl)
 
   if (locale === DEFAULT_LOCALE) {
-    const staticRoutes = englishStaticRoutes.map((route) => toSitemapEntry(locale, route))
+    const staticRoutes = englishStaticRoutes.map((route) => toSitemapEntry(locale, withSampleGalleryImages(route, samplePictureImages)))
     const blogRoutes = publishedPosts.map((post, index) => ({
       url: localizedUrl(locale, `/blog/${post.slug}`),
       lastModified: post.updatedAt ? new Date(post.updatedAt) : lastModified,
@@ -109,7 +114,7 @@ export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[
     return [...staticRoutes, ...blogRoutes]
   }
 
-  const staticRoutes = localizedStaticRoutes.map((route) => toSitemapEntry(locale, route))
+  const staticRoutes = localizedStaticRoutes.map((route) => toSitemapEntry(locale, withSampleGalleryImages(route, samplePictureImages)))
   const hasLocalizedBlog = await localeHasPublishedCmsBlogPosts(locale)
   const blogIndexRoute = hasLocalizedBlog
     ? [toSitemapEntry(locale, { path: '/blog', changeFrequency: 'weekly', priority: 0.7, images: blogImages })]
@@ -125,6 +130,11 @@ export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[
   }))
 
   return [...staticRoutes, ...blogIndexRoute, ...blogRoutes]
+}
+
+function withSampleGalleryImages(route: SitemapRoute, images: string[]): SitemapRoute {
+  if (route.path !== sampleGalleryPath || images.length === 0) return route
+  return { ...route, images }
 }
 
 export async function getAllSitemaps(): Promise<SitemapEntry[]> {
