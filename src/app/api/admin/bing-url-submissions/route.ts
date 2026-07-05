@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import { supabaseAdmin } from '@backend/config/supabase'
 import { isAdminEmail } from '@/lib/admin'
 import { getCurrentUser } from '@/lib/auth/server'
-import { blogPath, getPublishedBlogPosts } from '@/lib/blog-store'
+import { blogPath } from '@/lib/blog-store'
 import { appConfig } from '@/lib/config'
 import { LOCALES, type Locale } from '@/lib/i18n'
 
@@ -190,9 +191,12 @@ export async function POST(request: Request) {
       )
     }
 
+    const markedBlogPosts = await markSubmittedBlogPosts(normalizedUrls, siteUrl)
+
     return NextResponse.json({
       count: normalizedUrls.length,
       submitted: normalizedUrls,
+      markedBlogPosts,
       siteUrl,
       bingStatus: bingResponse.status,
       bingResponse: parsedResponse,
@@ -214,18 +218,28 @@ async function getPublishedBlogUrlsBefore(beforeInput: string | null) {
   const urls: string[] = []
   const seen = new Set<string>()
 
-  for (const locale of LOCALES) {
-    const posts = await getPublishedBlogPosts(locale as Locale)
-    for (const post of posts) {
-      const dateValue = post.publishedAt || post.updatedAt
-      const publishedTime = dateValue ? new Date(dateValue).getTime() : 0
-      if (publishedTime > cutoff.getTime()) continue
+  const { data, error } = await supabaseAdmin
+    .from('blog_posts')
+    .select('id,locale,slug,published_at,updated_at')
+    .eq('status', 'published')
+    .eq('submitted_to_bing', false)
+    .order('published_at', { ascending: true, nullsFirst: false })
+    .order('updated_at', { ascending: true })
+    .limit(MAX_BING_BATCH_SIZE)
 
-      const url = `${siteUrl}${blogPath(post.locale, post.slug)}`
-      if (!seen.has(url)) {
-        seen.add(url)
-        urls.push(url)
-      }
+  if (error) {
+    throw new Error(`Could not load unsubmitted blog URLs: ${error.message}`)
+  }
+
+  for (const post of (data || []) as Array<{ locale: Locale; slug: string; published_at: string | null; updated_at: string | null }>) {
+    const dateValue = post.published_at || post.updated_at
+    const publishedTime = dateValue ? new Date(dateValue).getTime() : 0
+    if (publishedTime > cutoff.getTime()) continue
+
+    const url = `${siteUrl}${blogPath(post.locale, post.slug)}`
+    if (!seen.has(url)) {
+      seen.add(url)
+      urls.push(url)
     }
   }
 
@@ -235,6 +249,64 @@ async function getPublishedBlogUrlsBefore(beforeInput: string | null) {
     before: cutoff.toISOString(),
     count: urls.length,
     urls,
+    submittedToBing: false,
+  }
+}
+
+async function markSubmittedBlogPosts(urls: string[], siteUrl: string) {
+  const matches = urls
+    .map((url) => parseBlogUrl(url, siteUrl))
+    .filter((item): item is { locale: Locale; slug: string } => Boolean(item))
+
+  const marked: string[] = []
+  const errors: string[] = []
+  const seen = new Set<string>()
+
+  for (const match of matches) {
+    const key = `${match.locale}:${match.slug}`
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    const { data, error } = await supabaseAdmin
+      .from('blog_posts')
+      .update({ submitted_to_bing: true })
+      .eq('status', 'published')
+      .eq('locale', match.locale)
+      .eq('slug', match.slug)
+      .select('id')
+
+    if (error) {
+      errors.push(`${key}: ${error.message}`)
+    } else if ((data || []).length > 0) {
+      marked.push(key)
+    }
+  }
+
+  return {
+    count: marked.length,
+    marked,
+    errors,
+  }
+}
+
+function parseBlogUrl(rawUrl: string, siteUrl: string) {
+  try {
+    const site = new URL(siteUrl)
+    const url = new URL(rawUrl, site.origin)
+    if (url.origin !== site.origin) return null
+
+    const parts = url.pathname.split('/').filter(Boolean)
+    if (parts[0] === 'blog' && parts[1]) {
+      return { locale: 'en' as Locale, slug: parts[1] }
+    }
+
+    if ((LOCALES as readonly string[]).includes(parts[0]) && parts[1] === 'blog' && parts[2]) {
+      return { locale: parts[0] as Locale, slug: parts[2] }
+    }
+
+    return null
+  } catch {
+    return null
   }
 }
 

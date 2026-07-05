@@ -11,6 +11,11 @@ import { CheckCircle2, Clock3, ExternalLink, KeyRound, Send, XCircle } from 'luc
 type SubmitResult = {
   count: number
   submitted: string[]
+  markedBlogPosts?: {
+    count: number
+    marked: string[]
+    errors: string[]
+  }
   siteUrl: string
   bingStatus: number
   bingResponse: unknown
@@ -30,6 +35,7 @@ type BlogUrlResult = {
   before: string
   count: number
   urls: string[]
+  submittedToBing?: boolean
 }
 
 interface BingUrlSubmitPageViewProps {
@@ -223,11 +229,11 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
               </Button>
             </div>
             <p className="mt-2 text-xs leading-5 text-slate-500">
-              Loads published blog URLs whose publish/update time is before the selected time, then fills the submit box below.
+              Loads published CMS blog URLs whose publish/update time is before the selected time and whose Bing submitted flag is still false.
             </p>
             {blogUrlResult && (
               <p className="mt-2 text-sm font-semibold text-green-700">
-                Filled {blogUrlResult.count} blog URLs before {new Date(blogUrlResult.before).toLocaleString()}.
+                Filled {blogUrlResult.count} unsubmitted blog URLs before {new Date(blogUrlResult.before).toLocaleString()}.
               </p>
             )}
           </div>
@@ -284,6 +290,7 @@ export default function BingUrlSubmitPageView({ locale = 'en' }: BingUrlSubmitPa
                 <h2 className="text-xl font-bold text-slate-900">Submission Complete</h2>
                 <p className="text-sm text-slate-500">
                   Bing returned {result.bingStatus}. Submitted {result.count} URLs.
+                  {result.markedBlogPosts ? ` Marked ${result.markedBlogPosts.count} blog posts as submitted.` : ''}
                 </p>
               </div>
             </div>

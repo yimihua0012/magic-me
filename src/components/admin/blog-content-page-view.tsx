@@ -29,6 +29,7 @@ type BlogPostAdminItem = {
   sections: { heading: string; body: string }[]
   enhancement?: Record<string, unknown>
   localizedSlugs?: Partial<Record<Locale, string>>
+  submittedToBing?: boolean
   updatedAt?: string
 }
 
@@ -49,6 +50,7 @@ type BlogFormState = {
   sectionsJson: string
   enhancementJson: string
   localizedSlugsJson: string
+  submittedToBing: boolean
 }
 
 interface BlogContentPageViewProps {
@@ -77,6 +79,7 @@ const defaultForm: BlogFormState = {
   sectionsJson: JSON.stringify(emptySections, null, 2),
   enhancementJson: '{}',
   localizedSlugsJson: '{}',
+  submittedToBing: false,
 }
 
 export default function BlogContentPageView({ locale = 'en' }: BlogContentPageViewProps) {
@@ -153,6 +156,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
       sectionsJson: JSON.stringify(post.sections, null, 2),
       enhancementJson: JSON.stringify(post.enhancement || {}, null, 2),
       localizedSlugsJson: JSON.stringify(post.localizedSlugs || { [post.locale]: post.slug }, null, 2),
+      submittedToBing: Boolean(post.submittedToBing),
     })
     setMessage('')
     setError('')
@@ -310,6 +314,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
         sections,
         enhancement,
         localizedSlugs,
+        submittedToBing: form.submittedToBing,
       }
 
       const response = await fetch('/api/admin/blog-posts', {
@@ -459,6 +464,9 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
                       {post.status}
                     </span>
                   </div>
+                  <div className="mt-2 text-xs font-semibold text-slate-500">
+                    Bing: {post.submittedToBing ? 'submitted' : 'not submitted'}
+                  </div>
                 </button>
               ))}
               {!isLoading && posts.length === 0 && (
@@ -489,6 +497,15 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
                   <option value="archived">Archived</option>
                 </select>
               </Field>
+              <label className="mt-4 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.submittedToBing}
+                  onChange={(event) => setField('submittedToBing', event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                Submitted to Bing
+              </label>
               <Field label="Slug">
                 <input value={form.slug} onChange={(event) => setField('slug', event.target.value)} className={inputClass} />
               </Field>

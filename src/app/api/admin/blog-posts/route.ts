@@ -99,6 +99,7 @@ function normalizeBlogPostInput(body: BlogPostRequestBody | null): BlogPostInput
     sections: normalizeSections(body?.sections),
     enhancement: isRecord(body?.enhancement) ? body.enhancement : undefined,
     localizedSlugs: isRecord(body?.localizedSlugs) ? body.localizedSlugs as Partial<Record<Locale, string>> : undefined,
+    submittedToBing: typeof body?.submittedToBing === 'boolean' ? body.submittedToBing : false,
   }
 }
 

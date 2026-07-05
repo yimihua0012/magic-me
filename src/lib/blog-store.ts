@@ -22,6 +22,7 @@ export type BlogPostWithMeta = BlogPost & {
   publishedAt?: string
   updatedAt?: string
   localizedSlugs?: Partial<Record<Locale, string>>
+  submittedToBing?: boolean
   source: BlogPostSource
 }
 
@@ -44,6 +45,7 @@ type BlogPostRow = {
   published_at: string | null
   updated_at: string | null
   localized_slugs: Partial<Record<Locale, string>> | null
+  submitted_to_bing: boolean | null
 }
 
 type BlogContentJson = {
@@ -69,6 +71,7 @@ const publishedColumns = [
   'published_at',
   'updated_at',
   'localized_slugs',
+  'submitted_to_bing',
 ].join(',')
 
 function staticPostToMeta(post: BlogPost): BlogPostWithMeta {
@@ -110,6 +113,7 @@ function rowToPost(row: BlogPostRow): BlogPostWithMeta {
     publishedAt: row.published_at || undefined,
     updatedAt: row.updated_at || undefined,
     localizedSlugs: row.localized_slugs || { [row.locale]: row.slug },
+    submittedToBing: Boolean(row.submitted_to_bing),
     source: 'cms',
   }
 }
@@ -327,6 +331,7 @@ export type BlogPostInput = {
   sections: { heading: string; body: string }[]
   enhancement?: Partial<BlogEnhancement>
   localizedSlugs?: Partial<Record<Locale, string>>
+  submittedToBing?: boolean
 }
 
 export function validateBlogPostInput(input: BlogPostInput) {
@@ -415,6 +420,7 @@ export async function upsertAdminBlogPost(input: BlogPostInput, userId: string) 
       ...(normalizedInput.localizedSlugs || {}),
       [normalizedInput.locale]: normalizedInput.slug,
     },
+    submitted_to_bing: Boolean(normalizedInput.submittedToBing),
     published_at: normalizedInput.status === 'published' ? new Date().toISOString() : null,
     updated_by: userId,
     created_by: userId,
