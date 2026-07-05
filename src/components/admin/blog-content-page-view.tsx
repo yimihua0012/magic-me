@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/components/admin/admin-auth'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import { LOCALES, localePath, type Locale } from '@/lib/i18n'
-import { BookOpenText, CheckCircle2, Copy, ExternalLink, Eye, FilePenLine, Plus, RefreshCw, Sparkles, XCircle } from 'lucide-react'
+import { BookOpenText, CheckCircle2, Copy, ExternalLink, Eye, FilePenLine, RefreshCw, Sparkles, XCircle } from 'lucide-react'
 
 type BlogStatus = 'draft' | 'published' | 'archived'
 
@@ -158,12 +158,6 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
       localizedSlugsJson: JSON.stringify(post.localizedSlugs || { [post.locale]: post.slug }, null, 2),
       submittedToBing: Boolean(post.submittedToBing),
     })
-    setMessage('')
-    setError('')
-  }
-
-  const startNew = () => {
-    setForm({ ...defaultForm, locale: selectedLocale })
     setMessage('')
     setError('')
   }
@@ -366,47 +360,6 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     >
       <div className="space-y-6">
         <Card className="p-5 sm:p-6">
-          <div className="grid gap-3 xl:grid-cols-[160px_160px_minmax(0,1fr)_auto_auto]">
-            <select
-              value={selectedLocale}
-              onChange={(event) => setSelectedLocale(event.target.value as Locale)}
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800"
-            >
-              {LOCALES.map((item) => (
-                <option key={item} value={item}>{item.toUpperCase()}</option>
-              ))}
-            </select>
-            <select
-              value={selectedStatus}
-              onChange={(event) => setSelectedStatus(event.target.value as BlogStatus | 'all')}
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800"
-            >
-              <option value="all">All statuses</option>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
-            </select>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') void loadPosts()
-              }}
-              placeholder="Search title, slug, or description"
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
-            />
-            <Button variant="secondary" onClick={loadPosts} disabled={isLoading || !accessToken}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
-            </Button>
-            <Button onClick={startNew}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Post
-            </Button>
-          </div>
-        </Card>
-
-        <Card className="p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-blue-600" />
             <h2 className="text-lg font-bold text-slate-900">DeepSeek Draft Generator</h2>
@@ -448,6 +401,43 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
             placeholder="Click Prepare Keywords to generate two localized search keywords and the article prompt for review."
             className={`${monoInputClass} mt-3 min-h-64`}
           />
+        </Card>
+
+        <Card className="p-5 sm:p-6">
+          <div className="grid gap-3 xl:grid-cols-[160px_160px_minmax(0,1fr)_auto]">
+            <select
+              value={selectedLocale}
+              onChange={(event) => setSelectedLocale(event.target.value as Locale)}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800"
+            >
+              {LOCALES.map((item) => (
+                <option key={item} value={item}>{item.toUpperCase()}</option>
+              ))}
+            </select>
+            <select
+              value={selectedStatus}
+              onChange={(event) => setSelectedStatus(event.target.value as BlogStatus | 'all')}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800"
+            >
+              <option value="all">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
+            </select>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') void loadPosts()
+              }}
+              placeholder="Search title, slug, or description"
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+            />
+            <Button variant="secondary" onClick={loadPosts} disabled={isLoading || !accessToken}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </Card>
 
         {error && <Notice tone="error" message={error} />}

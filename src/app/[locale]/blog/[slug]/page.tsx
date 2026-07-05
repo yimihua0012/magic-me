@@ -16,6 +16,51 @@ type PageProps = {
   params: Promise<{ locale: string; slug: string }>
 }
 
+const blogArticleLabels: Record<
+  RoutedLocale,
+  {
+    fallbackTitle: string
+    backToBlog: string
+    ctaTitle: string
+    ctaText: string
+    ctaButton: string
+    relatedTitle: string
+  }
+> = {
+  es: {
+    fallbackTitle: 'Articulo sobre AI headshots',
+    backToBlog: 'Volver al blog',
+    ctaTitle: 'Crea tus propios retratos profesionales',
+    ctaText: 'Usa Magic-Headshot para generar fotos de perfil realistas para LinkedIn, CV, sitios web, redes y paginas de empresa.',
+    ctaButton: 'Ver paquetes de creditos',
+    relatedTitle: 'Guias relacionadas',
+  },
+  fr: {
+    fallbackTitle: 'Article sur les portraits IA',
+    backToBlog: 'Retour au blog',
+    ctaTitle: 'Creez vos propres portraits professionnels',
+    ctaText: 'Utilisez Magic-Headshot pour generer des photos de profil realistes pour LinkedIn, CV, sites web, reseaux et pages d’entreprise.',
+    ctaButton: 'Voir les packs de credits',
+    relatedTitle: 'Guides lies',
+  },
+  de: {
+    fallbackTitle: 'Artikel zu KI-Headshots',
+    backToBlog: 'Zurueck zum Blog',
+    ctaTitle: 'Erstelle deine eigenen professionellen Portrats',
+    ctaText: 'Nutze Magic-Headshot fuer realistische Profilbilder fuer LinkedIn, Bewerbungen, Websites, Social Media und Unternehmensseiten.',
+    ctaButton: 'Credit-Pakete ansehen',
+    relatedTitle: 'Verwandte Guides',
+  },
+  ja: {
+    fallbackTitle: 'AIヘッドショットの記事',
+    backToBlog: 'ブログへ戻る',
+    ctaTitle: '自分用のプロフェッショナル写真を作成',
+    ctaText: 'Magic-Headshotで、LinkedIn、履歴書、Webサイト、SNS、会社ページに使える自然なプロフィール写真を生成できます。',
+    ctaButton: 'クレジットプランを見る',
+    relatedTitle: '関連ガイド',
+  },
+}
+
 export async function generateStaticParams() {
   const params: { locale: string; slug: string }[] = []
   for (const locale of ROUTED_LOCALES) {
@@ -29,7 +74,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale, slug } = await params
   if (!isRoutedLocale(locale)) return {}
   const post = await getPublishedBlogPost(slug, locale)
-  if (!post || post.source !== 'cms') return { title: 'AI Headshot Article' }
+  if (!post || post.source !== 'cms') return { title: blogArticleLabels[locale].fallbackTitle }
   const alternates = await getBlogLanguageAlternates(post)
 
   return {
@@ -65,6 +110,7 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
   const fallbackPortrait = postIndex >= 0 && postIndex < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[postIndex] : null
   const image = post.coverImage || (fallbackPortrait ? { url: fallbackPortrait.src, alt: fallbackPortrait.alt } : null)
   const related = getRelatedPosts(posts, post.slug, post.enhancement?.relatedSlugs)
+  const labels = blogArticleLabels[routedLocale]
 
   return (
     <div className="min-h-screen bg-white">
@@ -74,12 +120,12 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
         <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <Link href={localePath(routedLocale, '/blog')} className="mb-8 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
             <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to blog
+            {labels.backToBlog}
           </Link>
           <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">{post.title}</h1>
           <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-slate-500">
             <CalendarDays className="h-4 w-4" />
-            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US') : ''}
+            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString(routedLocale) : ''}
           </div>
           <p className="mt-5 break-words text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">{post.description}</p>
           <div className="mt-7">
@@ -112,12 +158,12 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
           </div>
 
           <section className="content-auto mt-12 rounded-lg border border-primary-100 bg-primary-50 p-6">
-            <h2 className="break-words text-2xl font-bold text-slate-950">Create your own professional headshots</h2>
+            <h2 className="break-words text-2xl font-bold text-slate-950">{labels.ctaTitle}</h2>
             <p className="mt-3 text-sm leading-6 text-slate-700">
-              Use Magic-Headshot to generate realistic profile photos for LinkedIn, resumes, websites, and business pages.
+              {labels.ctaText}
             </p>
             <Link href={localePath(routedLocale, '/pricing')} className={buttonStyles({ size: 'lg', className: 'mt-6 w-full text-center sm:w-auto' })}>
-              View Credit Packs
+              {labels.ctaButton}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </section>
@@ -126,7 +172,7 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
         {related.length > 0 && (
           <section className="content-auto border-t border-slate-200 bg-slate-50 py-12">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <h2 className="break-words text-2xl font-bold text-slate-950">Related Guides</h2>
+              <h2 className="break-words text-2xl font-bold text-slate-950">{labels.relatedTitle}</h2>
               <div className="mt-6 grid gap-4 md:grid-cols-3">
                 {related.map((item) => (
                   <Link key={item.slug} href={localePath(routedLocale, `/blog/${item.slug}`)} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-primary-200 sm:p-5">

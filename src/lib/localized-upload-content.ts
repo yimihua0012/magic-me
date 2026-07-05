@@ -346,3 +346,123 @@ export function formatUploadText(template: string, values: Record<string, string
     template,
   )
 }
+
+Object.assign(localizedUploadContent, {
+  es: {
+    ...localizedUploadContent.es,
+    credits: {
+      ...localizedUploadContent.es.credits,
+      readyTitle: 'Tus creditos estan listos',
+      readyLabel: 'Puedes subir selfies, elegir estilos y generar retratos para perfil profesional, marca personal o redes.',
+      emptyTitle: 'Aun no tienes creditos activos',
+      emptyLabel: 'Compra un paquete cuando quieras generar nuevas versiones desde tus fotos.',
+      description: 'Cada estilo seleccionado usa creditos al generar. Revisa las fotos antes de continuar para evitar resultados con poca luz o encuadres dificiles.',
+    },
+    picker: {
+      ...localizedUploadContent.es.picker,
+      title: 'Elige el tipo de retrato que quieres probar',
+      intro: 'Selecciona estilos segun el uso real: LinkedIn, CV, perfil de empresa, redes personales o una imagen creativa mas editorial.',
+      creditHint: 'Los creditos se descuentan cuando empiezas la generacion, no al explorar estilos.',
+      uploadFirst: 'Sube primero una foto clara para ver que estilos encajan mejor.',
+    },
+    upload: {
+      ...localizedUploadContent.es.upload,
+      title: 'Sube selfies claras para crear tus retratos IA',
+      description: 'Usa fotos recientes con buena luz frontal, rostro visible y una expresion natural. Cuanto mas limpia sea la foto base, mejor se conserva el parecido.',
+      note: 'No hace falta una sesion de estudio; evita gafas oscuras, filtros fuertes, capturas borrosas y fondos que tapen el contorno de la cara.',
+      tipTitle: 'Consejo antes de generar',
+      tipText: 'Sube varias fotos con angulos parecidos y expresiones normales. Para usos profesionales, prioriza una imagen sobria; para perfiles creativos, prueba tambien estilos mas visuales.',
+      tipWarning: 'Si la foto esta muy oscura, pixelada o con el rostro pequeno, el resultado puede perder naturalidad.',
+    },
+    styles: {
+      ...localizedUploadContent.es.styles,
+      title: 'Estilos disponibles',
+      description: 'Combina estilos profesionales, herramientas de foto, looks lifestyle y opciones artisticas. Elige pocos estilos bien pensados si buscas resultados consistentes.',
+      selectedHint: 'Revisa que los estilos elegidos coincidan con el uso final: trabajo, redes, web personal o proyecto creativo.',
+      selectToContinue: 'Selecciona al menos un estilo para continuar.',
+    },
+    generate: {
+      ...localizedUploadContent.es.generate,
+      title: 'Generar retratos',
+      description: 'Confirma tus fotos y estilos antes de empezar. La generacion crea variantes para que puedas comparar parecido, luz, fondo y presencia visual.',
+    },
+  },
+  de: {
+    ...localizedUploadContent.de,
+    credits: {
+      ...localizedUploadContent.de.credits,
+      readyTitle: 'Deine Credits sind bereit',
+      readyLabel: 'Du kannst Selfies hochladen, Styles waehlen und Portrats fuer Jobprofile, Personal Branding oder Social Media erstellen.',
+      emptyTitle: 'Noch keine aktiven Credits',
+      emptyLabel: 'Kaufe ein Paket, wenn du neue Varianten aus deinen Fotos erzeugen moechtest.',
+      description: 'Credits werden beim Generieren verwendet. Pruefe deine Fotos vorher, damit schlechtes Licht oder unklare Ausschnitte die Ergebnisse nicht bremsen.',
+    },
+    picker: {
+      ...localizedUploadContent.de.picker,
+      title: 'Waehle den passenden Portratstil',
+      intro: 'Entscheide nach echtem Einsatz: LinkedIn, Bewerbung, Firmenprofil, persoenliche Social-Profile oder ein kreativer, markanter Look.',
+      creditHint: 'Credits werden erst beim Start der Generierung abgezogen, nicht beim Durchsehen der Styles.',
+      uploadFirst: 'Lade zuerst ein klares Foto hoch, damit du passende Styles besser einschaetzen kannst.',
+    },
+    upload: {
+      ...localizedUploadContent.de.upload,
+      title: 'Klare Selfies fur KI-Portrats hochladen',
+      description: 'Nutze aktuelle Fotos mit gutem Licht, sichtbarem Gesicht und natuerlichem Ausdruck. Je sauberer das Ausgangsbild, desto besser bleibt die Aehnlichkeit erhalten.',
+      note: 'Ein Studiofoto ist nicht noetig. Vermeide Sonnenbrillen, starke Filter, unscharfe Screenshots und Hintergruende, die Gesicht oder Haare verdecken.',
+      tipTitle: 'Vor dem Generieren',
+      tipText: 'Lade mehrere Fotos mit aehnlichem Winkel und normalem Ausdruck hoch. Fuer berufliche Zwecke wirkt ein ruhiger Look besser; fuer kreative Profile kannst du auffaelligere Styles testen.',
+      tipWarning: 'Wenn das Gesicht zu klein, dunkel oder verpixelt ist, kann das Ergebnis weniger natuerlich wirken.',
+    },
+    styles: {
+      ...localizedUploadContent.de.styles,
+      title: 'Verfuegbare Styles',
+      description: 'Kombiniere Business-Looks, Fotowerkzeuge, Lifestyle-Styles und kuenstlerische Richtungen. Weniger, aber gezieltere Styles liefern meist klarere Ergebnisse.',
+      selectedHint: 'Pruefe, ob die gewaehlten Styles zum Ziel passen: Jobprofil, Social Media, Website oder kreatives Projekt.',
+      selectToContinue: 'Waehle mindestens einen Style, um fortzufahren.',
+    },
+    generate: {
+      ...localizedUploadContent.de.generate,
+      title: 'Portrats generieren',
+      description: 'Bestaetige Fotos und Styles vor dem Start. Die Generierung erstellt Varianten, damit du Aehnlichkeit, Licht, Hintergrund und Wirkung vergleichen kannst.',
+    },
+  },
+  ja: {
+    ...localizedUploadContent.ja,
+    credits: {
+      ...localizedUploadContent.ja.credits,
+      readyTitle: 'クレジットを利用できます',
+      readyLabel: '自撮り写真をアップロードし、用途に合うスタイルを選んで、仕事用やSNS用のAIポートレートを作成できます。',
+      emptyTitle: '有効なクレジットがありません',
+      emptyLabel: '新しい写真を生成したいときに、必要なプランを購入してください。',
+      description: 'クレジットは生成開始時に使用されます。暗い写真や顔が小さい写真は仕上がりに影響するため、先に確認してください。',
+    },
+    picker: {
+      ...localizedUploadContent.ja.picker,
+      title: '作りたいポートレートの方向を選ぶ',
+      intro: 'LinkedIn、履歴書、会社プロフィール、個人SNS、クリエイティブなアバターなど、実際の使い道に合わせて選べます。',
+      creditHint: 'スタイルを見ているだけではクレジットは減りません。生成を開始すると使用されます。',
+      uploadFirst: 'まず顔がはっきり見える写真をアップロードすると、合うスタイルを選びやすくなります。',
+    },
+    upload: {
+      ...localizedUploadContent.ja.upload,
+      title: 'AIポートレート用の写真をアップロード',
+      description: '最近撮った写真、正面に近い明るい光、自然な表情、顔が見える構図を選んでください。元写真がきれいなほど、本人らしさが残りやすくなります。',
+      note: 'スタジオ写真でなくても大丈夫です。濃いフィルター、サングラス、ぼけたスクリーンショット、顔の輪郭が隠れる背景は避けてください。',
+      tipTitle: '生成前のポイント',
+      tipText: '角度や表情が近い写真を複数枚用意すると安定します。仕事用なら落ち着いた印象、SNSや創作向けなら少し印象的なスタイルも試せます。',
+      tipWarning: '顔が小さい、暗い、画質が荒い写真では、自然さや似ている感じが弱くなることがあります。',
+    },
+    styles: {
+      ...localizedUploadContent.ja.styles,
+      title: '選べるスタイル',
+      description: 'ビジネス向け、写真ツール、ライフスタイル、アート系のスタイルを選べます。目的が明確なほど、比較しやすい結果になります。',
+      selectedHint: '仕事用プロフィール、SNS、個人サイト、創作プロジェクトなど、公開先に合うスタイルか確認してください。',
+      selectToContinue: '続行するには少なくとも1つのスタイルを選んでください。',
+    },
+    generate: {
+      ...localizedUploadContent.ja.generate,
+      title: 'ポートレートを生成',
+      description: '開始前に写真とスタイルを確認してください。生成後は、似ている感じ、光、背景、全体の印象を比較できます。',
+    },
+  },
+} satisfies Partial<Record<Exclude<Locale, 'en' | 'fr'>, UploadContent>>)

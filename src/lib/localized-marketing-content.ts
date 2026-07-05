@@ -669,3 +669,132 @@ Object.assign(localizedLandingContent, {
     bottomText: 'クレジットを一度購入し、必要なときに仕事用写真を生成できます。',
   },
 } satisfies Record<NonEnglishLocale, LocalizedLandingContent>)
+
+Object.assign(localizedLandingContent, {
+  es: {
+    ...localizedLandingContent.es,
+    badge: 'Retratos profesionales con IA',
+    heading: 'Convierte tus selfies en fotos profesionales listas para usar',
+    subheading: 'Crea fotos para perfiles, webs, propuestas, bios y equipos sin depender de una sesion de estudio. Elige resultados naturales, reconocibles y adecuados para el mercado donde te van a ver.',
+    benefitsText: 'La prioridad no es parecer otra persona, sino obtener una imagen clara que puedas publicar con confianza en varios contextos.',
+    stepsText: 'Prepara buenas fotos base, revisa el parecido y elige el estilo segun el uso real: perfil publico, CV, equipo, firma o pagina personal.',
+    faqText: 'Preguntas practicas para evitar resultados genericos o demasiado retocados.',
+    bottomText: 'Genera una foto profesional que puedas reutilizar en tus canales publicos y materiales de trabajo.',
+  },
+  de: {
+    ...localizedLandingContent.de,
+    badge: 'Professionelle KI Portraits',
+    heading: 'Aus Selfies werden berufliche Fotos fuer Profile und Websites',
+    subheading: 'Erstelle Portraits fuer Profile, Bios, Angebote, Teamseiten und oeffentliche Auftritte, ohne Studio-Termin. Waehle Ergebnisse, die natuerlich, erkennbar und passend zum deutschen Berufskontext wirken.',
+    benefitsText: 'Wichtig ist nicht ein perfektes Werbebild, sondern ein klares Foto, das du in mehreren beruflichen Situationen glaubwuerdig nutzen kannst.',
+    stepsText: 'Nutze gute Ausgangsfotos, pruefe Wiedererkennbarkeit und waehle den Stil nach Einsatzort: Profil, Bewerbung, Teamseite, Signatur oder Website.',
+    faqText: 'Praktische Antworten, damit das Ergebnis nicht generisch oder ueberretuschiert wirkt.',
+    bottomText: 'Erstelle ein professionelles Foto fuer Profile, Website und Arbeitsmaterialien.',
+  },
+  ja: {
+    ...localizedLandingContent.ja,
+    badge: '仕事用AIプロフィール写真',
+    heading: '自撮りから、仕事で使えるプロフィール写真へ',
+    subheading: 'スタジオ撮影を手配しなくても、プロフィール、自己紹介、提案資料、社員紹介、Webサイトで使いやすい写真を作成できます。自然で本人らしい仕上がりを選べます。',
+    benefitsText: '大切なのは、別人のように見せることではなく、安心して公開できる清潔感と本人らしさです。',
+    stepsText: '元写真を選び、本人らしさを確認し、使う場所に合わせてプロフィール、履歴書、チームページ、署名、Webサイト向けのスタイルを選びます。',
+    faqText: 'AIらしさや過度な加工を避けるための実用的な確認ポイントです。',
+    bottomText: 'プロフィールや仕事の資料で使いやすい写真を準備できます。',
+  },
+})
+
+Object.assign(localizedContactContent, {
+  es: {
+    ...localizedContactContent.es,
+    title: 'Contacta con Magic Headshot',
+    description:
+      'Escribenos si necesitas ayuda con creditos, pagos, resultados de retratos IA, estilos para perfil profesional o uso en equipo. Cuanto mas contexto incluyas, mas rapido podremos revisar tu caso.',
+    responseTime: 'Normalmente respondemos por email en horario laboral.',
+    chatHours: 'Para temas de cuenta, compra o generacion, el email suele ser la via mas clara.',
+    location: 'Servicio online para usuarios internacionales',
+    formTitle: 'Cuéntanos que necesitas',
+    topicPlaceholder: 'Elige el tema mas cercano',
+    topics: ['Cuenta o pago', 'Creditos y paquetes', 'Calidad del resultado', 'Uso para equipo', 'Otra consulta'],
+    message:
+      'Incluye el email de tu cuenta, el estilo usado y una descripcion breve del problema o del resultado que esperabas.',
+    sentTitle: 'Mensaje enviado',
+    sentText: 'Gracias. Revisaremos tu consulta y responderemos con los siguientes pasos cuando tengamos el contexto necesario.',
+  },
+  de: {
+    ...localizedContactContent.de,
+    title: 'Magic Headshot kontaktieren',
+    description:
+      'Schreib uns bei Fragen zu Credits, Zahlungen, KI-Portrats, beruflichen Styles oder Teamnutzung. Mit konkreten Angaben koennen wir dein Anliegen schneller pruefen.',
+    responseTime: 'Wir antworten in der Regel per E-Mail waehrend der Geschaeftszeiten.',
+    chatHours: 'Fuer Konto-, Zahlungs- und Generierungsfragen ist E-Mail meist der klarste Weg.',
+    location: 'Online-Service fuer internationale Nutzerinnen und Nutzer',
+    formTitle: 'Worum geht es?',
+    topicPlaceholder: 'Passendes Thema waehlen',
+    topics: ['Konto oder Zahlung', 'Credits und Pakete', 'Bildqualitaet', 'Teamnutzung', 'Andere Frage'],
+    message:
+      'Nenne bitte die E-Mail deines Kontos, den verwendeten Style und kurz, was passiert ist oder welches Ergebnis du erwartet hast.',
+    sentTitle: 'Nachricht gesendet',
+    sentText: 'Danke. Wir pruefen deine Anfrage und melden uns mit den naechsten Schritten, sobald genug Kontext vorliegt.',
+  },
+  ja: {
+    ...localizedContactContent.ja,
+    title: 'Magic Headshotへのお問い合わせ',
+    description:
+      'クレジット、支払い、AIポートレートの仕上がり、仕事用スタイル、チーム利用について相談できます。状況を具体的に書くほど確認がスムーズです。',
+    responseTime: '通常、営業日を中心にメールで返信します。',
+    chatHours: 'アカウント、購入、生成結果の確認はメールでの連絡が最も確実です。',
+    location: '世界中から利用できるオンラインサービス',
+    formTitle: 'お問い合わせ内容',
+    topicPlaceholder: '近い内容を選択してください',
+    topics: ['アカウント・支払い', 'クレジット・プラン', '生成結果の品質', 'チーム利用', 'その他'],
+    message:
+      'アカウントのメールアドレス、使用したスタイル、起きている問題または期待していた結果を簡単に書いてください。',
+    sentTitle: '送信しました',
+    sentText: 'お問い合わせありがとうございます。内容を確認し、必要な次の手順をメールでご案内します。',
+  },
+} satisfies Partial<Record<NonEnglishLocale, LocalizedContactContent>>)
+
+Object.assign(localizedQuestionsContent, {
+  es: {
+    ...localizedQuestionsContent.es,
+    title: 'Preguntas reales sobre fotos profesionales con IA',
+    description: 'Respuestas claras sobre subida de fotos, parecido, estilos, creditos, privacidad y uso practico de retratos generados con IA.',
+    commonTitle: 'Lo que conviene saber antes de generar',
+    ctaText: 'Si ya tienes fotos base claras, puedes probar estilos y elegir el resultado que mejor encaja con tu perfil.',
+  },
+  de: {
+    ...localizedQuestionsContent.de,
+    title: 'Haeufige Fragen zu professionellen KI Fotos',
+    description: 'Klare Antworten zu Uploads, Wiedererkennbarkeit, Stilen, Credits, Datenschutz und praktischer Nutzung von KI Portraits.',
+    commonTitle: 'Was du vor dem Generieren wissen solltest',
+    ctaText: 'Wenn du gute Ausgangsfotos hast, kannst du passende Stile testen und ein glaubwuerdiges Profilbild auswaehlen.',
+  },
+  ja: {
+    ...localizedQuestionsContent.ja,
+    title: 'AIプロフィール写真のよくある質問',
+    description: '写真のアップロード、本人らしさ、スタイル、クレジット、プライバシー、仕事での使い方について分かりやすく確認できます。',
+    commonTitle: '生成前に確認したいこと',
+    ctaText: '使いやすい元写真があれば、用途に合うスタイルを試してプロフィール写真を選べます。',
+  },
+})
+
+Object.assign(localizedSampleContent, {
+  es: {
+    ...localizedSampleContent.es,
+    badge: 'Ejemplos antes y despues',
+    heading: 'Compara resultados antes de elegir tu estilo',
+    subheading: 'Mira como cambian luz, fondo, encuadre y ropa para decidir que tipo de retrato encaja con tu perfil, tu sector y el canal donde lo usaras.',
+  },
+  de: {
+    ...localizedSampleContent.de,
+    badge: 'Vorher-Nachher Beispiele',
+    heading: 'Vergleiche Ergebnisse, bevor du einen Stil waehlst',
+    subheading: 'Sieh dir an, wie Licht, Hintergrund, Ausschnitt und Kleidung wirken, damit das Portrait zu Rolle, Branche und Einsatzort passt.',
+  },
+  ja: {
+    ...localizedSampleContent.ja,
+    badge: 'ビフォーアフター事例',
+    heading: 'スタイルを選ぶ前に仕上がりを比較',
+    subheading: '光、背景、構図、服装の違いを見ながら、自分のプロフィール、職種、使う場所に合う写真を選べます。',
+  },
+})

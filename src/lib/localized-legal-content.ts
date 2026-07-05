@@ -769,3 +769,96 @@ export const localizedLegalContent: LocalizedLegalContent = {
     },
   },
 }
+
+Object.assign(localizedLegalContent, {
+  es: {
+    ...localizedLegalContent.es,
+    terms: {
+      ...localizedLegalContent.es.terms,
+      title: 'Condiciones de uso de Magic Headshot',
+      description:
+        'Consulta las condiciones de uso de Magic Headshot: cuenta, creditos, pagos, generacion de retratos IA, uso permitido y soporte.',
+      heading: 'Condiciones de uso',
+      notice:
+        'Lee estas condiciones antes de comprar creditos o generar imagenes. Explican como funciona el servicio y que responsabilidades mantiene cada parte.',
+    },
+    privacy: {
+      ...localizedLegalContent.es.privacy,
+      title: 'Privacidad y datos en Magic Headshot',
+      description:
+        'Informacion sobre los datos que usamos para operar Magic Headshot, procesar compras, generar retratos IA y responder solicitudes de soporte.',
+      heading: 'Politica de privacidad',
+      notice:
+        'Esta politica resume que datos necesitamos para prestar el servicio, como se procesan las imagenes y como puedes contactarnos sobre privacidad.',
+    },
+    refund: {
+      ...localizedLegalContent.es.refund,
+      title: 'Politica de reembolsos de Magic Headshot',
+      description:
+        'Revisa cuando puede solicitarse un reembolso, como se revisan los creditos no usados y que informacion debes enviar al soporte.',
+      heading: 'Politica de reembolsos',
+      notice:
+        'Los reembolsos se revisan caso por caso. Incluye el email de tu cuenta y el contexto de la compra para que podamos comprobarlo con rapidez.',
+    },
+  },
+  de: {
+    ...localizedLegalContent.de,
+    terms: {
+      ...localizedLegalContent.de.terms,
+      title: 'Nutzungsbedingungen fur Magic Headshot',
+      description:
+        'Lies die Nutzungsbedingungen zu Konto, Credits, Zahlungen, KI-Portrats, erlaubter Nutzung und Support bei Magic Headshot.',
+      heading: 'Nutzungsbedingungen',
+      notice:
+        'Bitte lies diese Bedingungen, bevor du Credits kaufst oder Bilder generierst. Sie erklaeren, wie der Service funktioniert und welche Pflichten gelten.',
+    },
+    privacy: {
+      ...localizedLegalContent.de.privacy,
+      title: 'Datenschutz bei Magic Headshot',
+      description:
+        'Informationen dazu, welche Daten Magic Headshot fuer Konto, Zahlung, KI-Portrat-Erstellung und Support verarbeitet.',
+      heading: 'Datenschutzerklaerung',
+      notice:
+        'Diese Hinweise fassen zusammen, welche Daten fuer den Dienst benoetigt werden, wie Bilder verarbeitet werden und wie du uns zu Datenschutzfragen erreichst.',
+    },
+    refund: {
+      ...localizedLegalContent.de.refund,
+      title: 'Rueckerstattungsrichtlinie von Magic Headshot',
+      description:
+        'Erfahre, wann eine Rueckerstattung geprueft werden kann, wie ungenutzte Credits behandelt werden und welche Angaben der Support benoetigt.',
+      heading: 'Rueckerstattungsrichtlinie',
+      notice:
+        'Rueckerstattungen werden einzeln geprueft. Nenne die E-Mail deines Kontos und den Kaufkontext, damit wir den Fall schneller zuordnen koennen.',
+    },
+  },
+  ja: {
+    ...localizedLegalContent.ja,
+    terms: {
+      ...localizedLegalContent.ja.terms,
+      title: 'Magic Headshot 利用規約',
+      description:
+        'Magic Headshotのアカウント、クレジット、支払い、AIポートレート生成、利用できる範囲、サポートに関する条件を確認できます。',
+      heading: '利用規約',
+      notice:
+        'クレジット購入や画像生成の前にご確認ください。サービスの仕組み、利用時の責任、サポートへの連絡方法をまとめています。',
+    },
+    privacy: {
+      ...localizedLegalContent.ja.privacy,
+      title: 'Magic Headshot プライバシーポリシー',
+      description:
+        'Magic Headshotでアカウント、決済、AIポートレート生成、サポート対応に必要なデータの扱いについて説明します。',
+      heading: 'プライバシーポリシー',
+      notice:
+        'このページでは、サービス提供に必要な情報、画像処理の考え方、プライバシーに関する問い合わせ先をまとめています。',
+    },
+    refund: {
+      ...localizedLegalContent.ja.refund,
+      title: 'Magic Headshot 返金ポリシー',
+      description:
+        '返金を確認できるケース、未使用クレジットの扱い、サポートへ送るべき情報について説明します。',
+      heading: '返金ポリシー',
+      notice:
+        '返金は内容を確認したうえで個別に判断します。購入時のアカウントメールと状況を送ると確認がスムーズです。',
+    },
+  },
+} satisfies Partial<LocalizedLegalContent>)

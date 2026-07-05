@@ -251,3 +251,93 @@ Object.assign(localizedPricingContent, {
     ],
   },
 } satisfies Record<Exclude<Locale, 'en'>, LocalizedPricingContent>)
+
+Object.assign(localizedPricingContent, {
+  es: {
+    ...localizedPricingContent.es,
+    title: 'Precios claros para crear retratos IA profesionales',
+    description:
+      'Elige un paquete segun la cantidad de fotos que necesitas para LinkedIn, CV, web personal o perfiles creativos. Cada compra incluye creditos definidos, descargas en alta resolucion y uso comercial sencillo.',
+    validityRule: 'Los creditos se mantienen activos durante el periodo indicado en cada paquete para que puedas probar estilos, revisar resultados y descargar las mejores versiones.',
+    highlights: {
+      ...localizedPricingContent.es.highlights,
+      resolution: 'Descargas listas para perfil, web y documentos digitales',
+      downloads: 'Puedes guardar tus resultados favoritos y comparar variantes',
+      commercial: 'Uso comercial incluido para marca personal y perfiles de trabajo',
+      priority: 'Procesamiento priorizado en los paquetes superiores',
+      emailSupport: 'Soporte por email para compras y generacion',
+      dedicatedSupport: 'Ayuda mas directa para equipos o volumen alto',
+    },
+    faqTitle: 'Preguntas frecuentes sobre precios y creditos',
+    faq: [
+      {
+        question: 'Que paquete conviene si solo necesito una foto profesional?',
+        answer:
+          'Para una actualizacion puntual de LinkedIn, CV o perfil de empresa, suele bastar un paquete pequeno. Si quieres comparar fondos, ropa y estilos, un paquete mayor deja mas margen para elegir.',
+      },
+      {
+        question: 'Puedo usar las fotos generadas en mi web o redes profesionales?',
+        answer:
+          'Si, los paquetes estan pensados para perfiles profesionales, marca personal, paginas de equipo y redes sociales. Revisa siempre que el resultado final represente bien tu imagen antes de publicarlo.',
+      },
+    ],
+  },
+  de: {
+    ...localizedPricingContent.de,
+    title: 'Preise fur professionelle KI-Portrats ohne Abo-Druck',
+    description:
+      'Wahle ein Paket passend zu deinem Bedarf: LinkedIn, Bewerbung, Teamseite, Portfolio oder kreative Profilbilder. Du siehst vor dem Kauf, wie viele Credits enthalten sind und wie lange sie nutzbar bleiben.',
+    validityRule: 'Credits bleiben im angegebenen Zeitraum aktiv, damit du Styles testen, Ergebnisse vergleichen und die besten Bilder in Ruhe herunterladen kannst.',
+    highlights: {
+      ...localizedPricingContent.de.highlights,
+      resolution: 'Downloads fur Profile, Websites und digitale Unterlagen',
+      downloads: 'Mehrere Varianten speichern und direkt vergleichen',
+      commercial: 'Kommerzielle Nutzung fur Personal Branding und Arbeitsprofile',
+      priority: 'Schnellere Verarbeitung bei groesseren Paketen',
+      emailSupport: 'E-Mail-Support fur Zahlung und Erstellung',
+      dedicatedSupport: 'Direktere Unterstuetzung fur Teams und groessere Mengen',
+    },
+    faqTitle: 'Fragen zu Preisen, Credits und Nutzung',
+    faq: [
+      {
+        question: 'Welches Paket reicht fur ein einzelnes professionelles Profilbild?',
+        answer:
+          'Fuer eine einfache Aktualisierung von LinkedIn, Bewerbung oder Firmenprofil reicht oft ein kleines Paket. Wenn du mehrere Outfits, Hintergruende oder Looks vergleichen willst, ist mehr Spielraum sinnvoll.',
+      },
+      {
+        question: 'Darf ich die erstellten Bilder beruflich verwenden?',
+        answer:
+          'Ja, die Pakete sind fur berufliche Profile, persoenliche Marken, Teamseiten und Social Media gedacht. Pruefe das finale Bild vor der Veroeffentlichung, damit Ausdruck und Stil zu dir passen.',
+      },
+    ],
+  },
+  ja: {
+    ...localizedPricingContent.ja,
+    title: 'AIプロフィール写真の料金とクレジット',
+    description:
+      'LinkedIn、履歴書、会社プロフィール、SNS、ポートフォリオ用に必要な枚数に合わせて選べる料金ページです。購入前にクレジット数、有効期間、ダウンロード用途を確認できます。',
+    validityRule: 'クレジットは各プランに表示された期間内で利用できます。複数のスタイルを試し、仕上がりを比較してから必要な画像を保存できます。',
+    highlights: {
+      ...localizedPricingContent.ja.highlights,
+      resolution: 'プロフィール、Web、デジタル書類に使いやすい高解像度',
+      downloads: '気に入った仕上がりを保存し、候補を比較しやすい',
+      commercial: '個人ブランディングや仕事用プロフィールでの利用に対応',
+      priority: '上位プランでは生成待ち時間を短縮しやすい',
+      emailSupport: '購入や生成に関するメールサポート',
+      dedicatedSupport: 'チーム利用や枚数が多い場合の相談にも対応',
+    },
+    faqTitle: '料金とクレジットのよくある質問',
+    faq: [
+      {
+        question: 'プロフィール写真を1枚だけ更新したい場合はどのプランがよいですか？',
+        answer:
+          'LinkedIn、履歴書、社内プロフィールの更新だけなら小さめのプランで始めやすいです。背景や服装、雰囲気を比較したい場合は、余裕のあるプランの方が選びやすくなります。',
+      },
+      {
+        question: '生成した写真は仕事用プロフィールやWebサイトで使えますか？',
+        answer:
+          'はい、仕事用プロフィール、個人ブランド、チーム紹介、SNSでの利用を想定しています。公開前に、表情や雰囲気が自分らしく見えるか確認してください。',
+      },
+    ],
+  },
+} satisfies Partial<Record<Exclude<Locale, 'en' | 'fr'>, LocalizedPricingContent>>)

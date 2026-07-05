@@ -36,6 +36,7 @@ export type LocalizedHomeContent = {
   bottomSecondaryCta: string
 }
 
+
 export const localizedHomeContent: Record<Exclude<Locale, 'en'>, LocalizedHomeContent> = {
   es: {
     title: 'Generador de retratos profesionales con IA para LinkedIn y CV',
@@ -246,3 +247,42 @@ export const localizedHomeContent: Record<Exclude<Locale, 'en'>, LocalizedHomeCo
     bottomSecondaryCta: '料金を見る',
   },
 }
+
+Object.assign(localizedHomeContent, {
+  es: {
+    ...localizedHomeContent.es,
+    title: 'Fotos profesionales con IA para perfiles, equipos y marca personal',
+    description: 'Crea retratos profesionales desde tus propias fotos para LinkedIn, CV, webs, equipos remotos y perfiles publicos, con un resultado natural y reconocible.',
+    heading: 'Fotos profesionales con IA que siguen pareciendo tuyas',
+    subheading: 'Sube selfies claras, elige estilos utiles y genera retratos para trabajo, redes profesionales, bios, propuestas y paginas de equipo sin organizar una sesion de fotos.',
+    highlights: ['Resultados reconocibles', 'Estilos para trabajo real', 'Listo para perfiles y webs'],
+    howItWorksSubtitle: 'Un flujo pensado para quien necesita actualizar su imagen publica sin perder tiempo coordinando estudio, ropa, agenda y retoques.',
+    featuresSubtitle: 'En vez de una galeria generica, elige resultados que encajen con el mercado, el sector y el uso donde se vera la foto.',
+    examplesSubtitle: 'Compara estilos sobrios, corporativos, creativos y de estudio antes de decidir cual usar en tus perfiles.',
+    bottomText: 'Prepara una imagen profesional que puedas usar en LinkedIn, CV, pagina personal, propuesta comercial o directorio de equipo.',
+  },
+  de: {
+    ...localizedHomeContent.de,
+    title: 'Professionelle KI Fotos fuer Profile, Teams und Personal Branding',
+    description: 'Erstelle realistische berufliche Portraits aus eigenen Fotos fuer LinkedIn, Lebenslauf, Website, Teamseite und oeffentliche Profile.',
+    heading: 'KI Portraits, die professionell wirken und erkennbar bleiben',
+    subheading: 'Lade klare Selfies hoch, waehle passende Stilrichtungen und erzeuge Fotos fuer berufliche Profile, Bios, Angebote und Teamseiten ohne Fototermin.',
+    highlights: ['Erkennbare Ergebnisse', 'Stile fuer echte Berufskontexte', 'Geeignet fuer Profile und Websites'],
+    howItWorksSubtitle: 'Ein praktischer Ablauf fuer alle, die ein aktuelles berufliches Bild brauchen, ohne Studio, Terminplanung und lange Abstimmung.',
+    featuresSubtitle: 'Waehle nicht nur das schoenste Bild, sondern ein Ergebnis, das zu Rolle, Branche und Einsatzort passt.',
+    examplesSubtitle: 'Vergleiche ruhige, corporate, kreative und studioartige Portraits, bevor du ein Bild veroeffentlichst.',
+    bottomText: 'Erstelle ein professionelles Foto fuer LinkedIn, Lebenslauf, Website, Verkaufsunterlagen oder Teamverzeichnis.',
+  },
+  ja: {
+    ...localizedHomeContent.ja,
+    title: 'プロフィール、チーム、仕事用に使えるAI写真',
+    description: '自分の写真から、LinkedIn、履歴書、Webサイト、社員紹介、公開プロフィールで使いやすい自然な仕事用ポートレートを作成できます。',
+    heading: '本人らしさを残した仕事用AIプロフィール写真',
+    subheading: 'はっきりした自撮りをアップロードし、用途に合うスタイルを選ぶだけで、プロフィール、自己紹介、提案資料、チームページに使える写真を作れます。',
+    highlights: ['本人らしい仕上がり', '仕事の用途に合うスタイル', 'プロフィールやWebサイトで使いやすい'],
+    howItWorksSubtitle: 'スタジオ予約や撮影準備をせずに、今の自分に近い仕事用写真を用意するための流れです。',
+    featuresSubtitle: '派手な写真ではなく、職種、見られる場面、使うページに合う写真を選びやすくしています。',
+    examplesSubtitle: '落ち着いた写真、企業向け、クリエイティブ、スタジオ風などを比較してから選べます。',
+    bottomText: 'LinkedIn、履歴書、個人サイト、営業資料、社員紹介で使いやすい写真を準備できます。',
+  },
+})

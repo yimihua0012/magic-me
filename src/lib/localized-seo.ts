@@ -233,3 +233,135 @@ export const localizedSeoContent: Record<RoutedLocale, Record<LocalizedSeoPage, 
 export function getLocalizedSeo(locale: RoutedLocale, page: LocalizedSeoPage) {
   return localizedSeoContent[locale][page]
 }
+
+Object.assign(localizedSeoContent.es, {
+  home: {
+    ...localizedSeoContent.es.home,
+    title: 'Fotos profesionales con IA para perfiles y equipos | Magic-Headshot',
+    description: 'Crea retratos profesionales con IA para LinkedIn, CV, webs, bios y equipos, con resultados naturales y reconocibles desde tus propias fotos.',
+  },
+  landing: {
+    ...localizedSeoContent.es.landing,
+    title: 'Convierte selfies en fotos profesionales con IA | Magic-Headshot',
+    description: 'Genera fotos profesionales para perfiles, webs, propuestas y equipos sin sesion de estudio, con estilos naturales y reutilizables.',
+  },
+  questions: {
+    ...localizedSeoContent.es.questions,
+    title: 'Preguntas sobre fotos profesionales con IA | Magic-Headshot',
+    description: 'Respuestas sobre subida de fotos, parecido, estilos, privacidad, creditos y uso practico de retratos profesionales generados con IA.',
+  },
+  sample: {
+    ...localizedSeoContent.es.sample,
+    title: 'Ejemplos de fotos profesionales con IA | Magic-Headshot',
+    description: 'Compara ejemplos antes y despues para elegir luz, fondo, encuadre y estilo segun tu perfil, sector y canal de uso.',
+  },
+})
+
+Object.assign(localizedSeoContent.de, {
+  home: {
+    ...localizedSeoContent.de.home,
+    title: 'Professionelle KI Fotos fuer Profile und Teams | Magic-Headshot',
+    description: 'Erstelle realistische berufliche Portraits aus eigenen Fotos fuer LinkedIn, Lebenslauf, Website, Teamseite und oeffentliche Profile.',
+  },
+  landing: {
+    ...localizedSeoContent.de.landing,
+    title: 'Aus Selfies professionelle KI Fotos erstellen | Magic-Headshot',
+    description: 'Erzeuge berufliche Portraits fuer Profile, Websites, Angebote und Teams ohne Studio-Termin, mit natuerlichen und wiederverwendbaren Stilen.',
+  },
+  questions: {
+    ...localizedSeoContent.de.questions,
+    title: 'Fragen zu professionellen KI Fotos | Magic-Headshot',
+    description: 'Antworten zu Uploads, Wiedererkennbarkeit, Stilen, Datenschutz, Credits und praktischer Nutzung von KI Portraits.',
+  },
+  sample: {
+    ...localizedSeoContent.de.sample,
+    title: 'Beispiele fuer professionelle KI Fotos | Magic-Headshot',
+    description: 'Vergleiche Vorher-Nachher Beispiele und waehle Licht, Hintergrund, Ausschnitt und Stil passend zu Rolle und Einsatzort.',
+  },
+})
+
+Object.assign(localizedSeoContent.ja, {
+  home: {
+    ...localizedSeoContent.ja.home,
+    title: '仕事用AIプロフィール写真を作成 | Magic-Headshot',
+    description: '自分の写真から、LinkedIn、履歴書、Webサイト、社員紹介、公開プロフィールで使いやすい自然な仕事用ポートレートを作成できます。',
+  },
+  landing: {
+    ...localizedSeoContent.ja.landing,
+    title: '自撮りから仕事用プロフィール写真を作成 | Magic-Headshot',
+    description: 'プロフィール、自己紹介、提案資料、社員紹介、Webサイトで使いやすい自然なAI写真を作成できます。',
+  },
+  questions: {
+    ...localizedSeoContent.ja.questions,
+    title: 'AIプロフィール写真のよくある質問 | Magic-Headshot',
+    description: '写真のアップロード、本人らしさ、スタイル、クレジット、プライバシー、仕事での使い方を確認できます。',
+  },
+  sample: {
+    ...localizedSeoContent.ja.sample,
+    title: 'AIプロフィール写真のビフォーアフター事例 | Magic-Headshot',
+    description: '光、背景、構図、服装の違いを比較し、自分のプロフィールや職種に合うAI写真を選べます。',
+  },
+})
+
+Object.assign(localizedSeoContent.es, {
+  pricing: {
+    ...localizedSeoContent.es.pricing,
+    title: 'Precios de AI headshots y retratos profesionales | Magic Headshot',
+    description:
+      'Compara paquetes de creditos para crear AI headshots, retratos profesionales y fotos de perfil para LinkedIn, CV, web personal, equipos y redes.',
+  },
+  contact: {
+    ...localizedSeoContent.es.contact,
+    title: 'Contacto y soporte para AI headshots | Magic Headshot',
+    description:
+      'Contacta con Magic Headshot para dudas sobre creditos, pagos, calidad de retratos IA, estilos profesionales, cuenta o uso en equipo.',
+  },
+  upload: {
+    ...localizedSeoContent.es.upload,
+    title: 'Subir fotos para crear AI headshots profesionales | Magic Headshot',
+    description:
+      'Sube selfies claras, elige estilos y genera AI headshots para LinkedIn, CV, perfiles de empresa, marca personal, redes y proyectos creativos.',
+  },
+})
+
+Object.assign(localizedSeoContent.de, {
+  pricing: {
+    ...localizedSeoContent.de.pricing,
+    title: 'Preise fur KI-Headshots und professionelle Portrats | Magic Headshot',
+    description:
+      'Vergleiche Credit-Pakete fur KI-Headshots, professionelle Profilbilder, LinkedIn, Bewerbungen, Teamseiten, Personal Branding und Social Media.',
+  },
+  contact: {
+    ...localizedSeoContent.de.contact,
+    title: 'Kontakt und Support fur KI-Headshots | Magic Headshot',
+    description:
+      'Kontaktiere Magic Headshot bei Fragen zu Credits, Zahlung, Bildqualitaet, beruflichen Styles, Konto oder Teamnutzung.',
+  },
+  upload: {
+    ...localizedSeoContent.de.upload,
+    title: 'Fotos hochladen und professionelle KI-Headshots erstellen | Magic Headshot',
+    description:
+      'Lade klare Selfies hoch, waehle passende Styles und erstelle KI-Headshots fur LinkedIn, Bewerbung, Firmenprofil, Personal Branding und kreative Profile.',
+  },
+})
+
+Object.assign(localizedSeoContent.ja, {
+  pricing: {
+    ...localizedSeoContent.ja.pricing,
+    title: 'AIヘッドショットとプロフィール写真の料金 | Magic Headshot',
+    description:
+      'LinkedIn、履歴書、会社プロフィール、個人ブランディング、SNS向けのAIヘッドショットを作成するクレジットプランを比較できます。',
+  },
+  contact: {
+    ...localizedSeoContent.ja.contact,
+    title: 'AIヘッドショットの問い合わせ・サポート | Magic Headshot',
+    description:
+      'Magic Headshotのクレジット、支払い、AIポートレートの品質、仕事用スタイル、アカウント、チーム利用について問い合わせできます。',
+  },
+  upload: {
+    ...localizedSeoContent.ja.upload,
+    title: '写真をアップロードしてAIヘッドショットを作成 | Magic Headshot',
+    description:
+      '明るく自然な自撮り写真をアップロードし、用途に合うスタイルを選んで、LinkedIn、履歴書、会社プロフィール、SNS向けのAIポートレートを生成できます。',
+  },
+})

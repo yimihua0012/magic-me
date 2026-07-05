@@ -29,14 +29,13 @@ const localizedContent: Record<RoutedLocale, {
   imageAlt: string
 }> = {
   es: {
-    title: 'Herramienta gratis para foto de carnet, recorte e impresion | Magic-Headshot',
-    description: 'Herramienta gratis para crear, recortar y preparar fotos de carnet para CV, examenes, credenciales, tarjetas de estudiante y hojas imprimibles.',
+    title: "Recortar foto tipo carnet gratis para imprimir | Magic-Headshot",
+    description: "Herramienta gratis para preparar fotos tipo carnet no oficiales: recorta, ajusta fondo PNG y descarga hojas imprimibles para CV, examenes y credenciales.",
     keywords: [
-      'foto de carnet gratis para imprimir',
-      'recortar foto para CV gratis',
-      'herramienta foto examen gratis',
-      'foto credencial empleado gratis',
-      'foto tarjeta estudiante gratis',
+      "foto carnet para imprimir",
+      "recortar foto carnet gratis",
+      "hoja imprimible foto carnet",
+      "cambiar fondo foto carnet",
     ],
     name: 'Herramienta gratis para foto de carnet, recorte e impresion',
     features: [
@@ -69,14 +68,13 @@ const localizedContent: Record<RoutedLocale, {
     imageAlt: 'Outil gratuit pour recadrer et imprimer une photo d identite',
   },
   de: {
-    title: 'Kostenloses Ausweisfoto Tool zum Zuschneiden und Drucken | Magic-Headshot',
-    description: 'Kostenloses Online-Tool zum Zuschneiden und Vorbereiten von Ausweisfotos fur Lebenslauf, Prufungen, Mitarbeiterausweise, Studentenkarten und Druckbogen.',
+    title: "Ausweisfoto kostenlos zuschneiden und drucken | Magic-Headshot",
+    description: "Kostenloses Tool fuer alltaegliche Ausweisfotos: zuschneiden, transparentes PNG mit Hintergrundfarbe vorbereiten und Druckbogen speichern.",
     keywords: [
-      'kostenloses Ausweisfoto Druckbogen',
-      'Lebenslauf Foto kostenlos zuschneiden',
-      'kostenloses Prufungsfoto Tool',
-      'kostenloses Mitarbeiterausweis Foto',
-      'kostenloses Studentenausweis Foto',
+      "Ausweisfoto zuschneiden kostenlos",
+      "Passfoto Druckbogen",
+      "Bewerbungsfoto drucken",
+      "Ausweisfoto Hintergrund aendern",
     ],
     name: 'Kostenloses Ausweisfoto Tool zum Zuschneiden und Drucken',
     features: [
@@ -89,14 +87,13 @@ const localizedContent: Record<RoutedLocale, {
     imageAlt: 'Kostenloses Tool zum Zuschneiden und Drucken von Ausweisfotos',
   },
   ja: {
-    title: '無料の証明写真作成・切り抜き・印刷ツール | Magic-Headshot',
-    description: '履歴書、試験、社員証、学生証、印刷用レイアウトに使える無料の証明写真作成、切り抜き、印刷ツールです。',
+    title: "???????????????? | Magic-Headshot",
+    description: "??????????????????????????????????????????????????????",
     keywords: [
-      '無料 証明写真 印刷シート',
-      '無料 履歴書写真 トリミング',
-      '無料 試験用写真 ツール',
-      '無料 社員証 写真',
-      '無料 学生証 写真',
+      "???? ?? ??",
+      "???? ?? ???",
+      "??? ?? ?????",
+      "???? ??? ??",
     ],
     name: '無料の証明写真作成・切り抜き・印刷ツール',
     features: [

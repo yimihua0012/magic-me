@@ -7,13 +7,66 @@ import Navbar from '@/components/layout/localized-navbar'
 import Footer from '@/components/layout/localized-footer'
 import BlogJsonLd from '@/components/seo/blog-json-ld'
 import KeywordStrip from '@/components/seo/keyword-strip'
-import { blogGeneratedPortraitImages, coreSeoKeywords } from '@/lib/seo-content'
+import { blogGeneratedPortraitImages } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 import { getBlogIndexLanguageAlternates, getCmsPublishedBlogPosts, localeHasPublishedCmsBlogPosts } from '@/lib/blog-store'
 import { isRoutedLocale, localePath, ROUTED_LOCALES, type RoutedLocale } from '@/lib/i18n'
 
 type PageProps = {
   params: Promise<{ locale: string }>
+}
+
+const localizedBlogIndexContent: Record<
+  RoutedLocale,
+  {
+    title: string
+    description: string
+    heading: string
+    intro: string
+    keywords: string[]
+    readArticle: string
+  }
+> = {
+  es: {
+    title: 'Blog de AI headshots y fotos profesionales | Magic-Headshot',
+    description:
+      'Guias en espanol sobre AI headshots, fotos para LinkedIn, CV, perfiles de empresa, retratos realistas y herramientas de foto para uso profesional o creativo.',
+    heading: 'Blog de AI headshots',
+    intro:
+      'Guias practicas para elegir retratos IA realistas, preparar fotos base, mejorar perfiles profesionales y usar imagenes para LinkedIn, CV, marca personal o proyectos creativos.',
+    keywords: ['AI headshots', 'fotos para LinkedIn', 'foto profesional IA', 'retrato realista', 'foto para CV', 'perfil profesional'],
+    readArticle: 'Leer articulo',
+  },
+  fr: {
+    title: 'Blog sur les portraits IA et photos professionnelles | Magic-Headshot',
+    description:
+      'Guides en francais sur les portraits IA, photos LinkedIn, CV, profils professionnels, portraits realistes et outils photo pour usages business ou creatifs.',
+    heading: 'Blog portraits IA',
+    intro:
+      'Des guides pratiques pour choisir un portrait IA realiste, preparer ses photos sources, ameliorer un profil professionnel et adapter son image a LinkedIn, au CV ou a une presence en ligne.',
+    keywords: ['portrait IA', 'photo LinkedIn', 'photo professionnelle IA', 'portrait realiste', 'photo CV', 'profil professionnel'],
+    readArticle: 'Lire l’article',
+  },
+  de: {
+    title: 'Blog zu KI-Headshots und professionellen Profilbildern | Magic-Headshot',
+    description:
+      'Deutschsprachige Guides zu KI-Headshots, LinkedIn-Fotos, Bewerbungsbildern, realistischen Portrats und Fotowerkzeugen fuer Beruf, Teams und kreative Profile.',
+    heading: 'Blog zu KI-Headshots',
+    intro:
+      'Praxisnahe Guides fuer realistische KI-Portrats, bessere Ausgangsfotos, berufliche Profile, LinkedIn, Bewerbungen, Personal Branding und kreative Online-Auftritte.',
+    keywords: ['KI Headshot', 'LinkedIn Foto', 'professionelles KI Foto', 'realistisches Portrat', 'Bewerbungsfoto', 'Profilbild'],
+    readArticle: 'Artikel lesen',
+  },
+  ja: {
+    title: 'AIヘッドショットとプロフィール写真のブログ | Magic-Headshot',
+    description:
+      'AIヘッドショット、LinkedIn写真、履歴書写真、リアルなAIポートレート、仕事用プロフィール、写真ツールの使い方を日本語で紹介します。',
+    heading: 'AIヘッドショットブログ',
+    intro:
+      '自然に見えるAIポートレートの選び方、元写真の準備、LinkedInや履歴書、仕事用プロフィール、SNSや創作向けの写真活用をまとめています。',
+    keywords: ['AIヘッドショット', 'LinkedIn写真', 'AIプロフィール写真', 'リアルなAIポートレート', '履歴書写真', '仕事用プロフィール'],
+    readArticle: '記事を読む',
+  },
 }
 
 export function generateStaticParams() {
@@ -23,10 +76,12 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
   if (!isRoutedLocale(locale)) return {}
+  const content = localizedBlogIndexContent[locale]
 
   return {
-    title: 'AI Headshot Blog | Magic-Headshot',
-    description: 'Localized AI headshot guides for LinkedIn photos, resume portraits, profile photos, and business portraits.',
+    title: content.title,
+    description: content.description,
+    keywords: content.keywords,
     alternates: {
       canonical: localePath(locale, '/blog'),
       languages: await getBlogIndexLanguageAlternates(),
@@ -47,6 +102,7 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
   if (posts.length === 0) {
     notFound()
   }
+  const content = localizedBlogIndexContent[routedLocale]
 
   return (
     <div className="min-h-screen bg-white">
@@ -59,13 +115,13 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
               <BookOpen className="h-6 w-6" />
             </div>
             <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">
-              AI Headshot Blog
+              {content.heading}
             </h1>
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-              Localized guides for choosing realistic AI headshots, LinkedIn profile photos, resume portraits, and business profile images.
+              {content.intro}
             </p>
             <div className="mt-7">
-              <KeywordStrip keywords={coreSeoKeywords.slice(0, 6)} />
+              <KeywordStrip keywords={content.keywords} />
             </div>
           </div>
         </section>
@@ -90,7 +146,7 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
                   )}
                   <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
                     <CalendarDays className="h-4 w-4" />
-                    {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US') : getBlogPublishDate(index)}
+                    {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString(routedLocale) : getBlogPublishDate(index)}
                     {post.category && (
                       <>
                         <span className="text-slate-300">/</span>
@@ -105,7 +161,7 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
                   </h2>
                   <p className="mt-3 flex-1 break-words text-sm leading-6 text-slate-600">{post.description}</p>
                   <Link href={href} className="mt-5 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
-                    Read article
+                    {content.readArticle}
                     <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </article>
