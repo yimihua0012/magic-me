@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/components/admin/admin-auth'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import { LOCALES, localePath, type Locale } from '@/lib/i18n'
-import { BookOpenText, CheckCircle2, ExternalLink, Eye, FilePenLine, Plus, RefreshCw, Sparkles, XCircle } from 'lucide-react'
+import { BookOpenText, CheckCircle2, Copy, ExternalLink, Eye, FilePenLine, Plus, RefreshCw, Sparkles, XCircle } from 'lucide-react'
 
 type BlogStatus = 'draft' | 'published' | 'archived'
 
@@ -166,6 +166,20 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     setForm({ ...defaultForm, locale: selectedLocale })
     setMessage('')
     setError('')
+  }
+
+  const copyPublicLink = async (post: BlogPostAdminItem) => {
+    const path = localePath(post.locale, `/blog/${post.slug}`)
+    const url = typeof window === 'undefined' ? path : `${window.location.origin}${path}`
+
+    try {
+      await navigator.clipboard.writeText(url)
+      setMessage(`Copied public URL: ${url}`)
+      setError('')
+    } catch {
+      setError(`Could not copy automatically. Public URL: ${url}`)
+      setMessage('')
+    }
   }
 
   const prepareDraftPrompt = async () => {
@@ -449,25 +463,38 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
             </div>
             <div className="max-h-[720px] overflow-y-auto p-2">
               {posts.map((post) => (
-                <button
+                <div
                   key={`${post.locale}:${post.slug}`}
-                  type="button"
-                  onClick={() => editPost(post)}
-                  className="block w-full rounded-lg px-3 py-3 text-left transition-colors hover:bg-slate-50"
+                  className="group rounded-lg px-3 py-3 transition-colors hover:bg-slate-50"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => editPost(post)}
+                      className="min-w-0 flex-1 text-left"
+                    >
                       <div className="truncate font-semibold text-slate-900">{post.title}</div>
-                      <div className="mt-1 truncate text-xs text-slate-500">/{post.locale}/blog/{post.slug}</div>
+                      <div className="mt-1 truncate text-xs text-slate-500">{localePath(post.locale, `/blog/${post.slug}`)}</div>
+                    </button>
+                    <div className="flex flex-none items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => copyPublicLink(post)}
+                        title="Copy public URL"
+                        aria-label={`Copy public URL for ${post.title}`}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                        {post.status}
+                      </span>
                     </div>
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
-                      {post.status}
-                    </span>
                   </div>
                   <div className="mt-2 text-xs font-semibold text-slate-500">
                     Bing: {post.submittedToBing ? 'submitted' : 'not submitted'}
                   </div>
-                </button>
+                </div>
               ))}
               {!isLoading && posts.length === 0 && (
                 <div className="p-4 text-sm text-slate-500">No posts found.</div>
