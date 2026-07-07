@@ -482,6 +482,9 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
                     </div>
                   </div>
                   <div className="mt-2 text-xs font-semibold text-slate-500">
+                    Updated: {formatAdminDateTime(post.updatedAt)}
+                  </div>
+                  <div className="mt-1 text-xs font-semibold text-slate-500">
                     Bing: {post.submittedToBing ? 'submitted' : 'not submitted'}
                   </div>
                 </div>
@@ -675,6 +678,18 @@ function BlogDraftPreview({ form }: { form: BlogFormState }) {
 
 const inputClass = 'mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100'
 const monoInputClass = `${inputClass} font-mono text-xs leading-5`
+
+function formatAdminDateTime(value?: string) {
+  if (!value) return 'unknown'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'unknown'
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${month}-${day} ${hours}:${minutes}:${seconds}`
+}
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (

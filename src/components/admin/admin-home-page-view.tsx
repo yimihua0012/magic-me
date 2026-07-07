@@ -5,13 +5,22 @@ import AdminPageFrame from '@/components/admin/admin-page-frame'
 import { useAdminAuth } from '@/components/admin/admin-auth'
 import Card from '@/components/ui/card'
 import { localePath, type Locale } from '@/lib/i18n'
-import { Activity, ArrowRight, BookOpenText, CreditCard, Image, ImagePlus, ListPlus, MousePointerClick, PackageCheck, SearchCheck, Sparkles } from 'lucide-react'
+import { Activity, ArrowRight, BookOpenText, CreditCard, Image, ImagePlus, ListPlus, MousePointerClick, PackageCheck, SearchCheck, Sparkles, type LucideIcon } from 'lucide-react'
 
 interface AdminHomePageViewProps {
   locale?: Locale
 }
 
-const entries = [
+type AdminHomeEntry = {
+  title: string
+  description: string
+  href: string
+  icon: LucideIcon
+  tone: string
+  global?: boolean
+}
+
+const entries: AdminHomeEntry[] = [
   {
     title: 'Style Maintenance',
     description: 'Edit style names, prompts, ordering, and active status.',
@@ -60,6 +69,14 @@ const entries = [
     href: '/dashboard/admin/keyword-research',
     icon: ListPlus,
     tone: 'text-lime-700 bg-lime-50',
+  },
+  {
+    title: 'Search Submission',
+    description: 'Submit all sitemap URLs for Bing and copy them for Google Search Console.',
+    href: '/dashboard/admin/search-submission',
+    icon: SearchCheck,
+    tone: 'text-emerald-600 bg-emerald-50',
+    global: true,
   },
   {
     title: 'Bing URL Submit',
@@ -113,7 +130,7 @@ export default function AdminHomePageView({ locale = 'en' }: AdminHomePageViewPr
         {entries.map((entry) => {
           const Icon = entry.icon
           return (
-            <Link key={entry.href} href={localePath(locale, entry.href)}>
+            <Link key={entry.href} href={entry.global ? entry.href : localePath(locale, entry.href)}>
               <Card hover className="h-full p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4">

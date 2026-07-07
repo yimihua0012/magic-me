@@ -1,9 +1,6 @@
 import type { MetadataRoute } from 'next'
-import { appConfig } from '@/lib/config'
 import { ROUTED_LOCALES } from '@/lib/i18n'
 import { getSitemapIndexEntries } from '@/lib/sitemap'
-
-const siteUrl = appConfig.url.replace(/\/$/, '')
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -32,6 +29,5 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: getSitemapIndexEntries().map((entry) => entry.url),
-    host: siteUrl,
   }
 }

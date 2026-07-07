@@ -24,6 +24,7 @@ import {
   SearchCheck,
   Sparkles,
   UserRound,
+  type LucideIcon,
 } from 'lucide-react'
 
 interface AdminPageFrameProps {
@@ -36,7 +37,15 @@ interface AdminPageFrameProps {
   isAuthorized?: boolean
 }
 
-const menuItems = [
+type AdminMenuItem = {
+  label: string
+  href: string
+  icon: LucideIcon
+  exact?: boolean
+  global?: boolean
+}
+
+const menuItems: AdminMenuItem[] = [
   { label: 'Admin Home', href: '/dashboard/admin', icon: Home, exact: true },
   { label: 'Style Maintenance', href: '/dashboard/admin/styles', icon: Image },
   { label: 'User Credits', href: '/dashboard/admin/users', icon: PackageCheck },
@@ -45,6 +54,7 @@ const menuItems = [
   { label: 'Blog Content', href: '/dashboard/admin/blog', icon: BookOpenText },
   { label: 'Sample Pictures', href: '/dashboard/admin/sample-pictures', icon: ImagePlus },
   { label: 'Keyword Research', href: '/dashboard/admin/keyword-research', icon: ListPlus },
+  { label: 'Search Submission', href: '/dashboard/admin/search-submission', icon: SearchCheck, global: true },
   { label: 'Bing URL Submit', href: '/dashboard/admin/bing-url-submit', icon: SearchCheck },
   { label: 'Bing URL Inspect', href: '/dashboard/admin/bing-url-inspect', icon: SearchCheck },
   { label: 'Generation Records', href: '/dashboard/admin/generation-logs', icon: Activity },
@@ -88,7 +98,7 @@ export default function AdminPageFrame({
                 <nav className="flex gap-1 overflow-x-auto p-2 lg:block lg:space-y-1">
                   {menuItems.map((item) => {
                     const Icon = item.icon
-                    const href = localePath(locale, item.href)
+                    const href = item.global ? item.href : localePath(locale, item.href)
                     const active = item.exact ? pathname === href : pathname?.startsWith(href)
 
                     return (
