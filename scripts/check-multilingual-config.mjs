@@ -149,7 +149,7 @@ assert(read('src/app/api/admin/maintenance/styles/route.ts').includes('DEEPSEEK_
 assert(read('src/components/admin/admin-maintenance-page-view.tsx').includes('Generate Style Draft'), 'style maintenance UI must expose DeepSeek style draft generation')
 assert(read('src/components/admin/admin-maintenance-page-view.tsx').includes('Delete'), 'style maintenance UI must expose a delete entry')
 assert(read('src/app/api/admin/blog-post-draft/route.ts').includes("mode === 'prepare'"), 'DeepSeek blog draft generation must support keyword and prompt preparation')
-assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('exactly two localized long-tail Google search keywords'), 'DeepSeek preparation must return two localized long-tail Google search keywords')
+assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('exactly one localized long-tail Google search keyword'), 'DeepSeek preparation must return one localized long-tail Google search keyword')
 assert(read('src/lib/blog-store.ts').includes('normalizeAdminBlogSlug'), 'admin blog save must normalize long AI-generated slugs')
 assert(read('src/app/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'English admin blog page must render blog content manager')
 assert(read('src/app/[locale]/dashboard/admin/blog/page.tsx').includes('BlogContentPageView'), 'localized admin blog page must render blog content manager')
