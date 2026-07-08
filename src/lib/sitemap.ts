@@ -46,6 +46,7 @@ const englishStaticRoutes: SitemapRoute[] = [
   { path: '/free-id-photo-tool', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/questions', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/sample', changeFrequency: 'monthly', priority: 0.8, images: sampleImages },
+  { path: '/sitemap', changeFrequency: 'monthly', priority: 0.4 },
   { path: '/blog', changeFrequency: 'weekly', priority: 0.8, images: blogImages },
   { path: '/contact', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/privacy', changeFrequency: 'yearly', priority: 0.3 },

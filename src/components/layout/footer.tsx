@@ -87,10 +87,13 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-slate-800 pt-8">
+        <div className="mt-12 flex flex-col gap-3 border-t border-slate-800 pt-8 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-400">
             Copyright 2026 {appConfig.name}. All rights reserved.
           </p>
+          <Link href="/sitemap" className="text-xs text-slate-500 transition-colors hover:text-slate-300">
+            Sitemap
+          </Link>
         </div>
       </div>
     </footer>
