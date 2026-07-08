@@ -30,6 +30,7 @@ type BlogPostAdminItem = {
   enhancement?: Record<string, unknown>
   localizedSlugs?: Partial<Record<Locale, string>>
   submittedToBing?: boolean
+  autoPublished?: boolean
   updatedAt?: string
 }
 
@@ -176,6 +177,29 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     }
   }
 
+  const hasBlogFormContent = () => Boolean(
+    form.id ||
+    form.slug.trim() ||
+    form.title.trim() ||
+    form.description.trim() ||
+    form.keywords.trim() ||
+    form.category.trim() ||
+    form.coverImageUrl.trim() ||
+    form.coverImageAlt.trim() ||
+    form.intro.trim() ||
+    form.translationGroupId.trim() ||
+    form.sourcePostId.trim() ||
+    form.sectionsJson !== defaultForm.sectionsJson ||
+    form.enhancementJson !== defaultForm.enhancementJson ||
+    form.localizedSlugsJson !== defaultForm.localizedSlugsJson ||
+    form.submittedToBing,
+  )
+
+  const clearBlogForm = (formLocale: Locale = draftLocale) => {
+    setForm({ ...defaultForm, locale: formLocale })
+    setShowPreview(false)
+  }
+
   const prepareDraftPrompt = async () => {
     if (!accessToken) {
       window.location.href = dashboardHref
@@ -221,6 +245,9 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
 
       setDraftKeywords(preparedKeywords.join(', '))
       setDraftPrompt(preparedPrompt)
+      if (hasBlogFormContent()) {
+        clearBlogForm(draftLocale)
+      }
       setMessage('Localized keywords and article prompt prepared. Review them, edit if needed, then generate the article.')
     } catch (prepareError) {
       setError(prepareError instanceof Error ? prepareError.message : 'Could not prepare localized keywords and prompt.')
@@ -340,8 +367,13 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
         throw new Error(errors || 'Could not save blog post.')
       }
 
-      setMessage(data.post?.status === 'published' ? 'Saved, published, and public URL revalidated.' : 'Saved as draft. Publish it before opening the public URL.')
-      if (data.post) editPost(data.post as BlogPostAdminItem)
+      const savedPost = data.post as BlogPostAdminItem | undefined
+      setMessage(savedPost?.status === 'published' ? 'Saved, published, and public URL revalidated.' : 'Saved as draft. The editor form was cleared.')
+      if (savedPost?.status === 'draft') {
+        clearBlogForm(savedPost.locale)
+      } else if (savedPost) {
+        editPost(savedPost)
+      }
       await loadPosts()
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Could not save blog post.')
@@ -486,6 +518,9 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
                   </div>
                   <div className="mt-1 text-xs font-semibold text-slate-500">
                     Bing: {post.submittedToBing ? 'submitted' : 'not submitted'}
+                  </div>
+                  <div className="mt-1 text-xs font-semibold text-slate-500">
+                    Auto publish: {post.autoPublished ? 'yes' : 'no'}
                   </div>
                 </div>
               ))}
