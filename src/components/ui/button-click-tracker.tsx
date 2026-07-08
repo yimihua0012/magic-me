@@ -1,10 +1,15 @@
 'use client'
 
 import { useEffect } from 'react'
+import { isAdminDashboardPath } from '@/lib/analytics-paths'
 
 export default function ButtonClickTracker() {
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
+      if (isAdminDashboardPath(window.location.pathname)) {
+        return
+      }
+
       if (!(event.target instanceof Element)) {
         return
       }
@@ -32,7 +37,10 @@ export default function ButtonClickTracker() {
         buttonType,
         source,
         clickedAt: new Date().toISOString(),
-        metadata,
+        metadata: {
+          ...(metadata || {}),
+          currentPath: window.location.pathname,
+        },
       })
 
       if (navigator.sendBeacon) {

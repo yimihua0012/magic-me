@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { trackButtonClick } from '@/lib/analytics'
+import { isAdminDashboardPath } from '@/lib/analytics-paths'
 import { localeFromPath } from '@/lib/auth-return'
 
 export default function PageViewTracker() {
@@ -10,7 +11,7 @@ export default function PageViewTracker() {
   const lastTrackedRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!pathname || pathname.startsWith('/dashboard/admin')) {
+    if (!pathname || isAdminDashboardPath(pathname)) {
       return
     }
 

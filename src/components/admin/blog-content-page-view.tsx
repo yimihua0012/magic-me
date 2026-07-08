@@ -211,12 +211,12 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
       }
 
       const preparedKeywords = Array.isArray(data.keywords)
-        ? data.keywords.filter((item: unknown): item is string => typeof item === 'string').slice(0, 1)
+        ? data.keywords.filter((item: unknown): item is string => typeof item === 'string').slice(0, 2)
         : []
       const preparedPrompt = typeof data.prompt === 'string' ? data.prompt : ''
 
-      if (preparedKeywords.length !== 1 || !preparedPrompt) {
-        throw new Error('DeepSeek did not return one keyword and a prompt.')
+      if (preparedKeywords.length < 1 || preparedKeywords.length > 2 || !preparedPrompt) {
+        throw new Error('DeepSeek did not return one or two keywords and a prompt.')
       }
 
       setDraftKeywords(preparedKeywords.join(', '))
@@ -392,13 +392,13 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
           <input
             value={draftKeywords}
             onChange={(event) => setDraftKeywords(event.target.value)}
-            placeholder="DeepSeek will return exactly 1 localized long-tail Google search keyword here."
+            placeholder="DeepSeek will return 1-2 localized long-tail Google search keywords here."
             className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
           />
           <textarea
             value={draftPrompt}
             onChange={(event) => setDraftPrompt(event.target.value)}
-            placeholder="Click Prepare Keywords to generate one localized long-tail Google search keyword and the article prompt for review."
+            placeholder="Click Prepare Keywords to generate 1-2 localized long-tail Google search keywords and the article prompt for review."
             className={`${monoInputClass} mt-3 min-h-64`}
           />
         </Card>

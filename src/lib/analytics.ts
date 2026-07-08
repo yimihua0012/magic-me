@@ -2,6 +2,7 @@
 
 import { supabase } from '@/lib/supabase/client'
 import { getSessionSafely } from '@/lib/supabase/auth-session'
+import { isAdminDashboardPath } from '@/lib/analytics-paths'
 
 type ButtonClickPayload = {
   buttonType: string
@@ -11,6 +12,11 @@ type ButtonClickPayload = {
 
 export async function trackButtonClick({ buttonType, source, metadata }: ButtonClickPayload) {
   try {
+    const currentPath = typeof window === 'undefined' ? undefined : window.location.pathname
+    if (isAdminDashboardPath(currentPath) || isAdminDashboardPath(source)) {
+      return
+    }
+
     const session = await getSessionSafely(supabase)
 
     await fetch('/api/analytics/button-click', {
@@ -23,7 +29,10 @@ export async function trackButtonClick({ buttonType, source, metadata }: ButtonC
         buttonType,
         source,
         clickedAt: new Date().toISOString(),
-        metadata,
+        metadata: {
+          ...(metadata || {}),
+          currentPath,
+        },
       }),
       keepalive: true,
     })

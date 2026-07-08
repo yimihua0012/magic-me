@@ -59,7 +59,7 @@ export async function POST(request: Request) {
   }
 
   if (mode === 'article' && keywords.length === 0) {
-    return NextResponse.json({ error: 'Confirm one localized search keyword first.' }, { status: 400 })
+    return NextResponse.json({ error: 'Confirm one or two localized search keywords first.' }, { status: 400 })
   }
 
   const prompt = mode === 'prepare'
@@ -121,11 +121,11 @@ export async function POST(request: Request) {
   }
 
   if (mode === 'prepare') {
-    const preparedKeywords = readStringArray(parsedDraft.keywords).slice(0, 1)
+    const preparedKeywords = readStringArray(parsedDraft.keywords).slice(0, 2)
     const preparedPrompt = readString(parsedDraft.prompt)
 
-    if (preparedKeywords.length !== 1 || !preparedPrompt) {
-      return NextResponse.json({ error: 'DeepSeek did not return one keyword and a prompt.' }, { status: 502 })
+    if (preparedKeywords.length < 1 || preparedKeywords.length > 2 || !preparedPrompt) {
+      return NextResponse.json({ error: 'DeepSeek did not return one or two keywords and a prompt.' }, { status: 502 })
     }
 
     return NextResponse.json({
@@ -152,18 +152,38 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string) {
     ja: 'Japanese',
   }
   const language = languageNames[locale]
+  const directions = [
+    [
+      'Draft angle: avatar and headshot style transformation.',
+      'Focus on users who want to turn uploaded selfies into different avatar styles, professional headshots, social profile portraits, creative profile images, and polished personal branding visuals.',
+      'The article prompt should make style choice, likeness, facial clarity, outfit/background mood, and profile use cases the main storyline.',
+    ],
+    [
+      'Draft angle: free photo utility for document-style photos.',
+      'Focus on users who need cropping, background color changes, and printable photo sheet arrangement for everyday document-style photos.',
+      'The article prompt should make practical steps, print readiness, background color selection, image layout, and avoiding unusable source photos the main storyline.',
+    ],
+    [
+      'Draft angle: student, adult education entrance exam, and job application scenarios.',
+      'Focus on local users preparing profile or document-style images for school-related use, adult education entrance exams, job applications, resumes, online forms, and professional profiles.',
+      'The article prompt should make the real-life scenario, search intent, local expectations, and step-by-step image preparation workflow the main storyline.',
+    ],
+  ]
+  const selectedDirection = directions[Math.floor(Math.random() * directions.length)]
 
   return [
     'You are preparing a localized SEO blog draft for Magic-Headshot.',
     `Target language: ${language}. Locale: ${locale}.`,
     `User-provided related terms: ${relatedTerms}.`,
+    ...selectedDirection,
     '',
     'Task:',
-    '1. Return exactly one localized long-tail Google search keyword that real users in this language would commonly search.',
-    '   The keyword should show clear search intent and likely Google search volume, not a broad seed term or brand-only phrase.',
+    '1. Return one or two localized long-tail Google search keywords that real users in this language would commonly search.',
+    '   Each keyword should show clear search intent and likely Google search volume, not a broad seed term or brand-only phrase.',
+    '   Vary the keyword direction based on the selected draft angle so repeated requests do not return the same keyword every time.',
     '2. Build one detailed article-generation prompt in the same target language for the editor to review.',
-    'The article-generation prompt must make the SEO blog draft revolve around the selected keyword as the core topic.',
-    'It must require the final article title, meta description, intro, section headings, searchIntent, and uniqueAngle to clearly support the keyword without keyword stuffing.',
+    'The article-generation prompt must make the SEO blog draft revolve around the selected keyword or keywords as the core topic.',
+    'It must require the final article title, meta description, intro, section headings, searchIntent, and uniqueAngle to clearly support the keyword or keywords without keyword stuffing.',
     '',
     'The prompt must ask for one practical SEO blog article about Magic Headshot as an AI tool that creates different avatar and headshot styles from uploaded selfies, and as a free photo utility for cropping, arranging printable photo sheets, and changing background colors for student, adult education entrance exam, job application, profile, and everyday document-style photo scenarios.',
     'The prompt must be localized to the market and search behavior of the selected language, not a direct translation from English.',
@@ -192,7 +212,7 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string) {
     'keywords, prompt',
     '',
     'JSON rules:',
-    '- keywords must be an array of exactly 1 localized long-tail Google search phrase.',
+    '- keywords must be an array of 1-2 localized long-tail Google search phrases.',
     '- prompt must be a detailed string that can be sent directly to DeepSeek to generate the article JSON.',
     '- Do not include markdown fences.',
     '- Do not include commentary outside JSON.',
