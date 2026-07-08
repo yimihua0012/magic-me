@@ -23,7 +23,6 @@ export type BlogPostWithMeta = BlogPost & {
   updatedAt?: string
   localizedSlugs?: Partial<Record<Locale, string>>
   submittedToBing?: boolean
-  autoPublished?: boolean
   source: BlogPostSource
 }
 
@@ -47,7 +46,6 @@ type BlogPostRow = {
   updated_at: string | null
   localized_slugs: Partial<Record<Locale, string>> | null
   submitted_to_bing: boolean | null
-  auto_published: boolean | null
 }
 
 type BlogContentJson = {
@@ -74,7 +72,6 @@ const publishedColumns = [
   'updated_at',
   'localized_slugs',
   'submitted_to_bing',
-  'auto_published',
 ].join(',')
 
 function staticPostToMeta(post: BlogPost): BlogPostWithMeta {
@@ -117,7 +114,6 @@ function rowToPost(row: BlogPostRow): BlogPostWithMeta {
     updatedAt: row.updated_at || undefined,
     localizedSlugs: row.localized_slugs || { [row.locale]: row.slug },
     submittedToBing: Boolean(row.submitted_to_bing),
-    autoPublished: Boolean(row.auto_published),
     source: 'cms',
   }
 }
@@ -336,7 +332,6 @@ export type BlogPostInput = {
   enhancement?: Partial<BlogEnhancement>
   localizedSlugs?: Partial<Record<Locale, string>>
   submittedToBing?: boolean
-  autoPublished?: boolean
 }
 
 export function validateBlogPostInput(input: BlogPostInput) {
@@ -406,6 +401,10 @@ export async function upsertAdminBlogPost(input: BlogPostInput, userId: string) 
     return { ok: false as const, errors }
   }
 
+  const publishedAt = normalizedInput.status === 'published'
+    ? await getNextManualPublishTime(normalizedInput.id)
+    : null
+
   const payload = {
     locale: normalizedInput.locale,
     translation_group_id: normalizedInput.translationGroupId || undefined,
@@ -426,8 +425,7 @@ export async function upsertAdminBlogPost(input: BlogPostInput, userId: string) 
       [normalizedInput.locale]: normalizedInput.slug,
     },
     submitted_to_bing: Boolean(normalizedInput.submittedToBing),
-    auto_published: Boolean(normalizedInput.autoPublished),
-    published_at: normalizedInput.status === 'published' ? new Date().toISOString() : null,
+    published_at: publishedAt,
     updated_by: userId,
     created_by: userId,
   }
@@ -443,6 +441,45 @@ export async function upsertAdminBlogPost(input: BlogPostInput, userId: string) 
   }
 
   return { ok: true as const, post: rowToPost(data as unknown as BlogPostRow) }
+}
+
+async function getNextManualPublishTime(id?: string) {
+  if (id) {
+    const { data: currentPost } = await supabaseAdmin
+      .from('blog_posts')
+      .select('status,published_at')
+      .eq('id', id)
+      .maybeSingle()
+
+    const currentPublishedAt = typeof currentPost?.published_at === 'string' ? currentPost.published_at : ''
+    if (currentPost?.status === 'published' && currentPublishedAt) {
+      return currentPublishedAt
+    }
+  }
+
+  let query = supabaseAdmin
+    .from('blog_posts')
+    .select('published_at')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .limit(1)
+
+  if (id) {
+    query = query.neq('id', id)
+  }
+
+  const { data, error } = await query.maybeSingle()
+  if (error) {
+    return new Date().toISOString()
+  }
+
+  const lastPublishedAt = typeof data?.published_at === 'string' ? data.published_at : ''
+  const lastDate = lastPublishedAt ? new Date(lastPublishedAt) : null
+  if (!lastDate || Number.isNaN(lastDate.getTime())) {
+    return new Date().toISOString()
+  }
+
+  return new Date(lastDate.getTime() + 60 * 60 * 1000).toISOString()
 }
 
 function normalizeAdminBlogSlug(slug: string, title: string, keywords: string[]) {

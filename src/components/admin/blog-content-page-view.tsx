@@ -30,7 +30,6 @@ type BlogPostAdminItem = {
   enhancement?: Record<string, unknown>
   localizedSlugs?: Partial<Record<Locale, string>>
   submittedToBing?: boolean
-  autoPublished?: boolean
   updatedAt?: string
 }
 
@@ -518,9 +517,6 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
                   </div>
                   <div className="mt-1 text-xs font-semibold text-slate-500">
                     Bing: {post.submittedToBing ? 'submitted' : 'not submitted'}
-                  </div>
-                  <div className="mt-1 text-xs font-semibold text-slate-500">
-                    Auto publish: {post.autoPublished ? 'yes' : 'no'}
                   </div>
                 </div>
               ))}
