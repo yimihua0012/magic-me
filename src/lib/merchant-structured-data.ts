@@ -55,11 +55,7 @@ export function digitalDeliveryPolicy(currency = 'USD') {
 
 export function digitalMerchantPolicy(currency = 'USD') {
   return {
-    hasMerchantReturnPolicy: {
-      '@id': merchantReturnPolicyId(),
-    },
-    shippingDetails: {
-      '@id': digitalDeliveryPolicyId(currency),
-    },
+    hasMerchantReturnPolicy: merchantReturnPolicy(),
+    shippingDetails: digitalDeliveryPolicy(currency),
   }
 }
