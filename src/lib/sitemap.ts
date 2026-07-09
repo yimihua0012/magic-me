@@ -5,6 +5,7 @@ import { DEFAULT_LOCALE, LOCALES, ROUTED_LOCALES, type Locale, localePath } from
 import { getPublishedBlogPosts, localeHasPublishedCmsBlogPosts } from '@/lib/blog-store'
 import { getSamplePictures } from '@/lib/sample-pictures'
 import { sampleGalleryPath } from '@/lib/sample-gallery-content'
+import { photoToolPages } from '@/lib/photo-tool-page-content'
 
 const siteUrl = appConfig.url.replace(/\/$/, '')
 const lastModified = new Date('2026-07-03T00:00:00.000Z')
@@ -44,6 +45,11 @@ const englishStaticRoutes: SitemapRoute[] = [
   { path: '/ai-headshot-professional-photo', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.9, images: [defaultSeoImage] },
   { path: '/free-id-photo-tool', changeFrequency: 'weekly', priority: 0.8 },
+  ...photoToolPages.map((page) => ({
+    path: page.path,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  })),
   { path: '/questions', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/sample', changeFrequency: 'monthly', priority: 0.8, images: sampleImages },
   { path: '/sitemap', changeFrequency: 'monthly', priority: 0.4 },

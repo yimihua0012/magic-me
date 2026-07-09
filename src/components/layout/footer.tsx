@@ -36,6 +36,11 @@ export default function Footer() {
                   Generate Now
                 </FooterGenerateLink>
               </li>
+              <li>
+                <Link href="/free-id-photo-tool" className="text-sm text-slate-400 transition-colors hover:text-white">
+                  Photo tools
+                </Link>
+              </li>
             </ul>
           </div>
 
