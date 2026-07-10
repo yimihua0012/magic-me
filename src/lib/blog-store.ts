@@ -391,7 +391,7 @@ export function validateBlogPostInput(input: BlogPostInput) {
   if (!input.title.trim()) errors.push('Title is required.')
   if (!input.description.trim()) errors.push('Description is required.')
   if (input.description.trim().length > 180) errors.push('Description should be 180 characters or fewer.')
-  if (input.keywords.length < 2) errors.push('Add at least two keywords.')
+  if (input.keywords.length !== 1) errors.push('Add exactly one keyword.')
   if (!input.intro.trim()) errors.push('Intro is required.')
   if (input.sections.length < 3) errors.push('Add at least three content sections.')
 
@@ -535,7 +535,7 @@ export async function upsertAdminBlogPost(input: BlogPostInput, userId: string) 
     status: normalizedInput.status,
     title: normalizedInput.title.trim(),
     description: normalizedInput.description.trim(),
-    keywords: normalizedInput.keywords.map((keyword) => keyword.trim()).filter(Boolean),
+    keywords: normalizedInput.keywords.map((keyword) => keyword.trim()).filter(Boolean).slice(0, 1),
     category: normalizedInput.category?.trim() || null,
     cover_image_url: normalizedInput.coverImageUrl?.trim() || null,
     cover_image_alt: normalizedInput.coverImageAlt?.trim() || null,

@@ -247,7 +247,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
       if (hasBlogFormContent()) {
         clearBlogForm(draftLocale)
       }
-      setMessage('Localized keywords and article prompt prepared. Review them, edit if needed, then generate the article.')
+      setMessage('Localized keyword and article prompt prepared. Review them, edit if needed, then generate the article.')
     } catch (prepareError) {
       setError(prepareError instanceof Error ? prepareError.message : 'Could not prepare localized keywords and prompt.')
     } finally {
@@ -569,8 +569,8 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
               <Field label="Category">
                 <input value={form.category} onChange={(event) => setField('category', event.target.value)} className={inputClass} />
               </Field>
-              <Field label="Keywords">
-                <input value={form.keywords} onChange={(event) => setField('keywords', event.target.value)} className={inputClass} placeholder="keyword one, keyword two" />
+              <Field label="Keyword">
+                <input value={form.keywords} onChange={(event) => setField('keywords', event.target.value)} className={inputClass} placeholder="one localized long-tail keyword" />
               </Field>
               <Field label="Source post ID">
                 <input value={form.sourcePostId} onChange={(event) => setField('sourcePostId', event.target.value)} className={inputClass} />

@@ -201,7 +201,7 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string, uniqu
     '- slug must be lowercase English letters/numbers/hyphens only.',
     '- description must be 120-160 characters and match the visible article.',
     '- description must be unique for this draft, include the selected keyword or a natural close variant, and avoid generic repeated product wording.',
-    '- keywords must be an array of 5-8 search phrases, and every keyword must clearly match the description topic.',
+    '- keywords must be an array with exactly one localized long-tail search phrase, and that keyword must clearly match the description topic.',
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
     '- coverImageAlt must describe the intended cover image in the article language.',
     '- intro must be 80-140 words.',
@@ -251,7 +251,7 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[], uniquenessHint
     '- slug must be lowercase English letters/numbers/hyphens only.',
     '- description must be 120-160 characters and match the visible article.',
     '- title is the public page H1, and title, description, and keywords must describe the same search intent.',
-    '- keywords must be an array of 5-8 search phrases, and every keyword must clearly match the description topic.',
+    '- keywords must be an array with exactly one localized long-tail search phrase, and that keyword must clearly match the description topic.',
     '- coverImageUrl should be an empty string unless you know a site-local image path.',
     '- coverImageAlt must describe the intended article cover image in the article language.',
     '- intro must be 80-140 words.',
@@ -286,7 +286,7 @@ function withCmsJsonRequirements(prompt: string, locale: Locale, uniquenessHint:
     '- slug must be lowercase English letters/numbers/hyphens only.',
     '- description must be 120-160 characters and match the visible article.',
     '- title is the public page H1, and title, description, and keywords must describe the same search intent.',
-    '- keywords must be an array of 5-8 search phrases, and every keyword must clearly match the description topic.',
+    '- keywords must be an array with exactly one localized long-tail search phrase, and that keyword must clearly match the description topic.',
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
     '- coverImageAlt must describe the intended cover image in the article language.',
     '- intro must be 80-140 words.',
@@ -309,7 +309,7 @@ function normalizeGeneratedDraft(
   fallbackKeywords: string[],
 ): BlogPostInput {
   const slug = slugify(readString(value.slug) || fallbackKeywords[0] || 'ai-headshot-guide')
-  const keywords = readStringArray(value.keywords)
+  const keywords = readStringArray(value.keywords).slice(0, 1)
   const sections = readSections(value.sections)
   const enhancement = readRecord(value.enhancement)
   const localizedSlugs = readRecord(value.localizedSlugs) as Partial<Record<Locale, string>>
@@ -320,7 +320,7 @@ function normalizeGeneratedDraft(
     status: 'draft',
     title: readString(value.title),
     description: readString(value.description),
-    keywords: keywords.length > 0 ? keywords : fallbackKeywords,
+    keywords: keywords.length > 0 ? keywords : fallbackKeywords.slice(0, 1),
     category: readString(value.category),
     coverImageUrl: readString(value.coverImageUrl),
     coverImageAlt: readString(value.coverImageAlt),
