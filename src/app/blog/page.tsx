@@ -8,7 +8,13 @@ import BlogJsonLd from '@/components/seo/blog-json-ld'
 import { blogGeneratedPortraitImages, coreSeoKeywords } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 import { getBlogEnhancement } from '@/lib/blog-enhancements'
-import { getBlogIndexLanguageAlternates, getPublishedBlogPosts } from '@/lib/blog-store'
+import {
+  blogCategoryPath,
+  blogPostCategoryLabel,
+  getBlogIndexLanguageAlternates,
+  getPublishedBlogPosts,
+  slugifyBlogCategory,
+} from '@/lib/blog-store'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -61,6 +67,8 @@ export default async function BlogPage() {
               const fallbackPortrait = index < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[index] : null
               const portrait = post.coverImage || (fallbackPortrait ? { url: fallbackPortrait.src, alt: fallbackPortrait.alt } : null)
               const enhancement = post.enhancement || getBlogEnhancement(post.slug)
+              const categoryLabel = blogPostCategoryLabel({ ...post, enhancement })
+              const categoryHref = blogCategoryPath('en', slugifyBlogCategory(categoryLabel))
               const href = `/blog/${post.slug}`
 
               return (
@@ -78,12 +86,10 @@ export default async function BlogPage() {
                   <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
                     <CalendarDays className="h-4 w-4" />
                     {getBlogPublishDate(index)}
-                    {enhancement && (
-                      <>
-                        <span className="text-slate-300">/</span>
-                        <span className="text-primary-600">{enhancement.category}</span>
-                      </>
-                    )}
+                    <span className="text-slate-300">/</span>
+                    <Link href={categoryHref} className="text-primary-600 hover:text-primary-700">
+                      {categoryLabel}
+                    </Link>
                   </div>
                   <h2 className="break-words text-xl font-bold leading-snug text-slate-950">
                     <Link href={`/blog/${post.slug}`} className="hover:text-primary-600">

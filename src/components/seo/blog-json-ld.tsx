@@ -7,18 +7,34 @@ interface BlogJsonLdProps {
   posts: readonly BlogPostWithMeta[]
   locale?: Locale
   path?: string
+  title?: string
+  description?: string
+  breadcrumbName?: string
+  breadcrumbParent?: {
+    name: string
+    path: string
+  }
+  includeBreadcrumb?: boolean
 }
 
-export default function BlogJsonLd({ posts, locale = 'en', path = '/blog' }: BlogJsonLdProps) {
+export default function BlogJsonLd({
+  posts,
+  locale = 'en',
+  path = '/blog',
+  title = 'Magic-Headshot Blog',
+  description = 'AI image generation guides for headshots, LinkedIn photos, resume portraits, and professional profile photos.',
+  breadcrumbName,
+  breadcrumbParent,
+  includeBreadcrumb = true,
+}: BlogJsonLdProps) {
   const siteUrl = appConfig.url.replace(/\/$/, '')
   const pageUrl = `${siteUrl}${localePath(locale, path)}`
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     '@id': `${pageUrl}#blog`,
-    name: 'Magic-Headshot Blog',
-    description:
-      'AI image generation guides for headshots, LinkedIn photos, resume portraits, and professional profile photos.',
+    name: title,
+    description,
     url: pageUrl,
     inLanguage: locale,
     publisher: {
@@ -40,7 +56,14 @@ export default function BlogJsonLd({ posts, locale = 'en', path = '/blog' }: Blo
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <BreadcrumbJsonLd locale={locale} path="/blog" currentName="Magic-Headshot Blog" />
+      {includeBreadcrumb && (
+        <BreadcrumbJsonLd
+          locale={locale}
+          path={path}
+          currentName={breadcrumbName || title}
+          parent={breadcrumbParent}
+        />
+      )}
     </>
   )
 }

@@ -26,6 +26,15 @@ export type BlogPostWithMeta = BlogPost & {
   source: BlogPostSource
 }
 
+export type BlogCategorySummary = {
+  slug: string
+  label: string
+  locale: Locale
+  count: number
+  posts: BlogPostWithMeta[]
+  keywords: string[]
+}
+
 type BlogPostRow = {
   id: string
   locale: Locale
@@ -256,6 +265,93 @@ export async function getPublishedBlogSlugs(locale: Locale = 'en') {
 export function blogPath(locale: Locale, slug?: string) {
   const path = slug ? `/blog/${slug}` : '/blog'
   return localePath(locale, path)
+}
+
+export function blogCategoryPath(locale: Locale, categorySlug: string) {
+  return localePath(locale, `/blog/category/${categorySlug}`)
+}
+
+export function blogPostCategoryLabel(post: BlogPostWithMeta) {
+  return post.category?.trim() || post.enhancement?.category?.trim() || 'General'
+}
+
+export function slugifyBlogCategory(value: string) {
+  const normalizedValue = value.trim()
+  const slug = slugifySlug(normalizedValue)
+  const hash = stableSlugHash(normalizedValue)
+
+  if (slug.length >= 3) return slug.length <= 64 ? slug : slug.slice(0, 64).replace(/-+$/g, '')
+  if (slug) return `${slug}-${hash}`
+  return `category-${hash}`
+}
+
+export function getBlogCategoriesFromPosts(posts: BlogPostWithMeta[], locale: Locale): BlogCategorySummary[] {
+  const groups = new Map<string, BlogCategorySummary>()
+
+  for (const post of posts) {
+    const label = blogPostCategoryLabel(post)
+    const slug = slugifyBlogCategory(label)
+    const current = groups.get(slug)
+
+    if (current) {
+      current.posts.push(post)
+      current.count += 1
+      for (const keyword of post.keywords) {
+        if (current.keywords.length < 8 && !current.keywords.includes(keyword)) {
+          current.keywords.push(keyword)
+        }
+      }
+      continue
+    }
+
+    groups.set(slug, {
+      slug,
+      label,
+      locale,
+      count: 1,
+      posts: [post],
+      keywords: post.keywords.slice(0, 8),
+    })
+  }
+
+  return Array.from(groups.values()).sort((left, right) => {
+    if (right.count !== left.count) return right.count - left.count
+    return left.label.localeCompare(right.label, locale)
+  })
+}
+
+export async function getPublishedBlogCategories(locale: Locale = 'en') {
+  const posts = await getPublishedBlogPosts(locale)
+  return getBlogCategoriesFromPosts(posts, locale)
+}
+
+export async function getPublishedBlogCategory(categorySlug: string, locale: Locale = 'en') {
+  const categories = await getPublishedBlogCategories(locale)
+  return categories.find((category) => category.slug === categorySlug)
+}
+
+export async function getBlogCategoryLanguageAlternates(category: BlogCategorySummary) {
+  const alternates: Partial<Record<Locale | 'x-default', string>> = {
+    [category.locale]: blogCategoryPath(category.locale, category.slug),
+  }
+  const translationGroupIds = new Set(category.posts.map((post) => post.translationGroupId).filter(Boolean))
+
+  await Promise.all(LOCALES.map(async (locale) => {
+    if (locale === category.locale) return
+
+    const categories = await getPublishedBlogCategories(locale)
+    const matchingCategory = categories.find((candidate) => {
+      if (candidate.slug === category.slug) return true
+      return candidate.posts.some((post) => post.translationGroupId && translationGroupIds.has(post.translationGroupId))
+    })
+
+    if (matchingCategory) {
+      alternates[locale] = blogCategoryPath(locale, matchingCategory.slug)
+    }
+  }))
+
+  alternates['x-default'] = alternates.en || blogCategoryPath(category.locale, category.slug)
+  return alternates
 }
 
 export async function getBlogLanguageAlternates(post: BlogPostWithMeta) {
@@ -672,6 +768,14 @@ function slugifySlug(value: string) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/-{2,}/g, '-')
+}
+
+function stableSlugHash(value: string) {
+  let hash = 0
+  for (const character of Array.from(value)) {
+    hash = ((hash * 31) + character.codePointAt(0)!) >>> 0
+  }
+  return hash.toString(36).slice(0, 8) || 'general'
 }
 
 function randomShortId() {

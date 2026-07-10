@@ -1,0 +1,166 @@
+import type { BlogCategorySummary } from '@/lib/blog-store'
+import type { Locale } from '@/lib/i18n'
+
+type BlogCategoryFaq = {
+  question: string
+  answer: string
+}
+
+export type BlogCategorySeoContent = {
+  title: string
+  h1: string
+  description: string
+  intro: string
+  keywords: string[]
+  faqs: BlogCategoryFaq[]
+  backToBlog: string
+  articleCount: string
+  readArticle: string
+  faqHeading: string
+  blogName: string
+}
+
+export function getBlogCategorySeoContent(locale: Locale, category: BlogCategorySummary): BlogCategorySeoContent {
+  const label = category.label
+  const count = category.count
+  const keywords = Array.from(new Set([label, ...category.keywords])).slice(0, 6)
+
+  const content = categoryContentByLocale[locale](label, count)
+  return {
+    ...content,
+    keywords,
+  }
+}
+
+function boundedDescription(value: string) {
+  if (value.length <= 158) return value
+  return `${value.slice(0, 155).replace(/\s+\S*$/, '')}...`
+}
+
+const categoryContentByLocale: Record<Locale, (label: string, count: number) => Omit<BlogCategorySeoContent, 'keywords'>> = {
+  en: (label, count) => ({
+    title: `${label} Blog Guides | Magic-Headshot`,
+    h1: `${label} Blog Guides`,
+    description: boundedDescription(`Explore ${label} guides from Magic-Headshot, with ${count} articles on AI headshots, profile photos, document photos, and practical publishing workflows.`),
+    intro: `This category collects Magic-Headshot articles about ${label}. Use these guides to compare workflows, prepare better source photos, choose practical image styles, and publish professional profile or document-style photos with more confidence.`,
+    faqs: [
+      {
+        question: `What does the ${label} category cover?`,
+        answer: `It groups articles that share the ${label} topic, including practical AI headshot workflows, profile photo decisions, quality checks, and publishing advice.`,
+      },
+      {
+        question: 'How is this category updated?',
+        answer: 'The page is generated from published blog posts. When a new published article uses this category, it appears here and is included in the sitemap automatically.',
+      },
+      {
+        question: 'Which article should I read first?',
+        answer: 'Start with the most recent or most specific guide in the list, then use related articles to compare use cases such as LinkedIn, resumes, document photos, or team profile pages.',
+      },
+    ],
+    backToBlog: 'Back to all blog articles',
+    articleCount: `${count} article${count === 1 ? '' : 's'}`,
+    readArticle: 'Read article',
+    faqHeading: 'Category FAQ',
+    blogName: 'Magic-Headshot Blog',
+  }),
+  es: (label, count) => ({
+    title: `${label}: guías prácticas para fotos profesionales | Magic-Headshot`,
+    h1: `${label}: guías prácticas y casos de uso`,
+    description: boundedDescription(`${count} guías sobre ${label}: fotos profesionales con IA para LinkedIn, CV, documentos, perfiles y decisiones antes de publicar.`),
+    intro: `Aquí reunimos guías sobre ${label} pensadas para búsquedas reales en español: perfiles de LinkedIn, CV, documentos cotidianos, fotos de equipo y presencia profesional. La idea es ayudarte a elegir una imagen útil, no solo bonita.`,
+    faqs: [
+      {
+        question: `¿Qué incluye la categoría ${label}?`,
+        answer: `Agrupa artículos relacionados con ${label}, incluyendo decisiones de perfil, preparación de fotos, controles de calidad y usos habituales como LinkedIn, CV o documentos no oficiales.`,
+      },
+      {
+        question: '¿Cómo se actualiza esta categoría?',
+        answer: 'La página se genera desde los artículos publicados. Cuando un nuevo blog usa esta categoría, aparece aquí y entra automáticamente en el sitemap.',
+      },
+      {
+        question: '¿Qué artículo conviene leer primero?',
+        answer: 'Empieza por la guía que coincida con tu uso concreto: búsqueda de empleo, perfil profesional, foto para CV, documento cotidiano o página de equipo.',
+      },
+    ],
+    backToBlog: 'Volver al blog',
+    articleCount: `${count} artículo${count === 1 ? '' : 's'}`,
+    readArticle: 'Leer artículo',
+    faqHeading: 'FAQ de la categoría',
+    blogName: 'Blog de Magic-Headshot',
+  }),
+  fr: (label, count) => ({
+    title: `${label}: guides photo professionnelle IA | Magic-Headshot`,
+    h1: `${label}: guides pour profils, CV et usages pro`,
+    description: boundedDescription(`${count} guides sur ${label}: portraits IA, photos LinkedIn, CV, documents du quotidien et choix de publication professionnelle.`),
+    intro: `Cette rubrique traite de ${label} dans des situations concrètes: profil LinkedIn, CV, page équipe, bio professionnelle ou photo de document courant. Les guides privilégient une image crédible, reconnaissable et adaptée au contexte.`,
+    faqs: [
+      {
+        question: `Que couvre la catégorie ${label} ?`,
+        answer: `Elle regroupe les articles liés à ${label}, avec des conseils pour choisir une photo de profil, préparer ses images sources, contrôler le rendu et l utiliser dans un contexte professionnel.`,
+      },
+      {
+        question: 'Comment cette catégorie est-elle mise à jour ?',
+        answer: 'La page est générée depuis les articles publiés. Quand un nouveau blog utilise cette catégorie, il apparaît ici et rejoint automatiquement le sitemap.',
+      },
+      {
+        question: 'Quel article lire en premier ?',
+        answer: 'Commencez par le guide le plus proche de votre besoin: profil LinkedIn, CV, bio, document courant ou cohérence visuelle d une équipe.',
+      },
+    ],
+    backToBlog: 'Retour au blog',
+    articleCount: `${count} article${count === 1 ? '' : 's'}`,
+    readArticle: 'Lire l article',
+    faqHeading: 'FAQ de la catégorie',
+    blogName: 'Blog Magic-Headshot',
+  }),
+  de: (label, count) => ({
+    title: `${label}: Ratgeber fuer Profilbilder und Bewerbungsfotos | Magic-Headshot`,
+    h1: `${label}: Ratgeber fuer berufliche Fotos`,
+    description: boundedDescription(`${count} Ratgeber zu ${label}: KI-Headshots, LinkedIn Profilbilder, Bewerbungsfotos, einfache Dokumentfotos und Praxischecks.`),
+    intro: `Diese Kategorie behandelt ${label} aus praktischer Sicht: LinkedIn Profilbild, Bewerbungsfoto, Teamseite, berufliche Bio oder alltaegliche Dokumentfotos. Im Mittelpunkt steht ein glaubwuerdiges Bild, das zum jeweiligen Einsatz passt.`,
+    faqs: [
+      {
+        question: `Was deckt die Kategorie ${label} ab?`,
+        answer: `Sie sammelt Artikel rund um ${label}, darunter Profilfoto-Entscheidungen, Vorbereitung der Ausgangsbilder, Qualitaetschecks und typische berufliche Einsatzbereiche.`,
+      },
+      {
+        question: 'Wie wird diese Kategorie aktualisiert?',
+        answer: 'Die Seite entsteht automatisch aus veröffentlichten Blogartikeln. Nutzt ein neuer Artikel diese Kategorie, erscheint er hier und wird automatisch in die Sitemap aufgenommen.',
+      },
+      {
+        question: 'Welchen Artikel sollte ich zuerst lesen?',
+        answer: 'Beginne mit dem Guide, der deinem Ziel am naechsten kommt: LinkedIn, Bewerbung, berufliche Bio, Dokumentfoto oder einheitliche Teamseite.',
+      },
+    ],
+    backToBlog: 'Zurück zum Blog',
+    articleCount: `${count} Artikel`,
+    readArticle: 'Artikel lesen',
+    faqHeading: 'Kategorie FAQ',
+    blogName: 'Magic-Headshot Blog',
+  }),
+  ja: (label, count) => ({
+    title: `${label}の用途別ガイド | Magic-Headshot`,
+    h1: `${label}の用途別ガイド`,
+    description: boundedDescription(`${label}に関する記事一覧です。履歴書、LinkedIn、仕事用プロフィール、証明写真風の画像など用途別に確認できます。`),
+    intro: `${label}について、履歴書、LinkedIn、仕事用プロフィール、社員紹介、日常の書類写真などの場面別に確認できる記事をまとめています。見た目のきれいさだけでなく、本人らしさと使いやすさを重視しています。`,
+    faqs: [
+      {
+        question: `${label}カテゴリでは何を読めますか？`,
+        answer: `${label}に関連する記事をまとめています。プロフィール写真、履歴書向け写真、元写真の選び方、公開前の確認ポイントなどを扱います。`,
+      },
+      {
+        question: 'このカテゴリはどのように更新されますか？',
+        answer: '公開済みブログから自動生成されます。新しい記事がこのカテゴリで公開されると、このページとsitemapに自動で反映されます。',
+      },
+      {
+        question: '最初に読む記事はどう選べばよいですか？',
+        answer: 'LinkedIn、履歴書、仕事用プロフィール、書類用写真など、自分の用途に近い記事から読むのがおすすめです。',
+      },
+    ],
+    backToBlog: 'ブログ一覧へ戻る',
+    articleCount: `${count}件の記事`,
+    readArticle: '記事を読む',
+    faqHeading: 'カテゴリFAQ',
+    blogName: 'Magic-Headshotブログ',
+  }),
+}

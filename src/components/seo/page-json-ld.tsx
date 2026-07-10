@@ -24,6 +24,10 @@ interface FaqPageJsonLdProps {
   title: string
   description: string
   items: readonly { question: string; answer: string }[]
+  parent?: {
+    name: string
+    path: string
+  }
 }
 
 interface CollectionPageJsonLdProps extends WebPageJsonLdProps {
@@ -162,7 +166,7 @@ export function WebPageJsonLd({
   )
 }
 
-export function FaqPageJsonLd({ locale, path, title, description, items }: FaqPageJsonLdProps) {
+export function FaqPageJsonLd({ locale, path, title, description, items, parent }: FaqPageJsonLdProps) {
   const url = pageUrl(locale, path)
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -185,7 +189,7 @@ export function FaqPageJsonLd({ locale, path, title, description, items }: FaqPa
   return (
     <>
       <JsonLdScript data={jsonLd} />
-      <BreadcrumbJsonLd locale={locale} path={path} currentName={title} />
+      <BreadcrumbJsonLd locale={locale} path={path} currentName={title} parent={parent} />
     </>
   )
 }

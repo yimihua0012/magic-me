@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 import { isAdminEmail } from '@/lib/admin'
 import { getCurrentUser } from '@/lib/auth/server'
 import {
+  blogPostCategoryLabel,
+  getAdminBlogPostById,
   listAdminBlogPosts,
+  slugifyBlogCategory,
   upsertAdminBlogPost,
   validateBlogPostInput,
   type BlogPostInput,
@@ -62,13 +65,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ errors: validationErrors }, { status: 400 })
   }
 
+  const previousPost = input.id ? await getAdminBlogPostById(input.id) : null
   const result = await upsertAdminBlogPost(input, user.id)
   if (!result.ok) {
     return NextResponse.json({ errors: result.errors }, { status: 400 })
   }
 
-  if (result.post.status === 'published') {
-    revalidateBlogPaths(result.post.locale, result.post.slug)
+  if (previousPost?.status === 'published' || result.post.status === 'published') {
+    const categorySlugs = [previousPost, result.post]
+      .filter((post): post is NonNullable<typeof post> => Boolean(post))
+      .map((post) => slugifyBlogCategory(blogPostCategoryLabel(post)))
+
+    revalidateBlogPaths(
+      result.post.locale,
+      result.post.slug,
+      categorySlugs
+    )
+
+    if (previousPost && previousPost.locale === result.post.locale && previousPost.slug !== result.post.slug) {
+      revalidateBlogPaths(previousPost.locale, previousPost.slug, categorySlugs)
+    }
   }
 
   return NextResponse.json({ post: result.post })

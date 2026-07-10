@@ -3,8 +3,10 @@ import { appConfig } from '@/lib/config'
 import { blogGeneratedPortraitImages, blogPosts, sampleComparisons } from '@/lib/seo-content'
 import { DEFAULT_LOCALE, LOCALES, ROUTED_LOCALES, type Locale, localePath } from '@/lib/i18n'
 import {
+  getBlogCategoryLanguageAlternates,
   getBlogIndexLanguageAlternates,
   getBlogLanguageAlternates,
+  getBlogCategoriesFromPosts,
   getPublishedBlogPosts,
   localeHasPublishedCmsBlogPosts,
 } from '@/lib/blog-store'
@@ -133,10 +135,14 @@ function toSitemapEntry(locale: Locale, route: SitemapRoute): SitemapEntry {
 
 export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[]> {
   const publishedPosts = await getPublishedBlogPosts(locale)
+  const blogCategories = getBlogCategoriesFromPosts(publishedPosts, locale)
   const samplePictureImages = (await getSamplePictures(locale)).map((picture) => picture.imageUrl)
   const blogIndexLanguageAlternates = absoluteLanguageAlternates(await getBlogIndexLanguageAlternates())
   const blogPostLanguageAlternates = await Promise.all(
     publishedPosts.map((post) => getBlogLanguageAlternates(post).then(absoluteLanguageAlternates))
+  )
+  const blogCategoryLanguageAlternates = await Promise.all(
+    blogCategories.map((category) => getBlogCategoryLanguageAlternates(category).then(absoluteLanguageAlternates))
   )
 
   if (locale === DEFAULT_LOCALE) {
@@ -154,8 +160,18 @@ export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[
       ],
       languageAlternates: blogPostLanguageAlternates[index],
     }))
+    const categoryRoutes = blogCategories.map((category, index) => ({
+      url: localizedUrl(locale, `/blog/category/${category.slug}`),
+      lastModified: latestPostDate(category.posts),
+      changeFrequency: 'weekly' as const,
+      priority: index < 10 ? 0.65 : 0.55,
+      images: [
+        absoluteAssetUrl(category.posts[0]?.coverImage?.url || blogImages[index % blogImages.length] || defaultSeoImage),
+      ],
+      languageAlternates: blogCategoryLanguageAlternates[index],
+    }))
 
-    return [...staticRoutes, ...blogRoutes]
+    return [...staticRoutes, ...categoryRoutes, ...blogRoutes]
   }
 
   const staticRoutes = localizedStaticRoutes.map((route) => toSitemapEntry(locale, withSampleGalleryImages(route, samplePictureImages)))
@@ -173,8 +189,18 @@ export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[
     ],
     languageAlternates: blogPostLanguageAlternates[index],
   }))
+  const categoryRoutes = blogCategories.map((category, index) => ({
+    url: localizedUrl(locale, `/blog/category/${category.slug}`),
+    lastModified: latestPostDate(category.posts),
+    changeFrequency: 'weekly' as const,
+    priority: index < 10 ? 0.6 : 0.5,
+    images: [
+      absoluteAssetUrl(category.posts[0]?.coverImage?.url || blogImages[index % blogImages.length] || defaultSeoImage),
+    ],
+    languageAlternates: blogCategoryLanguageAlternates[index],
+  }))
 
-  return [...staticRoutes, ...blogIndexRoute, ...blogRoutes]
+  return [...staticRoutes, ...blogIndexRoute, ...categoryRoutes, ...blogRoutes]
 }
 
 function withSampleGalleryImages(route: SitemapRoute, images: string[]): SitemapRoute {
@@ -185,6 +211,14 @@ function withSampleGalleryImages(route: SitemapRoute, images: string[]): Sitemap
 function withBlogIndexLanguageAlternates(route: SitemapRoute, languageAlternates: SitemapLanguageAlternates): SitemapRoute {
   if (route.path !== '/blog') return route
   return { ...route, languageAlternates }
+}
+
+function latestPostDate(posts: { updatedAt?: string; publishedAt?: string }[]) {
+  const dates = posts
+    .map((post) => new Date(post.updatedAt || post.publishedAt || lastModified).getTime())
+    .filter((time) => !Number.isNaN(time))
+  if (dates.length === 0) return lastModified
+  return new Date(Math.max(...dates))
 }
 
 export async function getAllSitemaps(): Promise<SitemapEntry[]> {

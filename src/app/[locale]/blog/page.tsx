@@ -9,7 +9,14 @@ import BlogJsonLd from '@/components/seo/blog-json-ld'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
-import { getBlogIndexLanguageAlternates, getCmsPublishedBlogPosts, localeHasPublishedCmsBlogPosts } from '@/lib/blog-store'
+import {
+  blogCategoryPath,
+  blogPostCategoryLabel,
+  getBlogIndexLanguageAlternates,
+  getCmsPublishedBlogPosts,
+  localeHasPublishedCmsBlogPosts,
+  slugifyBlogCategory,
+} from '@/lib/blog-store'
 import { OPEN_GRAPH_LOCALES, isRoutedLocale, localePath, ROUTED_LOCALES, type RoutedLocale } from '@/lib/i18n'
 
 type PageProps = {
@@ -154,6 +161,8 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
           <div className="mx-auto grid max-w-7xl gap-5 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:px-8">
             {posts.map((post, index) => {
               const portrait = post.coverImage || (index < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[index] : null)
+              const categoryLabel = blogPostCategoryLabel(post)
+              const categoryHref = blogCategoryPath(routedLocale, slugifyBlogCategory(categoryLabel))
               const href = localePath(routedLocale, `/blog/${post.slug}`)
 
               return (
@@ -171,12 +180,10 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
                   <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
                     <CalendarDays className="h-4 w-4" />
                     {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString(routedLocale) : getBlogPublishDate(index)}
-                    {post.category && (
-                      <>
-                        <span className="text-slate-300">/</span>
-                        <span className="text-primary-600">{post.category}</span>
-                      </>
-                    )}
+                    <span className="text-slate-300">/</span>
+                    <Link href={categoryHref} className="text-primary-600 hover:text-primary-700">
+                      {categoryLabel}
+                    </Link>
                   </div>
                   <h2 className="break-words text-xl font-bold leading-snug text-slate-950">
                     <Link href={href} className="hover:text-primary-600">
