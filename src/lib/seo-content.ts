@@ -283,7 +283,7 @@ export const blogPosts = [
     title: 'Professional Profile Photo Maker Tips for Founders and Consultants',
     description:
       'How founders and consultants can use a professional profile photo maker without losing the warmth that makes people reach out.',
-    keywords: ['professional profile photo maker', 'business portrait AI generator', 'Magic-Headshot'],
+    keywords: ['professional profile photo maker', 'founder profile photo tips', 'consultant headshot tips'],
     intro:
       'Founders and consultants live in a lot of small trust moments: a LinkedIn visit before a Tuesday sales call, a sales deck sent after lunch, a speaker page due by Friday, a quick Google search from a potential client. One strong image can make all of those moments feel a little less patched together.',
     sections: [
@@ -309,7 +309,7 @@ export const blogPosts = [
     title: 'Business Portrait AI Generator Styles That Work for Company Pages',
     description:
       'Business portrait AI generator ideas for company pages that need to look consistent without making everyone feel copied and pasted.',
-    keywords: ['business portrait AI generator', 'team photos online', 'realistic AI headshot generator'],
+    keywords: ['business portrait AI generator', 'company page headshots', 'team photos online'],
     intro:
       'Team pages can get messy fast. One person has a wedding photo crop, another has a dark webcam picture, and someone else has a studio portrait from three jobs ago. When marketing wants the page cleaned up before next month\'s launch, a business portrait AI generator can help without forcing everyone into one photo day.',
     sections: [
@@ -439,7 +439,7 @@ export const blogPosts = [
     title: 'Best Backgrounds for Realistic AI Headshots',
     description:
       'How to choose AI headshot backgrounds that feel professional, not fake, and do not steal attention from your face.',
-    keywords: ['realistic AI headshot generator', 'AI headshots for LinkedIn', 'professional profile photo maker'],
+    keywords: ['AI headshot backgrounds', 'professional profile photo background', 'realistic AI headshot generator'],
     intro:
       'The background is easy to ignore until it feels wrong. Then it is all you can see, usually right after you paste the image into a resume, speaker page, or LinkedIn profile preview. A realistic AI headshot generator does its best work when the scene supports your face instead of trying to show off.',
     sections: [
@@ -465,7 +465,7 @@ export const blogPosts = [
     title: 'What to Wear for AI Headshots and Business Portraits',
     description:
       'Simple wardrobe advice for AI headshots when you want to look professional but not stiff, overdressed, or unlike yourself.',
-    keywords: ['business portrait AI generator', 'AI headshots for LinkedIn', 'professional headshots without photographer'],
+    keywords: ['what to wear for AI headshots', 'business portrait outfit tips', 'AI headshots for LinkedIn'],
     intro:
       'Clothes in a headshot carry more emotion than people admit. Too casual and you may feel underprepared before a Monday interview; too formal and you may feel like you borrowed someone else\'s life. The best outfit choice simply supports the version of you that needs to show up.',
     sections: [
@@ -491,7 +491,7 @@ export const blogPosts = [
     title: 'Common AI Headshot Mistakes to Avoid Before Publishing',
     description:
       'Common AI headshot mistakes that can make a polished picture feel awkward once it is on LinkedIn or a resume.',
-    keywords: ['high likeness AI portraits', 'realistic AI headshot generator', 'LinkedIn profile photo maker'],
+    keywords: ['AI headshot mistakes', 'LinkedIn profile photo mistakes', 'realistic AI headshot generator'],
     intro:
       'Some AI headshots look impressive for about three seconds, and then something feels off. Maybe the smile is too perfect, the background is too dramatic, or the face just does not feel like yours. Catching that on Tuesday afternoon is much better than noticing it after the photo has been sitting on LinkedIn all week.',
     sections: [
@@ -543,7 +543,7 @@ export const blogPosts = [
     title: 'Founder Headshot Guide for Websites, Decks, and LinkedIn',
     description:
       'A founder-focused guide to choosing an AI headshot that works on LinkedIn, websites, decks, and launch announcements.',
-    keywords: ['professional profile photo maker', 'AI headshots for LinkedIn', 'Magic-Headshot'],
+    keywords: ['founder headshot guide', 'startup founder profile photo', 'AI headshots for LinkedIn'],
     intro:
       'Founders often need the headshot before they feel ready for it. The deck is due before tomorrow\'s investor call, the launch page is going up, or someone asks for a speaker bio at the last minute. A clean portrait can make the whole project feel more real.',
     sections: [
@@ -569,7 +569,7 @@ export const blogPosts = [
     title: 'Consultant Profile Photo Tips for Trust and Conversion',
     description:
       'Profile photo tips for consultants who need to look trustworthy before a prospect books the first call.',
-    keywords: ['professional profile photo maker', 'professional headshots without photographer', 'LinkedIn profile photo maker'],
+    keywords: ['consultant profile photo tips', 'consultant headshots', 'professional profile photo maker'],
     intro:
       'For consultants, the profile photo is not just decoration. It sits quietly beside the offer, the case studies, and the booking button, often right before a prospect decides whether to grab a time on your calendar. If it feels off, they may not know why they hesitate, but they may hesitate anyway.',
     sections: [
@@ -621,7 +621,7 @@ export const blogPosts = [
     title: 'AI Headshot Pricing: When One-Time Credits Make Sense',
     description:
       'A practical look at AI headshot pricing, one-time credits, and when Magic-Headshot makes sense compared with a studio shoot.',
-    keywords: ['Magic-Headshot', 'professional headshots without photographer', 'fast headshot generation'],
+    keywords: ['AI headshot pricing', 'one-time headshot credits', 'professional headshots without photographer'],
     intro:
       'Pricing feels different when the thing you are buying is confidence in your own profile photo. You are not just buying pixels. You are buying the relief of finally having a headshot you do not want to hide before Monday outreach, a resume send, or a company bio update.',
     sections: [
@@ -647,7 +647,7 @@ export const blogPosts = [
     title: 'Best Selfies to Upload for Better AI Headshot Results',
     description:
       'How to choose selfies that give a realistic AI headshot generator enough honest detail to create better portraits.',
-    keywords: ['realistic AI headshot generator', 'high likeness AI portraits', 'Magic-Headshot'],
+    keywords: ['best selfies for AI headshots', 'AI headshot upload tips', 'realistic AI headshot generator'],
     intro:
       'Choosing selfies can feel oddly personal. You start noticing every tired expression, every bad angle, every photo you almost like, usually when you only meant to spend five minutes on it after dinner. Try not to overthink it. The goal is not perfection; it is giving Magic-Headshot clear, recent material to work with.',
     sections: [

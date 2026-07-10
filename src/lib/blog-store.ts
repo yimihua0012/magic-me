@@ -334,6 +334,55 @@ export type BlogPostInput = {
   submittedToBing?: boolean
 }
 
+const seoStopWords = new Set([
+  'about',
+  'after',
+  'again',
+  'also',
+  'and',
+  'article',
+  'avec',
+  'bei',
+  'best',
+  'but',
+  'can',
+  'como',
+  'con',
+  'das',
+  'der',
+  'des',
+  'die',
+  'ein',
+  'eine',
+  'for',
+  'from',
+  'fur',
+  'guide',
+  'how',
+  'les',
+  'los',
+  'make',
+  'mit',
+  'para',
+  'por',
+  'que',
+  'sur',
+  'the',
+  'this',
+  'tips',
+  'und',
+  'une',
+  'use',
+  'vous',
+  'what',
+  'when',
+  'with',
+  'without',
+  'your',
+])
+
+const shortSeoTokens = new Set(['ai', 'cv', 'hd', 'id', 'kb'])
+
 export function validateBlogPostInput(input: BlogPostInput) {
   const errors: string[] = []
 
@@ -355,6 +404,8 @@ export function validateBlogPostInput(input: BlogPostInput) {
     errors.push('Cover image alt text is required when a cover image is set.')
   }
 
+  validateBlogSeoTopicConsistency(input, errors)
+
   const links = input.enhancement?.internalLinks || []
   for (const link of links) {
     if (/^\/(?:api|dashboard|upload|generate|generations|login|auth)(?:\/|$)/.test(link.href)) {
@@ -363,6 +414,77 @@ export function validateBlogPostInput(input: BlogPostInput) {
   }
 
   return errors
+}
+
+function validateBlogSeoTopicConsistency(input: BlogPostInput, errors: string[]) {
+  const description = input.description.trim()
+  const title = input.title.trim()
+  const keywords = input.keywords.map((keyword) => keyword.trim()).filter(Boolean)
+
+  if (!description) return
+
+  if (title && !hasSeoTopicOverlap(title, description, 2)) {
+    errors.push('Title/H1 should match the meta description topic.')
+  }
+
+  const mismatchedKeywords = keywords.filter((keyword) => !hasSeoTopicOverlap(keyword, description, keywordOverlapMinimum(keyword)))
+  if (mismatchedKeywords.length > 0) {
+    errors.push(`Keyword(s) should match the meta description topic: ${mismatchedKeywords.join(', ')}.`)
+  }
+}
+
+function keywordOverlapMinimum(keyword: string) {
+  const tokenCount = tokenizeSeoText(keyword).length
+  if (tokenCount >= 3) return 2
+  return 1
+}
+
+function hasSeoTopicOverlap(candidate: string, description: string, minimum: number) {
+  const candidateCompact = compactSeoText(candidate)
+  const descriptionCompact = compactSeoText(description)
+
+  if (candidateCompact.length >= 4 && descriptionCompact.includes(candidateCompact)) {
+    return true
+  }
+
+  const candidateTokens = tokenizeSeoText(candidate)
+  if (candidateTokens.length === 0) return false
+
+  const descriptionTokens = new Set(tokenizeSeoText(description))
+  const required = Math.min(minimum, candidateTokens.length)
+  return candidateTokens.filter((token) => descriptionTokens.has(token)).length >= required
+}
+
+function tokenizeSeoText(value: string) {
+  const tokens = normalizeSeoText(value).match(/[a-z0-9\u00c0-\u024f\u0370-\u03ff\u0400-\u04ff\u3040-\u30ff\u3400-\u9fff]+/g) || []
+  return Array.from(
+    new Set(
+      tokens
+        .map(stemSeoToken)
+        .filter((token) => (token.length > 2 || shortSeoTokens.has(token)) && !seoStopWords.has(token))
+    )
+  )
+}
+
+function compactSeoText(value: string) {
+  return normalizeSeoText(value).replace(/[^a-z0-9\u00c0-\u024f\u0370-\u03ff\u0400-\u04ff\u3040-\u30ff\u3400-\u9fff]+/g, '')
+}
+
+function normalizeSeoText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/&/g, ' and ')
+}
+
+function stemSeoToken(token: string) {
+  if (token.length > 6 && token.endsWith('able')) return token.slice(0, -4)
+  if (token.length > 5 && token.endsWith('ing')) return token.slice(0, -3)
+  if (token.length > 5 && token.endsWith('ies')) return `${token.slice(0, -3)}y`
+  if (token.length > 4 && /(ches|shes|sses|xes|zes)$/.test(token)) return token.slice(0, -2)
+  if (token.length > 4 && token.endsWith('s')) return token.slice(0, -1)
+  return token
 }
 
 export async function listAdminBlogPosts(options: { locale?: Locale; status?: string; query?: string }) {

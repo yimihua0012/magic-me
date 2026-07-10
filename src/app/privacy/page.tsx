@@ -9,7 +9,7 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 export const metadata: Metadata = {
   title: 'Magic-Headshot Privacy Policy for AI Headshots, Professional Photos, and AI Portraits',
   description:
-    'Read how Magic-Headshot collects, uses, stores, and protects account data, uploaded photos, generated AI headshots, payment metadata, and support records.',
+    'Read the Magic-Headshot privacy policy for AI headshots, uploaded photos, generated portraits, account data, payment metadata, and support records.',
   keywords: [
     'Magic-Headshot privacy',
     'AI headshot privacy policy',
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
         locale="en"
         path="/privacy"
         title="Magic-Headshot Privacy Policy for AI Headshots, Professional Photos, and AI Portraits"
-        description="Read how Magic-Headshot collects, uses, stores, and protects account data, uploaded photos, generated AI headshots, payment metadata, and support records."
+        description="Read the Magic-Headshot privacy policy for AI headshots, uploaded photos, generated portraits, account data, payment metadata, and support records."
       />
       <Navbar />
 

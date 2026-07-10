@@ -53,6 +53,7 @@ export async function POST(request: Request) {
   const relatedTerms = typeof body?.relatedTerms === 'string' ? body.relatedTerms.trim() : ''
   const reviewedPrompt = typeof body?.prompt === 'string' ? body.prompt.trim() : ''
   const mode = body?.mode === 'prepare' ? 'prepare' : 'article'
+  const uniquenessHint = makeDraftUniquenessHint(locale, keywords, relatedTerms)
 
   if (mode === 'prepare' && !relatedTerms) {
     return NextResponse.json({ error: 'Enter related terms first.' }, { status: 400 })
@@ -63,8 +64,8 @@ export async function POST(request: Request) {
   }
 
   const prompt = mode === 'prepare'
-    ? buildKeywordAndPromptPrompt(locale, relatedTerms)
-    : withCmsJsonRequirements(reviewedPrompt || buildBlogDraftPrompt(locale, keywords), locale)
+    ? buildKeywordAndPromptPrompt(locale, relatedTerms, uniquenessHint)
+    : withCmsJsonRequirements(reviewedPrompt || buildBlogDraftPrompt(locale, keywords, uniquenessHint), locale, uniquenessHint)
   const endpoint = resolveDeepSeekEndpoint()
   const model = process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-chat'
 
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
         messages: [
           {
             role: 'system',
-            content: 'You are an SEO editor for a multilingual AI headshot SaaS. Return only valid JSON.',
+            content: 'You are an SEO editor for a multilingual AI headshot SaaS. Return only valid JSON. Never reuse identical meta descriptions across different article drafts.',
           },
           {
             role: 'user',
@@ -135,7 +136,10 @@ export async function POST(request: Request) {
   }
 
   const draft = normalizeGeneratedDraft(parsedDraft, locale, keywords)
-  const validationErrors = validateBlogPostInput(draft)
+  const validationErrors = [
+    ...validateBlogPostInput(draft),
+    ...validateGeneratedDescription(draft),
+  ]
 
   return NextResponse.json({
     draft,
@@ -143,7 +147,7 @@ export async function POST(request: Request) {
   })
 }
 
-function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string) {
+function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string, uniquenessHint: string) {
   const languageNames: Record<Locale, string> = {
     en: 'English',
     es: 'Spanish',
@@ -184,16 +188,20 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string) {
     '2. Build one detailed article-generation prompt in the same target language for the editor to review.',
     'The article-generation prompt must make the SEO blog draft revolve around the selected keyword as the core topic.',
     'It must require the final article title, meta description, intro, section headings, searchIntent, and uniqueAngle to clearly support the keyword without keyword stuffing.',
+    'It must state that title is the public page H1, and title, description, and keywords must describe the same search intent.',
     '',
     'The prompt must ask for one practical SEO blog article about Magic Headshot as an AI tool that creates different avatar and headshot styles from uploaded selfies, and as a free photo utility for cropping, arranging printable photo sheets, and changing background colors for student, adult education entrance exam, job application, profile, and everyday document-style photo scenarios.',
     'The prompt must be localized to the market and search behavior of the selected language, not a direct translation from English.',
     'The prompt must include this rule: Do not include discounts, legal claims, medical claims, or guarantees.',
+    'The prompt must include a dedicated Meta description rule: the description must be written specifically for the selected keyword, local search intent, article angle, and visible article content; it must not reuse a generic Magic-Headshot boilerplate sentence.',
+    'The prompt must include a dedicated Meta description rule: the description must mention one concrete use case, audience, or workflow from the article, such as LinkedIn, resume/CV, document photo, student exam photo, background color, printable sheet, avatar style, or profile update, depending on the selected keyword.',
     'Critical: the prompt must require DeepSeek to return only one valid JSON object that can be parsed and saved by the blog CMS.',
     'The prompt must preserve these exact required JSON keys: slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
     'The prompt must preserve these field rules:',
     '- slug must be lowercase English letters/numbers/hyphens only.',
     '- description must be 120-160 characters and match the visible article.',
-    '- keywords must be an array of 5-8 search phrases.',
+    '- description must be unique for this draft, include the selected keyword or a natural close variant, and avoid generic repeated product wording.',
+    '- keywords must be an array of 5-8 search phrases, and every keyword must clearly match the description topic.',
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
     '- coverImageAlt must describe the intended cover image in the article language.',
     '- intro must be 80-140 words.',
@@ -207,6 +215,7 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string) {
     '- relatedSlugs can be an empty array.',
     '- localizedSlugs must include the selected locale mapped to slug.',
     '- no markdown fences and no commentary outside JSON.',
+    `- Draft uniqueness hint for the article prompt only, do not include it verbatim in the article: ${uniquenessHint}.`,
     '',
     'Return only valid JSON with exactly these keys:',
     'keywords, prompt',
@@ -219,7 +228,7 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string) {
   ].join('\n')
 }
 
-function buildBlogDraftPrompt(locale: Locale, keywords: string[]) {
+function buildBlogDraftPrompt(locale: Locale, keywords: string[], uniquenessHint: string) {
   const languageNames: Record<Locale, string> = {
     en: 'English',
     es: 'Spanish',
@@ -229,7 +238,7 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[]) {
   }
   const language = languageNames[locale]
 
-  return [
+  return appendMetaDescriptionRules([
     'Write one localized SEO blog article for Magic-Headshot.',
     `Language: ${language}. Locale: ${locale}.`,
     `Confirmed localized search keywords: ${keywords.join(', ')}.`,
@@ -241,7 +250,8 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[]) {
     'Rules:',
     '- slug must be lowercase English letters/numbers/hyphens only.',
     '- description must be 120-160 characters and match the visible article.',
-    '- keywords must be an array of 5-8 search phrases.',
+    '- title is the public page H1, and title, description, and keywords must describe the same search intent.',
+    '- keywords must be an array of 5-8 search phrases, and every keyword must clearly match the description topic.',
     '- coverImageUrl should be an empty string unless you know a site-local image path.',
     '- coverImageAlt must describe the intended article cover image in the article language.',
     '- intro must be 80-140 words.',
@@ -256,17 +266,17 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[]) {
     '- localizedSlugs must include the selected locale mapped to slug.',
     '- Do not include discounts, legal claims, medical claims, or guarantees.',
     '- The JSON content must not include markdown code fences.',
-  ].join('\n')
+  ].join('\n'), uniquenessHint)
 }
 
-function withCmsJsonRequirements(prompt: string, locale: Locale) {
+function withCmsJsonRequirements(prompt: string, locale: Locale, uniquenessHint: string) {
   const hasRequiredKeys =
     prompt.includes('slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs') ||
     (prompt.includes('slug') && prompt.includes('localizedSlugs') && prompt.includes('sections') && prompt.includes('enhancement'))
 
-  if (hasRequiredKeys) return prompt
+  if (hasRequiredKeys) return appendMetaDescriptionRules(prompt, uniquenessHint)
 
-  return [
+  return appendMetaDescriptionRules([
     prompt,
     '',
     'Mandatory CMS output format:',
@@ -275,7 +285,8 @@ function withCmsJsonRequirements(prompt: string, locale: Locale) {
     'Rules:',
     '- slug must be lowercase English letters/numbers/hyphens only.',
     '- description must be 120-160 characters and match the visible article.',
-    '- keywords must be an array of 5-8 search phrases.',
+    '- title is the public page H1, and title, description, and keywords must describe the same search intent.',
+    '- keywords must be an array of 5-8 search phrases, and every keyword must clearly match the description topic.',
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
     '- coverImageAlt must describe the intended cover image in the article language.',
     '- intro must be 80-140 words.',
@@ -289,7 +300,7 @@ function withCmsJsonRequirements(prompt: string, locale: Locale) {
     '- relatedSlugs can be an empty array.',
     `- localizedSlugs must include ${locale} mapped to slug.`,
     '- Do not include markdown fences or commentary outside JSON.',
-  ].join('\n')
+  ].join('\n'), uniquenessHint)
 }
 
 function normalizeGeneratedDraft(
@@ -321,6 +332,77 @@ function normalizeGeneratedDraft(
       [locale]: slug,
     },
   }
+}
+
+function appendMetaDescriptionRules(prompt: string, uniquenessHint: string) {
+  if (prompt.includes('Meta description uniqueness rules:')) {
+    return prompt
+  }
+
+  return [
+    prompt,
+    '',
+    'Meta description uniqueness rules:',
+    '- The description field is the page meta description. It must be written for this exact article, not as a generic Magic-Headshot product tagline.',
+    '- It must include the primary search keyword or a natural close variant, plus one concrete scenario, audience, or workflow from the article.',
+    '- It must share the same topic as the title/H1 and every keyword phrase.',
+    '- It must not repeat the same wording used for other drafts, and must not use broad boilerplate like "Create professional AI headshots for LinkedIn, resumes, and business profiles" unless that exact phrase is the article topic.',
+    '- It must be different from the title and from the first sentence of the intro.',
+    '- Keep it 120-160 characters, natural in the selected language, and aligned with the visible article body.',
+    `- Draft uniqueness hint for internal variation only, do not include it verbatim: ${uniquenessHint}.`,
+  ].join('\n')
+}
+
+function makeDraftUniquenessHint(locale: Locale, keywords: string[], relatedTerms: string) {
+  return [
+    locale,
+    keywords[0] || relatedTerms || 'new-topic',
+    new Date().toISOString(),
+    Math.random().toString(36).slice(2, 10),
+  ].join(' / ')
+}
+
+function validateGeneratedDescription(draft: BlogPostInput) {
+  const issues: string[] = []
+  const description = draft.description.trim()
+  if (!description) return issues
+
+  if (looksLikeGenericDescription(description)) {
+    issues.push('Meta description looks generic. Rewrite it around this article keyword, scenario, and audience before publishing.')
+  }
+
+  const title = draft.title.trim()
+  const introFirstSentence = draft.intro.split(/[.!?。！？]/)[0]?.trim()
+  if (title && normalizeComparableText(description) === normalizeComparableText(title)) {
+    issues.push('Meta description repeats the title. Make it a separate search snippet.')
+  }
+  if (introFirstSentence && normalizeComparableText(description) === normalizeComparableText(introFirstSentence)) {
+    issues.push('Meta description repeats the intro opening. Make it a shorter search snippet.')
+  }
+
+  return issues
+}
+
+function looksLikeGenericDescription(value: string) {
+  const normalized = normalizeComparableText(value)
+  const genericFragments = [
+    'create realistic ai headshots for linkedin resumes and business profiles',
+    'generate professional ai headshots for linkedin resumes and business profiles',
+    'create professional ai headshots for linkedin resumes and business profiles',
+    'crea retratos profesionales con ia para linkedin cv y perfiles',
+    'créez des portraits professionnels ia pour linkedin cv et profils',
+    'erstelle professionelle ki headshots für linkedin lebenslauf und profile',
+    'linkedin履歴書ビジネスプロフィール向け',
+  ]
+
+  return genericFragments.some((fragment) => normalized.includes(normalizeComparableText(fragment)))
+}
+
+function normalizeComparableText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFKC')
+    .replace(/[\s,.;:!?'"“”‘’\-–—|/\\()[\]{}]+/g, '')
 }
 
 function resolveDeepSeekEndpoint() {
