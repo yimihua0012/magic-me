@@ -105,11 +105,11 @@ function normalizeBlogPostInput(body: BlogPostRequestBody | null): BlogPostInput
 
 function normalizeKeywords(value: unknown) {
   if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean).slice(0, 1)
+    return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
   }
 
   if (typeof value === 'string') {
-    return value.split(',').map((item) => item.trim()).filter(Boolean).slice(0, 1)
+    return value.split(',').map((item) => item.trim()).filter(Boolean)
   }
 
   return []

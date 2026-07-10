@@ -443,7 +443,19 @@ function hasSeoTopicOverlap(candidate: string, description: string, minimum: num
   const candidateCompact = compactSeoText(candidate)
   const descriptionCompact = compactSeoText(description)
 
-  if (candidateCompact.length >= 4 && descriptionCompact.includes(candidateCompact)) {
+  if (!candidateCompact || !descriptionCompact) return false
+
+  if (
+    candidateCompact.length >= 4
+    && (
+      descriptionCompact.includes(candidateCompact)
+      || candidateCompact.includes(descriptionCompact)
+    )
+  ) {
+    return true
+  }
+
+  if (hasCjkSeoTopicOverlap(candidateCompact, descriptionCompact, minimum)) {
     return true
   }
 
@@ -468,6 +480,39 @@ function tokenizeSeoText(value: string) {
 
 function compactSeoText(value: string) {
   return normalizeSeoText(value).replace(/[^a-z0-9\u00c0-\u024f\u0370-\u03ff\u0400-\u04ff\u3040-\u30ff\u3400-\u9fff]+/g, '')
+}
+
+function hasCjkSeoTopicOverlap(candidateCompact: string, descriptionCompact: string, minimum: number) {
+  const candidateCjk = cjkSeoText(candidateCompact)
+  const descriptionCjk = cjkSeoText(descriptionCompact)
+
+  if (candidateCjk.length < 4 || descriptionCjk.length < 4) return false
+  if (descriptionCjk.includes(candidateCjk) || candidateCjk.includes(descriptionCjk)) return true
+
+  const gramSize = candidateCjk.length >= 6 ? 3 : 2
+  const candidateGrams = cjkNgrams(candidateCjk, gramSize)
+  if (candidateGrams.length === 0) return false
+
+  const descriptionGrams = new Set(cjkNgrams(descriptionCjk, gramSize))
+  const sharedCount = candidateGrams.filter((gram) => descriptionGrams.has(gram)).length
+  const required = Math.min(candidateGrams.length, Math.max(minimum, Math.ceil(candidateGrams.length * 0.3)))
+
+  return sharedCount >= required
+}
+
+function cjkSeoText(value: string) {
+  return value.replace(/[^\u3040-\u30ff\u3400-\u9fff]+/g, '')
+}
+
+function cjkNgrams(value: string, size: number) {
+  const grams = new Set<string>()
+  for (let index = 0; index <= value.length - size; index += 1) {
+    const gram = value.slice(index, index + size)
+    if (/[\u30a0-\u30ff\u3400-\u9fff]/.test(gram)) {
+      grams.add(gram)
+    }
+  }
+  return Array.from(grams)
 }
 
 function normalizeSeoText(value: string) {

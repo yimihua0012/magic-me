@@ -372,7 +372,19 @@ function hasSeoTopicOverlap(candidate, description, minimum = 2) {
   const candidateCompact = compactSeoText(candidate)
   const descriptionCompact = compactSeoText(description)
 
-  if (candidateCompact.length >= 4 && descriptionCompact.includes(candidateCompact)) {
+  if (!candidateCompact || !descriptionCompact) return false
+
+  if (
+    candidateCompact.length >= 4
+    && (
+      descriptionCompact.includes(candidateCompact)
+      || candidateCompact.includes(descriptionCompact)
+    )
+  ) {
+    return true
+  }
+
+  if (hasCjkSeoTopicOverlap(candidateCompact, descriptionCompact, minimum)) {
     return true
   }
 
@@ -388,6 +400,39 @@ function keywordOverlapMinimum(keyword) {
 
 function compactSeoText(text) {
   return normalizeSeoText(text).replace(/[^a-z0-9\u00c0-\u024f\u0370-\u03ff\u0400-\u04ff\u3040-\u30ff\u3400-\u9fff]+/g, '')
+}
+
+function hasCjkSeoTopicOverlap(candidateCompact, descriptionCompact, minimum) {
+  const candidateCjk = cjkSeoText(candidateCompact)
+  const descriptionCjk = cjkSeoText(descriptionCompact)
+
+  if (candidateCjk.length < 4 || descriptionCjk.length < 4) return false
+  if (descriptionCjk.includes(candidateCjk) || candidateCjk.includes(descriptionCjk)) return true
+
+  const gramSize = candidateCjk.length >= 6 ? 3 : 2
+  const candidateGrams = cjkNgrams(candidateCjk, gramSize)
+  if (candidateGrams.length === 0) return false
+
+  const descriptionGrams = new Set(cjkNgrams(descriptionCjk, gramSize))
+  const sharedCount = candidateGrams.filter((gram) => descriptionGrams.has(gram)).length
+  const required = Math.min(candidateGrams.length, Math.max(minimum, Math.ceil(candidateGrams.length * 0.3)))
+
+  return sharedCount >= required
+}
+
+function cjkSeoText(text) {
+  return text.replace(/[^\u3040-\u30ff\u3400-\u9fff]+/g, '')
+}
+
+function cjkNgrams(text, size) {
+  const grams = new Set()
+  for (let index = 0; index <= text.length - size; index += 1) {
+    const gram = text.slice(index, index + size)
+    if (/[\u30a0-\u30ff\u3400-\u9fff]/.test(gram)) {
+      grams.add(gram)
+    }
+  }
+  return Array.from(grams)
 }
 
 function normalizeSeoText(text) {
@@ -869,6 +914,24 @@ function validatePhotoToolContentConsistency(contentSource, issues) {
   visit(file)
 }
 
+function validateSitemapHreflangSource(issues) {
+  const source = read('src/lib/sitemap.ts')
+  const requiredSignals = [
+    'languageAlternates',
+    'getBlogLanguageAlternates',
+    'getBlogIndexLanguageAlternates',
+    'xhtml:link',
+    'hreflang=',
+    'xmlns:xhtml',
+  ]
+
+  for (const signal of requiredSignals) {
+    if (!source.includes(signal)) {
+      issues.push(`src/lib/sitemap.ts: missing sitemap hreflang signal "${signal}".`)
+    }
+  }
+}
+
 export function checkAllPagesSeoConsistency() {
   const issues = []
   const warnings = []
@@ -918,6 +981,7 @@ export function checkAllPagesSeoConsistency() {
 
   validatePhotoToolSource(issues)
   validateBlogPostJsonLdSourceConsistency(issues)
+  validateSitemapHreflangSource(issues)
 
   return { checked, skipped, warnings, issues }
 }

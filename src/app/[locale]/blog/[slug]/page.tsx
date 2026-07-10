@@ -10,7 +10,7 @@ import BlogPostJsonLd from '@/components/seo/blog-post-json-ld'
 import { buttonStyles } from '@/components/ui/button-styles'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
 import { getBlogLanguageAlternates, getCmsPublishedBlogPosts, getPublishedBlogPost } from '@/lib/blog-store'
-import { isRoutedLocale, localePath, ROUTED_LOCALES, type RoutedLocale } from '@/lib/i18n'
+import { OPEN_GRAPH_LOCALES, isRoutedLocale, localePath, ROUTED_LOCALES, type RoutedLocale } from '@/lib/i18n'
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>
@@ -76,6 +76,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const post = await getPublishedBlogPost(slug, locale)
   if (!post || post.source !== 'cms') return { title: blogArticleLabels[locale].fallbackTitle }
   const alternates = await getBlogLanguageAlternates(post)
+  const posts = await getCmsPublishedBlogPosts(locale)
+  const postIndex = posts.findIndex((item) => item.slug === post.slug)
+  const image = getBlogArticleImage(post, postIndex)
 
   return {
     title: post.title,
@@ -90,7 +93,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: post.description,
       type: 'article',
       url: localePath(locale, `/blog/${post.slug}`),
-      images: post.coverImage ? [post.coverImage.url] : undefined,
+      locale: OPEN_GRAPH_LOCALES[locale],
+      images: image ? [image.url] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description,
+      images: image ? [image.url] : undefined,
     },
   }
 }
@@ -107,8 +117,7 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
 
   const posts = await getCmsPublishedBlogPosts(routedLocale)
   const postIndex = posts.findIndex((item) => item.slug === post.slug)
-  const fallbackPortrait = postIndex >= 0 && postIndex < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[postIndex] : null
-  const image = post.coverImage || (fallbackPortrait ? { url: fallbackPortrait.src, alt: fallbackPortrait.alt } : null)
+  const image = getBlogArticleImage(post, postIndex)
   const related = getRelatedPosts(posts, post.slug, post.enhancement?.relatedSlugs)
   const labels = blogArticleLabels[routedLocale]
 
@@ -188,6 +197,16 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
       <Footer locale={routedLocale} />
     </div>
   )
+}
+
+function getBlogArticleImage(post: { coverImage?: { url: string; alt: string } }, postIndex: number) {
+  if (post.coverImage) return post.coverImage
+
+  const fallbackImages: readonly { src: string; alt: string }[] = blogGeneratedPortraitImages
+  if (fallbackImages.length === 0) return null
+
+  const fallbackPortrait = fallbackImages[Math.max(postIndex, 0) % fallbackImages.length]
+  return { url: fallbackPortrait.src, alt: fallbackPortrait.alt }
 }
 
 function getRelatedPosts<T extends { slug: string }>(

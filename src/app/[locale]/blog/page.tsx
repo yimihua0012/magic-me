@@ -10,7 +10,7 @@ import KeywordStrip from '@/components/seo/keyword-strip'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 import { getBlogIndexLanguageAlternates, getCmsPublishedBlogPosts, localeHasPublishedCmsBlogPosts } from '@/lib/blog-store'
-import { isRoutedLocale, localePath, ROUTED_LOCALES, type RoutedLocale } from '@/lib/i18n'
+import { OPEN_GRAPH_LOCALES, isRoutedLocale, localePath, ROUTED_LOCALES, type RoutedLocale } from '@/lib/i18n'
 
 type PageProps = {
   params: Promise<{ locale: string }>
@@ -77,18 +77,42 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params
   if (!isRoutedLocale(locale)) return {}
   const content = localizedBlogIndexContent[locale]
+  const canonical = localePath(locale, '/blog')
+  const image = blogGeneratedPortraitImages[0]?.src
 
   return {
     title: content.title,
     description: content.description,
     keywords: content.keywords,
     alternates: {
-      canonical: localePath(locale, '/blog'),
+      canonical,
       languages: await getBlogIndexLanguageAlternates(),
     },
     robots: {
       index: await localeHasPublishedCmsBlogPosts(locale),
       follow: true,
+    },
+    openGraph: {
+      title: content.title,
+      description: content.description,
+      type: 'website',
+      url: canonical,
+      locale: OPEN_GRAPH_LOCALES[locale],
+      siteName: 'Magic-Headshot',
+      images: image ? [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: content.heading,
+        },
+      ] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: content.title,
+      description: content.description,
+      images: image ? [image] : undefined,
     },
   }
 }

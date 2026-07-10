@@ -7,6 +7,8 @@ import { LOCALES, type Locale } from '@/lib/i18n'
 export const dynamic = 'force-dynamic'
 
 const DEEPSEEK_TIMEOUT_MS = 60000
+const META_DESCRIPTION_LENGTH_RULE = '- description must be 120-155 Unicode characters, never more than 160 characters. For Japanese, aim for 70-120 Japanese characters. It must match the visible article.'
+const META_DESCRIPTION_HARD_LIMIT_RULE = '- Count the description characters before returning JSON. If it is longer than 160 characters, rewrite it shorter before responding; the CMS rejects descriptions over 180 characters.'
 
 type DraftBody = {
   mode?: unknown
@@ -59,8 +61,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Enter related terms first.' }, { status: 400 })
   }
 
-  if (mode === 'article' && keywords.length === 0) {
-    return NextResponse.json({ error: 'Confirm one localized search keyword first.' }, { status: 400 })
+  if (mode === 'article' && keywords.length !== 1) {
+    return NextResponse.json({ error: 'Confirm exactly one localized search keyword first.' }, { status: 400 })
   }
 
   const prompt = mode === 'prepare'
@@ -84,7 +86,7 @@ export async function POST(request: Request) {
         messages: [
           {
             role: 'system',
-            content: 'You are an SEO editor for a multilingual AI headshot SaaS. Return only valid JSON. Never reuse identical meta descriptions across different article drafts.',
+            content: 'You are an SEO editor for a multilingual AI headshot SaaS. Return only valid JSON. Never reuse identical meta descriptions across different article drafts. The description field must be concise: 120-155 Unicode characters and never over 160 characters.',
           },
           {
             role: 'user',
@@ -194,12 +196,14 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string, uniqu
     'The prompt must be localized to the market and search behavior of the selected language, not a direct translation from English.',
     'The prompt must include this rule: Do not include discounts, legal claims, medical claims, or guarantees.',
     'The prompt must include a dedicated Meta description rule: the description must be written specifically for the selected keyword, local search intent, article angle, and visible article content; it must not reuse a generic Magic-Headshot boilerplate sentence.',
+    'The prompt must include a dedicated Meta description length rule: count Unicode characters before returning JSON; keep description 120-155 characters, never over 160; for Japanese aim for 70-120 Japanese characters.',
     'The prompt must include a dedicated Meta description rule: the description must mention one concrete use case, audience, or workflow from the article, such as LinkedIn, resume/CV, document photo, student exam photo, background color, printable sheet, avatar style, or profile update, depending on the selected keyword.',
     'Critical: the prompt must require DeepSeek to return only one valid JSON object that can be parsed and saved by the blog CMS.',
     'The prompt must preserve these exact required JSON keys: slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
     'The prompt must preserve these field rules:',
     '- slug must be lowercase English letters/numbers/hyphens only.',
-    '- description must be 120-160 characters and match the visible article.',
+    META_DESCRIPTION_LENGTH_RULE,
+    META_DESCRIPTION_HARD_LIMIT_RULE,
     '- description must be unique for this draft, include the selected keyword or a natural close variant, and avoid generic repeated product wording.',
     '- keywords must be an array with exactly one localized long-tail search phrase, and that keyword must clearly match the description topic.',
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
@@ -241,7 +245,7 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[], uniquenessHint
   return appendMetaDescriptionRules([
     'Write one localized SEO blog article for Magic-Headshot.',
     `Language: ${language}. Locale: ${locale}.`,
-    `Confirmed localized search keywords: ${keywords.join(', ')}.`,
+    `Confirmed localized search keyword: ${keywords[0]}.`,
     'Product context: Magic-Headshot lets users upload selfies and generate professional headshot images for work-related profiles and online presence.',
     'Write for local search behavior and local reader expectations in the selected language. Do not directly translate English examples.',
     'Return only the final JSON object.',
@@ -249,7 +253,8 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[], uniquenessHint
     'slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
     'Rules:',
     '- slug must be lowercase English letters/numbers/hyphens only.',
-    '- description must be 120-160 characters and match the visible article.',
+    META_DESCRIPTION_LENGTH_RULE,
+    META_DESCRIPTION_HARD_LIMIT_RULE,
     '- title is the public page H1, and title, description, and keywords must describe the same search intent.',
     '- keywords must be an array with exactly one localized long-tail search phrase, and that keyword must clearly match the description topic.',
     '- coverImageUrl should be an empty string unless you know a site-local image path.',
@@ -284,7 +289,8 @@ function withCmsJsonRequirements(prompt: string, locale: Locale, uniquenessHint:
     'Required JSON keys: slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
     'Rules:',
     '- slug must be lowercase English letters/numbers/hyphens only.',
-    '- description must be 120-160 characters and match the visible article.',
+    META_DESCRIPTION_LENGTH_RULE,
+    META_DESCRIPTION_HARD_LIMIT_RULE,
     '- title is the public page H1, and title, description, and keywords must describe the same search intent.',
     '- keywords must be an array with exactly one localized long-tail search phrase, and that keyword must clearly match the description topic.',
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
@@ -348,7 +354,8 @@ function appendMetaDescriptionRules(prompt: string, uniquenessHint: string) {
     '- It must share the same topic as the title/H1 and every keyword phrase.',
     '- It must not repeat the same wording used for other drafts, and must not use broad boilerplate like "Create professional AI headshots for LinkedIn, resumes, and business profiles" unless that exact phrase is the article topic.',
     '- It must be different from the title and from the first sentence of the intro.',
-    '- Keep it 120-160 characters, natural in the selected language, and aligned with the visible article body.',
+    '- Keep it 120-155 Unicode characters, never more than 160 characters, natural in the selected language, and aligned with the visible article body.',
+    '- For Japanese, aim for 70-120 Japanese characters. Count characters before returning JSON and rewrite shorter if it exceeds 160 characters.',
     `- Draft uniqueness hint for internal variation only, do not include it verbatim: ${uniquenessHint}.`,
   ].join('\n')
 }

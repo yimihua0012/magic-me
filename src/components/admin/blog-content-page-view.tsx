@@ -230,7 +230,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
       const data = await response.json().catch(() => ({}))
 
       if (!response.ok) {
-        throw new Error(typeof data.error === 'string' ? data.error : 'Could not prepare localized keywords and prompt.')
+        throw new Error(typeof data.error === 'string' ? data.error : 'Could not prepare a localized keyword and prompt.')
       }
 
       const preparedKeywords = Array.isArray(data.keywords)
@@ -249,7 +249,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
       }
       setMessage('Localized keyword and article prompt prepared. Review them, edit if needed, then generate the article.')
     } catch (prepareError) {
-      setError(prepareError instanceof Error ? prepareError.message : 'Could not prepare localized keywords and prompt.')
+      setError(prepareError instanceof Error ? prepareError.message : 'Could not prepare a localized keyword and prompt.')
     } finally {
       setIsGenerating(false)
     }
@@ -414,7 +414,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
             />
             <Button variant="secondary" onClick={prepareDraftPrompt} isLoading={isGenerating} disabled={isGenerating || !draftRelatedTerms.trim()}>
-              Prepare Keywords
+              Prepare Keyword
             </Button>
             <Button onClick={generateDraft} isLoading={isGenerating} disabled={isGenerating || !draftKeywords.trim() || !draftPrompt.trim()}>
               Generate Article
@@ -429,7 +429,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
           <textarea
             value={draftPrompt}
             onChange={(event) => setDraftPrompt(event.target.value)}
-            placeholder="Click Prepare Keywords to generate one localized long-tail Google search keyword and the article prompt for review."
+            placeholder="Click Prepare Keyword to generate one localized long-tail Google search keyword and the article prompt for review."
             className={`${monoInputClass} mt-3 min-h-64`}
           />
         </Card>

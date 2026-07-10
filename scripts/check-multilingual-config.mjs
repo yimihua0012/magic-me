@@ -137,7 +137,7 @@ assert(read('src/components/admin/blog-content-page-view.tsx').includes('SEO enh
 assert(read('src/app/api/admin/blog-post-draft/route.ts').includes('DEEPSEEK_KEY'), 'DeepSeek blog draft generation must keep the API key server-side')
 assert(read('src/components/admin/blog-content-page-view.tsx').includes('DeepSeek Draft Generator'), 'admin blog UI must expose the editable DeepSeek draft generator')
 assert(read('src/components/admin/blog-content-page-view.tsx').includes('draftRelatedTerms'), 'admin blog UI must collect related terms before DeepSeek generation')
-assert(read('src/components/admin/blog-content-page-view.tsx').includes('Prepare Keywords'), 'admin blog UI must let DeepSeek prepare localized keywords and a reviewable prompt')
+assert(read('src/components/admin/blog-content-page-view.tsx').includes('Prepare Keyword'), 'admin blog UI must let DeepSeek prepare one localized keyword and a reviewable prompt')
 assert(read('src/components/admin/blog-content-page-view.tsx').includes('Generate Article'), 'admin blog UI must separate prompt review from article generation')
 assert(read('src/components/admin/blog-content-page-view.tsx').includes('Admin Preview'), 'admin blog UI must expose saved draft previews before publish')
 assert(read('src/components/admin/blog-preview-page-view.tsx').includes('/api/admin/blog-posts/${id}'), 'admin blog preview must load saved posts by ID')

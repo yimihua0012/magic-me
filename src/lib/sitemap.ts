@@ -2,7 +2,12 @@ import type { MetadataRoute } from 'next'
 import { appConfig } from '@/lib/config'
 import { blogGeneratedPortraitImages, blogPosts, sampleComparisons } from '@/lib/seo-content'
 import { DEFAULT_LOCALE, LOCALES, ROUTED_LOCALES, type Locale, localePath } from '@/lib/i18n'
-import { getPublishedBlogPosts, localeHasPublishedCmsBlogPosts } from '@/lib/blog-store'
+import {
+  getBlogIndexLanguageAlternates,
+  getBlogLanguageAlternates,
+  getPublishedBlogPosts,
+  localeHasPublishedCmsBlogPosts,
+} from '@/lib/blog-store'
 import { getSamplePictures } from '@/lib/sample-pictures'
 import { sampleGalleryPath } from '@/lib/sample-gallery-content'
 import { photoToolPages } from '@/lib/photo-tool-page-content'
@@ -15,10 +20,14 @@ type SitemapRoute = {
   changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']
   priority: number
   images?: string[]
+  languageAlternates?: SitemapLanguageAlternates
 }
+
+type SitemapLanguageAlternates = Partial<Record<Locale | 'x-default', string>>
 
 type SitemapEntry = MetadataRoute.Sitemap[number] & {
   images?: string[]
+  languageAlternates?: SitemapLanguageAlternates
 }
 
 const defaultSeoImage = `/home-pages/${encodeURIComponent('Ai headshot-linkedin-professional.jpg')}`
@@ -92,6 +101,25 @@ function absoluteAssetUrl(path: string) {
   return `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`
 }
 
+function absoluteLanguageAlternates(alternates: SitemapLanguageAlternates): SitemapLanguageAlternates {
+  return Object.fromEntries(
+    Object.entries(alternates).map(([locale, path]) => [
+      locale,
+      path.startsWith('http://') || path.startsWith('https://') ? path : absoluteAssetUrl(path),
+    ])
+  ) as SitemapLanguageAlternates
+}
+
+function languageAlternatesForSitemapPath(path: string): SitemapLanguageAlternates | undefined {
+  if (path === '/sitemap' || path.startsWith('/photo-tools/')) return undefined
+
+  const alternates = Object.fromEntries(
+    LOCALES.map((locale) => [locale, localizedUrl(locale, path)])
+  ) as SitemapLanguageAlternates
+  alternates['x-default'] = localizedUrl(DEFAULT_LOCALE, path)
+  return alternates
+}
+
 function toSitemapEntry(locale: Locale, route: SitemapRoute): SitemapEntry {
   return {
     url: localizedUrl(locale, route.path),
@@ -99,15 +127,23 @@ function toSitemapEntry(locale: Locale, route: SitemapRoute): SitemapEntry {
     changeFrequency: route.changeFrequency,
     priority: route.priority,
     images: route.images?.map(absoluteAssetUrl),
+    languageAlternates: route.languageAlternates ?? languageAlternatesForSitemapPath(route.path),
   }
 }
 
 export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[]> {
   const publishedPosts = await getPublishedBlogPosts(locale)
   const samplePictureImages = (await getSamplePictures(locale)).map((picture) => picture.imageUrl)
+  const blogIndexLanguageAlternates = absoluteLanguageAlternates(await getBlogIndexLanguageAlternates())
+  const blogPostLanguageAlternates = await Promise.all(
+    publishedPosts.map((post) => getBlogLanguageAlternates(post).then(absoluteLanguageAlternates))
+  )
 
   if (locale === DEFAULT_LOCALE) {
-    const staticRoutes = englishStaticRoutes.map((route) => toSitemapEntry(locale, withSampleGalleryImages(route, samplePictureImages)))
+    const staticRoutes = englishStaticRoutes.map((route) => toSitemapEntry(
+      locale,
+      withBlogIndexLanguageAlternates(withSampleGalleryImages(route, samplePictureImages), blogIndexLanguageAlternates)
+    ))
     const blogRoutes = publishedPosts.map((post, index) => ({
       url: localizedUrl(locale, `/blog/${post.slug}`),
       lastModified: post.updatedAt ? new Date(post.updatedAt) : lastModified,
@@ -116,6 +152,7 @@ export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[
       images: [
         absoluteAssetUrl(post.coverImage?.url || blogImages[index % blogImages.length] || defaultSeoImage),
       ],
+      languageAlternates: blogPostLanguageAlternates[index],
     }))
 
     return [...staticRoutes, ...blogRoutes]
@@ -124,7 +161,7 @@ export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[
   const staticRoutes = localizedStaticRoutes.map((route) => toSitemapEntry(locale, withSampleGalleryImages(route, samplePictureImages)))
   const hasLocalizedBlog = await localeHasPublishedCmsBlogPosts(locale)
   const blogIndexRoute = hasLocalizedBlog
-    ? [toSitemapEntry(locale, { path: '/blog', changeFrequency: 'weekly', priority: 0.7, images: blogImages })]
+    ? [toSitemapEntry(locale, { path: '/blog', changeFrequency: 'weekly', priority: 0.7, images: blogImages, languageAlternates: blogIndexLanguageAlternates })]
     : []
   const blogRoutes = publishedPosts.map((post, index) => ({
     url: localizedUrl(locale, `/blog/${post.slug}`),
@@ -134,6 +171,7 @@ export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[
     images: [
       absoluteAssetUrl(post.coverImage?.url || blogImages[index % blogImages.length] || defaultSeoImage),
     ],
+    languageAlternates: blogPostLanguageAlternates[index],
   }))
 
   return [...staticRoutes, ...blogIndexRoute, ...blogRoutes]
@@ -142,6 +180,11 @@ export async function getSitemapForLocale(locale: Locale): Promise<SitemapEntry[
 function withSampleGalleryImages(route: SitemapRoute, images: string[]): SitemapRoute {
   if (route.path !== sampleGalleryPath || images.length === 0) return route
   return { ...route, images }
+}
+
+function withBlogIndexLanguageAlternates(route: SitemapRoute, languageAlternates: SitemapLanguageAlternates): SitemapRoute {
+  if (route.path !== '/blog') return route
+  return { ...route, languageAlternates }
 }
 
 export async function getAllSitemaps(): Promise<SitemapEntry[]> {
@@ -170,6 +213,7 @@ function escapeXml(value: string) {
 
 export function renderSitemapXml(entries: SitemapEntry[]) {
   const hasImages = entries.some((entry) => entry.images?.length)
+  const hasLanguageAlternates = entries.some((entry) => entry.languageAlternates && Object.keys(entry.languageAlternates).length > 0)
   const urls = entries
     .map((entry) => {
       const lastModified = entry.lastModified
@@ -180,10 +224,14 @@ export function renderSitemapXml(entries: SitemapEntry[]) {
       const images = entry.images?.map((image) => (
         `<image:image><image:loc>${escapeXml(image)}</image:loc></image:image>`
       )).join('') || ''
+      const languageAlternates = Object.entries(entry.languageAlternates || {})
+        .map(([hreflang, href]) => `<xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}" />`)
+        .join('')
 
       return [
         '<url>',
         `<loc>${escapeXml(entry.url)}</loc>`,
+        languageAlternates,
         lastModified,
         changeFrequency,
         priority,
@@ -194,5 +242,6 @@ export function renderSitemapXml(entries: SitemapEntry[]) {
     .join('')
 
   const imageNamespace = hasImages ? ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' : ''
-  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${imageNamespace}>${urls}</urlset>`
+  const xhtmlNamespace = hasLanguageAlternates ? ' xmlns:xhtml="http://www.w3.org/1999/xhtml"' : ''
+  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${imageNamespace}${xhtmlNamespace}>${urls}</urlset>`
 }
