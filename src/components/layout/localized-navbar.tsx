@@ -127,7 +127,6 @@ export default function Navbar({ onOpenAuthModal, locale = 'en', solid = true }:
   const closeMenu = () => setIsOpen(false)
   const homeHref = localePath(locale)
   const featuresHref = `${homeHref === '/' ? '' : homeHref}/#features`
-  const testimonialsHref = `${homeHref === '/' ? '' : homeHref}/#testimonials`
   const pricingHref = localePath(locale, '/pricing')
   const photoToolsHref = localePath(locale, '/free-id-photo-tool')
   const samplesHref = localePath(locale, '/sample')
@@ -193,9 +192,6 @@ export default function Navbar({ onOpenAuthModal, locale = 'en', solid = true }:
               </Link>
               <Link href={withSource(pricingHref, `nav_pricing_${locale}`)} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
                 {content.pricing}
-              </Link>
-              <Link href={testimonialsHref} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
-                {content.testimonials}
               </Link>
               <Link href={samplesHref} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
                 {content.samples}

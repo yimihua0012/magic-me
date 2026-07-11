@@ -65,7 +65,7 @@ interface HeadshotStyle {
 
 const CATEGORY_LABELS: Record<string, string> = {
   professional: 'Professional',
-  photo_tools: 'ID Photo',
+  photo_tools: 'ID Photo (No Background)',
   lifestyle: 'Lifestyle',
   artistic: 'Creative',
   seasonal: 'Seasonal',

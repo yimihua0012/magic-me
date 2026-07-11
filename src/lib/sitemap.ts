@@ -251,31 +251,40 @@ export function renderSitemapXml(entries: SitemapEntry[]) {
   const urls = entries
     .map((entry) => {
       const lastModified = entry.lastModified
-        ? `<lastmod>${new Date(entry.lastModified).toISOString()}</lastmod>`
+        ? `    <lastmod>${new Date(entry.lastModified).toISOString()}</lastmod>`
         : ''
-      const changeFrequency = entry.changeFrequency ? `<changefreq>${entry.changeFrequency}</changefreq>` : ''
-      const priority = typeof entry.priority === 'number' ? `<priority>${entry.priority.toFixed(1)}</priority>` : ''
+      const changeFrequency = entry.changeFrequency ? `    <changefreq>${entry.changeFrequency}</changefreq>` : ''
+      const priority = typeof entry.priority === 'number' ? `    <priority>${entry.priority.toFixed(1)}</priority>` : ''
       const images = entry.images?.map((image) => (
-        `<image:image><image:loc>${escapeXml(image)}</image:loc></image:image>`
-      )).join('') || ''
+        [
+          '    <image:image>',
+          `      <image:loc>${escapeXml(image)}</image:loc>`,
+          '    </image:image>',
+        ].join('\n')
+      )).join('\n') || ''
       const languageAlternates = Object.entries(entry.languageAlternates || {})
-        .map(([hreflang, href]) => `<xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}" />`)
-        .join('')
+        .map(([hreflang, href]) => `    <xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}" />`)
+        .join('\n')
 
       return [
-        '<url>',
-        `<loc>${escapeXml(entry.url)}</loc>`,
+        '  <url>',
+        `    <loc>${escapeXml(entry.url)}</loc>`,
         languageAlternates,
         lastModified,
         changeFrequency,
         priority,
         images,
-        '</url>',
-      ].filter(Boolean).join('')
+        '  </url>',
+      ].filter(Boolean).join('\n')
     })
-    .join('')
+    .join('\n')
 
   const imageNamespace = hasImages ? ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' : ''
   const xhtmlNamespace = hasLanguageAlternates ? ' xmlns:xhtml="http://www.w3.org/1999/xhtml"' : ''
-  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${imageNamespace}${xhtmlNamespace}>${urls}</urlset>`
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${imageNamespace}${xhtmlNamespace}>`,
+    urls,
+    '</urlset>',
+  ].join('\n')
 }

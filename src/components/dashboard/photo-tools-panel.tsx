@@ -32,9 +32,9 @@ interface PhotoToolsPanelProps {
 }
 
 const photoToolStyleLabels: Record<string, string> = {
-  print_professional_transparent: 'Professional Print',
-  print_child_id_transparent: 'Child ID',
-  print_student_id_transparent: 'Student ID',
+  print_professional_transparent: 'Professional No Background',
+  print_child_id_transparent: 'Child ID No Background',
+  print_student_id_transparent: 'Student ID No Background',
 }
 
 export default function PhotoToolsPanel({ accessToken, locale = 'en' }: PhotoToolsPanelProps) {

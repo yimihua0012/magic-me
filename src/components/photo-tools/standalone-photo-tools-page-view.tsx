@@ -8,6 +8,7 @@ import BackgroundColorTool from '@/components/photo-tools/background-color-tool'
 import IdPhotoCropPrintTool from '@/components/photo-tools/id-photo-crop-print-tool'
 import PrintLayoutBuilderTool from '@/components/photo-tools/print-layout-builder-tool'
 import ResizeImageKbTool from '@/components/photo-tools/resize-image-kb-tool'
+import RemoveBackgroundTool from '@/components/photo-tools/remove-background-tool'
 import { photoToolPages, type PhotoToolActiveId, type PhotoToolPageContent } from '@/lib/photo-tool-page-content'
 import { BriefcaseBusiness, FileText, ImagePlus, Layers3, Palette, SlidersHorizontal, UserRoundCheck } from 'lucide-react'
 
@@ -24,7 +25,7 @@ export default function StandalonePhotoToolsPageView({
 }: StandalonePhotoToolsPageViewProps) {
   const [activeTool, setActiveTool] = useState<ToolId>(initialTool)
   const pageTitle = seoContent?.h1 || 'Free Online Photo Tools'
-  const pageDescription = seoContent?.description || 'Crop ID photos, resize images to a target KB, and build printable photo layouts in your browser.'
+  const pageDescription = seoContent?.description || 'Remove backgrounds, crop ID photos, resize images to a target KB, and build printable photo layouts.'
   const activeToolContent =
     activeTool === 'resize-image'
       ? <ResizeImageKbTool />
@@ -37,6 +38,8 @@ export default function StandalonePhotoToolsPageView({
             targetKbOnly
           />
         )
+      : activeTool === 'remove-background'
+        ? <RemoveBackgroundTool />
       : activeTool === 'background-color'
         ? <BackgroundColorTool />
       : activeTool === 'print-layout'
@@ -96,17 +99,24 @@ export default function StandalonePhotoToolsPageView({
                     onClick={() => setActiveTool('resize-kb')}
                   />
                   <ToolNavItem
+                    icon={ImagePlus}
+                    label="Remove background"
+                    active={activeTool === 'remove-background'}
+                    href={photoToolPages[3].path}
+                    onClick={() => setActiveTool('remove-background')}
+                  />
+                  <ToolNavItem
                     icon={Palette}
                     label="Background color tool"
                     active={activeTool === 'background-color'}
-                    href={photoToolPages[3].path}
+                    href={photoToolPages[4].path}
                     onClick={() => setActiveTool('background-color')}
                   />
                   <ToolNavItem
                     icon={Layers3}
                     label="Print layout builder"
                     active={activeTool === 'print-layout'}
-                    href={photoToolPages[4].path}
+                    href={photoToolPages[5].path}
                     onClick={() => setActiveTool('print-layout')}
                   />
                   <ToolNavItem icon={BriefcaseBusiness} label="Professional outfit photo" badge="TBD" />

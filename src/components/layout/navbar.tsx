@@ -154,9 +154,6 @@ export default function Navbar({ onOpenAuthModal, solid = true }: NavbarProps) {
               <Link href="/pricing" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
                 Pricing
               </Link>
-              <Link href="/#testimonials" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
-                Testimonials
-              </Link>
               <Link href="/sample" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
                 Samples
               </Link>

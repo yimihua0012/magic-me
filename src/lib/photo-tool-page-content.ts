@@ -2,6 +2,7 @@ export type PhotoToolPageId =
   | 'id-photo-crop'
   | 'resize-image'
   | 'resize-image-to-kb'
+  | 'remove-background'
   | 'background-color-tool'
   | 'print-layout-builder'
 
@@ -9,6 +10,7 @@ export type PhotoToolActiveId =
   | 'id-photo-crop'
   | 'resize-image'
   | 'resize-kb'
+  | 'remove-background'
   | 'background-color'
   | 'print-layout'
 
@@ -138,6 +140,46 @@ export const photoToolPages: PhotoToolPageContent[] = [
       {
         question: 'Why might this image size reducer create a file smaller than my target KB?',
         answer: 'The tool balances dimensions and compression quality, so the final file can be below the target when that produces a cleaner result.',
+      },
+    ],
+  },
+  {
+    id: 'remove-background',
+    activeId: 'remove-background',
+    label: 'Remove background',
+    path: '/photo-tools/remove-background',
+    title: 'Remove Background Online: Create Transparent PNG for People and Products',
+    h1: 'Remove Background Online for People, Products, and Objects',
+    description:
+      'Upload a person, product, object, or document-style image, remove the background online, and download a transparent PNG. Registered users get one free run, then each successful export uses one credit.',
+    keywords: ['remove background online', 'transparent PNG maker', 'product photo background remover', 'person background remover', 'remove image background'],
+    features: [
+      'Remove background from people and portraits',
+      'Remove background from products and objects',
+      'Download transparent PNG output',
+      'One free registered-user run',
+      'Credit-based usage after the free run',
+    ],
+    toolTitle: 'Remove Background',
+    toolDescription:
+      'Upload an image of a person, product, object, or document-style photo. The tool removes the background and returns a transparent PNG.',
+    actionLabel: 'Remove background',
+    faqs: [
+      {
+        question: 'Can I remove the background from a person or product photo?',
+        answer: 'Yes. The tool is designed for people, portraits, products, objects, and everyday document-style images.',
+      },
+      {
+        question: 'What file do I download?',
+        answer: 'You download a transparent PNG with the background removed.',
+      },
+      {
+        question: 'Is remove background free?',
+        answer: 'Registered users get one free remove-background run. After that, each successful PNG export uses one credit.',
+      },
+      {
+        question: 'Does this replace the ID photo background color tool?',
+        answer: 'No. Use remove background first when you need a transparent PNG, then use the background color tool if you want to place a white, blue, red, or gray background behind it.',
       },
     ],
   },
