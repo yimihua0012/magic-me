@@ -37,7 +37,7 @@ export default function Footer() {
                 </FooterGenerateLink>
               </li>
               <li>
-                <Link href="/free-id-photo-tool" className="text-sm text-slate-400 transition-colors hover:text-white">
+                <Link href="/photo-tools" className="text-sm text-slate-400 transition-colors hover:text-white">
                   Photo tools
                 </Link>
               </li>

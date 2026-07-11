@@ -148,7 +148,7 @@ export default function Navbar({ onOpenAuthModal, solid = true }: NavbarProps) {
               <Link href="/#features" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
                 Features
               </Link>
-              <Link href="/free-id-photo-tool" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+              <Link href="/photo-tools" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
                 Photo Tools
               </Link>
               <Link href="/pricing" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
@@ -221,7 +221,7 @@ export default function Navbar({ onOpenAuthModal, solid = true }: NavbarProps) {
                 Features
               </Link>
               <Link
-                href="/free-id-photo-tool"
+                href="/photo-tools"
                 className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 onClick={closeMenu}
               >

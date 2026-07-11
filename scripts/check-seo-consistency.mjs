@@ -181,6 +181,7 @@ function hasTitleSignal(source) {
 function hasH1Signal(source) {
   return source.includes('<h1') ||
     source.includes('UseCasePageView') ||
+    source.includes('BlogCategoryPageView') ||
     source.includes('SampleGalleryPage') ||
     source.includes('PublicPhotoToolsPageView') ||
     source.includes('StandalonePhotoToolsPageView') ||
@@ -219,6 +220,7 @@ function hasFeaturesSignal(source) {
     source.includes('features') ||
     source.includes('Features') ||
     source.includes('UseCasePageView') ||
+    source.includes('BlogCategoryPageView') ||
     source.includes('LocalizedHomePage') ||
     source.includes('LocalizedLandingPage') ||
     source.includes('LocalizedPricingPage') ||
@@ -252,6 +254,7 @@ function hasFaqSignal(source) {
     source.includes('faq') ||
     source.includes('FAQ') ||
     source.includes('UseCasePageView') ||
+    source.includes('BlogCategoryPageView') ||
     source.includes('LocalizedLandingPage') ||
     source.includes('LocalizedPricingPage') ||
     source.includes('LocalizedQuestionsPage') ||
@@ -689,6 +692,7 @@ function validateJsonLdConsistency(repoPath, source, issues) {
     source.includes('CollectionPageJsonLd') ||
     source.includes('PricingJsonLd') ||
     source.includes('UseCasePageView') ||
+    source.includes('BlogCategoryPageView') ||
     source.includes('SampleGalleryPage') ||
     source.includes('LocalizedHomePage') ||
     source.includes('LocalizedLandingPage') ||
@@ -851,25 +855,43 @@ function validatePhotoToolSource(issues) {
     }
   }
 
-  const pageCount = (contentSource.match(/path: '\/photo-tools\//g) || []).length
-  const h1Count = (contentSource.match(/h1:\s*'/g) || []).length
-  const descriptionCount = (contentSource.match(/description:\s*(?:\r?\n\s*)?'/g) || []).length
-  const keywordCount = (contentSource.match(/keywords:\s*\[/g) || []).length
-  const featureCount = (contentSource.match(/features:\s*\[/g) || []).length
-  const faqCount = (contentSource.match(/faqs:\s*\[/g) || []).length
-  for (const [label, count] of [
-    ['h1', h1Count],
-    ['description', descriptionCount],
-    ['keywords', keywordCount],
-    ['features', featureCount],
-    ['faqs', faqCount],
-  ]) {
-    if (count !== pageCount) {
-      issues.push(`src/lib/photo-tool-page-content.ts: ${label} count ${count} does not match photo tool page count ${pageCount}.`)
+  const basePageFieldCounts = getPhotoToolBasePageFieldCounts(contentSource)
+  for (const [label, count] of Object.entries(basePageFieldCounts.fields)) {
+    if (count !== basePageFieldCounts.pageCount) {
+      issues.push(`src/lib/photo-tool-page-content.ts: ${label} count ${count} does not match photo tool page count ${basePageFieldCounts.pageCount}.`)
     }
   }
 
   validatePhotoToolContentConsistency(contentSource, issues)
+}
+
+function getPhotoToolBasePageFieldCounts(contentSource) {
+  const file = parseSource(contentSource, 'src/lib/photo-tool-page-content.ts')
+  const fields = {
+    h1: 0,
+    description: 0,
+    keywords: 0,
+    features: 0,
+    faqs: 0,
+  }
+  let pageCount = 0
+
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === 'photoToolPages' && node.initializer && ts.isArrayLiteralExpression(node.initializer)) {
+      for (const element of node.initializer.elements) {
+        if (!ts.isObjectLiteralExpression(element)) continue
+        pageCount += 1
+        for (const key of Object.keys(fields)) {
+          if (propertyExpression(element, key)) fields[key] += 1
+        }
+      }
+      return
+    }
+    ts.forEachChild(node, visit)
+  }
+
+  visit(file)
+  return { pageCount, fields }
 }
 
 function validatePhotoToolContentConsistency(contentSource, issues) {

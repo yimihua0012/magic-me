@@ -49,7 +49,7 @@ export default function Footer({ locale = 'en' }: FooterProps) {
                 </FooterGenerateLink>
               </li>
               <li>
-                <Link href={withSource(localePath(locale, '/free-id-photo-tool'), `footer_photo_tools_${locale}`)} className="text-sm text-slate-400 transition-colors hover:text-white">
+                <Link href={withSource(localePath(locale, '/photo-tools'), `footer_photo_tools_${locale}`)} className="text-sm text-slate-400 transition-colors hover:text-white">
                   {content.photoTools}
                 </Link>
               </li>

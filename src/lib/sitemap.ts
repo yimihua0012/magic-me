@@ -56,6 +56,7 @@ const englishStaticRoutes: SitemapRoute[] = [
   { path: '/ai-headshot-professional-photo', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.9, images: [defaultSeoImage] },
   { path: '/free-id-photo-tool', changeFrequency: 'weekly', priority: 0.8 },
+  { path: '/photo-tools', changeFrequency: 'weekly', priority: 0.8 },
   ...photoToolPages.map((page) => ({
     path: page.path,
     changeFrequency: 'monthly' as const,
@@ -82,6 +83,12 @@ const localizedStaticRoutes: SitemapRoute[] = [
   { path: '/ai-headshot-professional-photo', changeFrequency: 'monthly', priority: 0.8, images: [defaultSeoImage] },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.9, images: [defaultSeoImage] },
   { path: '/free-id-photo-tool', changeFrequency: 'weekly', priority: 0.8 },
+  { path: '/photo-tools', changeFrequency: 'weekly', priority: 0.8 },
+  ...photoToolPages.map((page) => ({
+    path: page.path,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  })),
   { path: '/questions', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/sample', changeFrequency: 'monthly', priority: 0.8, images: sampleImages },
   { path: '/contact', changeFrequency: 'monthly', priority: 0.6 },
@@ -113,7 +120,7 @@ function absoluteLanguageAlternates(alternates: SitemapLanguageAlternates): Site
 }
 
 function languageAlternatesForSitemapPath(path: string): SitemapLanguageAlternates | undefined {
-  if (path === '/sitemap' || path.startsWith('/photo-tools/')) return undefined
+  if (path === '/sitemap') return undefined
 
   const alternates = Object.fromEntries(
     LOCALES.map((locale) => [locale, localizedUrl(locale, path)])

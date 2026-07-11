@@ -10,15 +10,127 @@ import {
   photoSpecToPixels,
   renderImageToPhotoCanvas,
 } from '@/components/photo-tools/photo-print-utils'
+import type { Locale } from '@/lib/i18n'
 
 const backgrounds = [
-  { label: 'White', value: '#ffffff' },
-  { label: 'Blue', value: '#438edb' },
-  { label: 'Red', value: '#d71920' },
-  { label: 'Light Gray', value: '#f1f5f9' },
+  { id: 'white', label: 'White', value: '#ffffff' },
+  { id: 'blue', label: 'Blue', value: '#438edb' },
+  { id: 'red', label: 'Red', value: '#d71920' },
+  { id: 'gray', label: 'Light Gray', value: '#f1f5f9' },
 ]
 
-export default function BackgroundColorTool() {
+const backgroundText: Record<Locale, {
+  title: string
+  description: string
+  upload: string
+  preview: string
+  empty: string
+  settings: string
+  photoSize: string
+  backgroundColor: string
+  zoom: string
+  horizontal: string
+  vertical: string
+  download: string
+  invalidFile: string
+  previewFailed: string
+  downloadFailed: string
+  colors: Record<string, string>
+}> = {
+  en: {
+    title: 'Background Color Tool',
+    description: 'Upload a transparent PNG portrait, choose a photo size, change the background color, then download a finished JPG.',
+    upload: 'Upload PNG',
+    preview: 'Preview',
+    empty: 'Upload a transparent PNG image to change its background color.',
+    settings: 'Photo Settings',
+    photoSize: 'Photo size',
+    backgroundColor: 'Background color',
+    zoom: 'Zoom',
+    horizontal: 'Horizontal position',
+    vertical: 'Vertical position',
+    download: 'Download JPG',
+    invalidFile: 'Please upload a PNG image. This tool needs PNG transparency to change the background color.',
+    previewFailed: 'Failed to render preview.',
+    downloadFailed: 'Failed to download photo.',
+    colors: { white: 'White', blue: 'Blue', red: 'Red', gray: 'Light Gray' },
+  },
+  es: {
+    title: 'Color de fondo',
+    description: 'Sube un retrato PNG transparente, elige tamaño de foto, cambia el fondo y descarga un JPG terminado.',
+    upload: 'Subir PNG',
+    preview: 'Vista previa',
+    empty: 'Sube un PNG transparente para cambiar el color de fondo.',
+    settings: 'Ajustes de foto',
+    photoSize: 'Tamaño de foto',
+    backgroundColor: 'Color de fondo',
+    zoom: 'Zoom',
+    horizontal: 'Posición horizontal',
+    vertical: 'Posición vertical',
+    download: 'Descargar JPG',
+    invalidFile: 'Sube una imagen PNG. Esta herramienta necesita transparencia PNG para cambiar el fondo.',
+    previewFailed: 'No se pudo generar la vista previa.',
+    downloadFailed: 'No se pudo descargar la foto.',
+    colors: { white: 'Blanco', blue: 'Azul', red: 'Rojo', gray: 'Gris claro' },
+  },
+  fr: {
+    title: 'Couleur de fond',
+    description: 'Importez un portrait PNG transparent, choisissez le format, changez la couleur de fond puis téléchargez un JPG final.',
+    upload: 'Importer PNG',
+    preview: 'Aperçu',
+    empty: 'Importez un PNG transparent pour changer la couleur de fond.',
+    settings: 'Réglages photo',
+    photoSize: 'Format photo',
+    backgroundColor: 'Couleur de fond',
+    zoom: 'Zoom',
+    horizontal: 'Position horizontale',
+    vertical: 'Position verticale',
+    download: 'Télécharger JPG',
+    invalidFile: 'Importez une image PNG. Cet outil utilise la transparence PNG pour changer le fond.',
+    previewFailed: 'Impossible de générer l’aperçu.',
+    downloadFailed: 'Impossible de télécharger la photo.',
+    colors: { white: 'Blanc', blue: 'Bleu', red: 'Rouge', gray: 'Gris clair' },
+  },
+  de: {
+    title: 'Hintergrundfarbe',
+    description: 'Lade ein transparentes PNG-Portraet hoch, waehle Fotogroesse und Hintergrundfarbe und lade ein fertiges JPG herunter.',
+    upload: 'PNG hochladen',
+    preview: 'Vorschau',
+    empty: 'Lade ein transparentes PNG hoch, um die Hintergrundfarbe zu aendern.',
+    settings: 'Fotoeinstellungen',
+    photoSize: 'Fotogroesse',
+    backgroundColor: 'Hintergrundfarbe',
+    zoom: 'Zoom',
+    horizontal: 'Horizontale Position',
+    vertical: 'Vertikale Position',
+    download: 'JPG herunterladen',
+    invalidFile: 'Bitte lade ein PNG hoch. Dieses Tool braucht PNG-Transparenz fuer die Hintergrundfarbe.',
+    previewFailed: 'Vorschau konnte nicht erstellt werden.',
+    downloadFailed: 'Foto konnte nicht heruntergeladen werden.',
+    colors: { white: 'Weiss', blue: 'Blau', red: 'Rot', gray: 'Hellgrau' },
+  },
+  ja: {
+    title: '背景色ツール',
+    description: '透明PNGの人物画像をアップロードし、写真サイズと背景色を選んで、完成したJPGを保存できます。',
+    upload: 'PNGをアップロード',
+    preview: 'プレビュー',
+    empty: '背景色を変更するには透明PNGをアップロードしてください。',
+    settings: '写真設定',
+    photoSize: '写真サイズ',
+    backgroundColor: '背景色',
+    zoom: 'ズーム',
+    horizontal: '横位置',
+    vertical: '縦位置',
+    download: 'JPGを保存',
+    invalidFile: 'PNG画像をアップロードしてください。このツールは背景色変更にPNG透明部分を使います。',
+    previewFailed: 'プレビューを作成できませんでした。',
+    downloadFailed: '写真を保存できませんでした。',
+    colors: { white: '白', blue: '青', red: '赤', gray: 'ライトグレー' },
+  },
+}
+
+export default function BackgroundColorTool({ locale = 'en' }: { locale?: Locale }) {
+  const text = backgroundText[locale]
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const previewRef = useRef<HTMLCanvasElement | null>(null)
   const [sourceUrl, setSourceUrl] = useState('')
@@ -45,7 +157,7 @@ export default function BackgroundColorTool() {
 
     if (!file) return
     if (file.type !== 'image/png') {
-      setError('Please upload a PNG image. This tool needs PNG transparency to change the background color.')
+      setError(text.invalidFile)
       return
     }
 
@@ -87,9 +199,9 @@ export default function BackgroundColorTool() {
       context?.clearRect(0, 0, preview.width, preview.height)
       context?.drawImage(canvas, 0, 0)
     } catch (previewError) {
-      setError(previewError instanceof Error ? previewError.message : 'Failed to render preview.')
+      setError(previewError instanceof Error ? previewError.message : text.previewFailed)
     }
-  }, [renderPhoto, sourceUrl])
+  }, [renderPhoto, sourceUrl, text.previewFailed])
 
   useEffect(() => {
     void drawPreview()
@@ -106,7 +218,7 @@ export default function BackgroundColorTool() {
       const baseName = sourceName.replace(/\.[^.]+$/, '') || selectedSpec.id
       await downloadCanvas(canvas, `${baseName}-${selectedSpec.id}-background.jpg`, 0.94)
     } catch (downloadError) {
-      setError(downloadError instanceof Error ? downloadError.message : 'Failed to download photo.')
+      setError(downloadError instanceof Error ? downloadError.message : text.downloadFailed)
     } finally {
       setIsRendering(false)
     }
@@ -119,10 +231,10 @@ export default function BackgroundColorTool() {
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold text-blue-600">
               <Palette className="h-4 w-4" />
-              Background Color Tool
+              {text.title}
             </div>
             <p className="mt-1 text-sm text-slate-600">
-              Upload a transparent PNG portrait, choose a photo size, change the background color, then download a finished JPG.
+              {text.description}
             </p>
           </div>
           <div>
@@ -135,7 +247,7 @@ export default function BackgroundColorTool() {
             />
             <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
               <Upload className="mr-2 h-4 w-4" />
-              Upload PNG
+              {text.upload}
             </Button>
           </div>
         </div>
@@ -150,7 +262,7 @@ export default function BackgroundColorTool() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <Card className="overflow-hidden">
           <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
-            <h2 className="font-bold text-slate-900">Preview</h2>
+            <h2 className="font-bold text-slate-900">{text.preview}</h2>
             <p className="mt-1 text-sm text-slate-500">
               {selectedSpec.label} - {outputSize.width} x {outputSize.height}px at {selectedSpec.dpi} DPI
             </p>
@@ -164,7 +276,7 @@ export default function BackgroundColorTool() {
               />
             ) : (
               <div className="text-center text-sm text-slate-500">
-                Upload a transparent PNG image to change its background color.
+                {text.empty}
               </div>
             )}
           </div>
@@ -174,11 +286,11 @@ export default function BackgroundColorTool() {
           <Card className="p-4 sm:p-5">
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-blue-600">
               <SlidersHorizontal className="h-4 w-4" />
-              Photo Settings
+              {text.settings}
             </div>
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-700">Photo size</span>
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">{text.photoSize}</span>
               <select
                 value={selectedSpecId}
                 onChange={(event) => setSelectedSpecId(event.target.value)}
@@ -191,7 +303,7 @@ export default function BackgroundColorTool() {
             </label>
 
             <div className="mt-4">
-              <div className="mb-2 text-sm font-medium text-slate-700">Background color</div>
+              <div className="mb-2 text-sm font-medium text-slate-700">{text.backgroundColor}</div>
               <div className="grid grid-cols-4 gap-2">
                 {backgrounds.map((preset) => (
                   <button
@@ -206,21 +318,21 @@ export default function BackgroundColorTool() {
                       color: preset.value === '#ffffff' || preset.value === '#f1f5f9' ? '#0f172a' : '#ffffff',
                     }}
                   >
-                    {preset.label}
+                    {text.colors[preset.id] || preset.label}
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="mt-4 grid gap-4">
-              <RangeControl label="Zoom" min={0.8} max={1.8} step={0.01} value={zoom} onChange={setZoom} valueLabel={`${Math.round(zoom * 100)}%`} />
-              <RangeControl label="Horizontal position" min={-35} max={35} step={1} value={offsetX} onChange={setOffsetX} valueLabel={`${offsetX}%`} />
-              <RangeControl label="Vertical position" min={-35} max={35} step={1} value={offsetY} onChange={setOffsetY} valueLabel={`${offsetY}%`} />
+              <RangeControl label={text.zoom} min={0.8} max={1.8} step={0.01} value={zoom} onChange={setZoom} valueLabel={`${Math.round(zoom * 100)}%`} />
+              <RangeControl label={text.horizontal} min={-35} max={35} step={1} value={offsetX} onChange={setOffsetX} valueLabel={`${offsetX}%`} />
+              <RangeControl label={text.vertical} min={-35} max={35} step={1} value={offsetY} onChange={setOffsetY} valueLabel={`${offsetY}%`} />
             </div>
 
             <Button onClick={() => void downloadSingle()} disabled={!sourceUrl || isRendering} className="mt-5 w-full">
               <Download className="mr-2 h-4 w-4" />
-              Download JPG
+              {text.download}
             </Button>
           </Card>
         </div>

@@ -128,7 +128,7 @@ export default function Navbar({ onOpenAuthModal, locale = 'en', solid = true }:
   const homeHref = localePath(locale)
   const featuresHref = `${homeHref === '/' ? '' : homeHref}/#features`
   const pricingHref = localePath(locale, '/pricing')
-  const photoToolsHref = localePath(locale, '/free-id-photo-tool')
+  const photoToolsHref = localePath(locale, '/photo-tools')
   const samplesHref = localePath(locale, '/sample')
   const blogHref = localePath(locale, '/blog')
   const questionsHref = localePath(locale, '/questions')
@@ -355,6 +355,7 @@ function getLocalizedSwitchPath(pathname: string) {
     route === 'sample' ||
     route === 'landing' ||
     route === 'photo-tools' ||
+    route.startsWith('photo-tools/') ||
     route === 'free-id-photo-tool' ||
     route === 'upload'
   ) {

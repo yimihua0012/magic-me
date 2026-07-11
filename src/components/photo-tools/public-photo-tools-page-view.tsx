@@ -18,7 +18,7 @@ import PhotoToolsAiWorkflowCard from '@/components/photo-tools/photo-tools-ai-wo
 import PrintLayoutBuilderTool from '@/components/photo-tools/print-layout-builder-tool'
 import ResizeImageKbTool from '@/components/photo-tools/resize-image-kb-tool'
 import RemoveBackgroundTool from '@/components/photo-tools/remove-background-tool'
-import { photoToolPages } from '@/lib/photo-tool-page-content'
+import { getPhotoToolPages, photoToolPages } from '@/lib/photo-tool-page-content'
 
 type SeoContent = {
   useTitle: string
@@ -273,6 +273,7 @@ export default function PublicPhotoToolsPageView({ locale = 'en' }: PublicPhotoT
   const content = pageContent[locale]
   const seo = seoContent[locale]
   const layout = localizedLayoutContent[locale].footer
+  const localizedToolPages = getPhotoToolPages(locale)
   const uploadHref = withSource(localePath(locale, '/upload'), `free_id_photo_tool_generate_png_${locale}`)
   const showAiWorkflowCard = locale === 'en' && activeTool !== 'original' && activeTool !== 'remove-background'
   const resourceLinks = [
@@ -338,28 +339,30 @@ export default function PublicPhotoToolsPageView({ locale = 'en' }: PublicPhotoT
     activeTool === 'id-photo-crop'
       ? (
         <IdPhotoCropPrintTool
-          sourceDescription="Upload a local JPG, PNG, or WebP image, choose an ID photo size, adjust the crop, and download the cropped JPG."
-          uploadLabel="Upload Local Image"
-          emptyText="Upload a local image to start cropping."
+          locale={locale}
+          sourceDescription={content.sourceDescription}
+          uploadLabel={content.upload}
+          emptyText={content.empty}
         />
       )
       : activeTool === 'resize-image'
-        ? <ResizeImageKbTool />
+        ? <ResizeImageKbTool locale={locale} />
         : activeTool === 'resize-image-kb'
           ? (
             <ResizeImageKbTool
-              title="Resize Image to KB"
-              description="Resize and compress a JPG, PNG, or WebP image to a target file size in KB for online forms, school portals, job applications, and profile uploads. Processing happens locally in your browser."
-              actionLabel="Resize image to KB"
+              locale={locale}
+              title={localizedToolPages[2].toolTitle}
+              description={localizedToolPages[2].toolDescription}
+              actionLabel={localizedToolPages[2].actionLabel}
               targetKbOnly
             />
           )
           : activeTool === 'remove-background'
-            ? <RemoveBackgroundTool />
+            ? <RemoveBackgroundTool locale={locale} />
           : activeTool === 'background-color'
-            ? <BackgroundColorTool />
+            ? <BackgroundColorTool locale={locale} />
             : activeTool === 'print-layout'
-              ? <PrintLayoutBuilderTool />
+              ? <PrintLayoutBuilderTool locale={locale} />
               : toolContent
 
   return (

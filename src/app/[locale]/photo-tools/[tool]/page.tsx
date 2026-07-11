@@ -3,12 +3,20 @@ import { notFound } from 'next/navigation'
 import StandalonePhotoToolsPageView from '@/components/photo-tools/standalone-photo-tools-page-view'
 import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 import { appConfig } from '@/lib/config'
-import { languageAlternatesForPath } from '@/lib/i18n'
+import {
+  OPEN_GRAPH_LOCALES,
+  ROUTED_LOCALES,
+  isRoutedLocale,
+  languageAlternatesForPath,
+  localePath,
+  type RoutedLocale,
+} from '@/lib/i18n'
 import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
 import { getPhotoToolPage, photoToolPages } from '@/lib/photo-tool-page-content'
 
 type PhotoToolPageProps = {
   params: Promise<{
+    locale: string
     tool: string
   }>
 }
@@ -16,20 +24,26 @@ type PhotoToolPageProps = {
 const siteUrl = appConfig.url.replace(/\/$/, '')
 
 export function generateStaticParams() {
-  return photoToolPages.map((page) => ({
-    tool: page.id,
-  }))
+  return ROUTED_LOCALES.flatMap((locale) => (
+    photoToolPages.map((page) => ({
+      locale,
+      tool: page.id,
+    }))
+  ))
 }
 
 export async function generateMetadata({ params }: PhotoToolPageProps): Promise<Metadata> {
-  const { tool } = await params
-  const page = getPhotoToolPage(tool, 'en')
+  const { locale, tool } = await params
+  if (!isRoutedLocale(locale)) return {}
 
+  const page = getPhotoToolPage(tool, locale)
   if (!page) {
     return {
       title: 'Photo Tool',
     }
   }
+
+  const canonical = localePath(locale, page.path)
 
   return {
     title: page.title,
@@ -40,14 +54,15 @@ export async function generateMetadata({ params }: PhotoToolPageProps): Promise<
       follow: true,
     },
     alternates: {
-      canonical: page.path,
+      canonical,
       languages: languageAlternatesForPath(page.path),
     },
     openGraph: {
       title: page.title,
       description: page.description,
       type: 'website',
-      url: page.path,
+      url: canonical,
+      locale: OPEN_GRAPH_LOCALES[locale],
       siteName: 'Magic-Headshot',
       images: [
         {
@@ -67,15 +82,21 @@ export async function generateMetadata({ params }: PhotoToolPageProps): Promise<
   }
 }
 
-export default async function PhotoToolPage({ params }: PhotoToolPageProps) {
-  const { tool } = await params
-  const page = getPhotoToolPage(tool, 'en')
+export default async function LocalizedPhotoToolPage({ params }: PhotoToolPageProps) {
+  const { locale, tool } = await params
+
+  if (!isRoutedLocale(locale)) {
+    notFound()
+  }
+
+  const routedLocale = locale as RoutedLocale
+  const page = getPhotoToolPage(tool, routedLocale)
 
   if (!page) {
     notFound()
   }
 
-  const pageUrl = `${siteUrl}${page.path}`
+  const pageUrl = `${siteUrl}${localePath(routedLocale, page.path)}`
   const webApplicationJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
@@ -87,7 +108,7 @@ export default async function PhotoToolPage({ params }: PhotoToolPageProps) {
     operatingSystem: 'Web',
     browserRequirements: 'Requires a modern web browser with JavaScript enabled.',
     isAccessibleForFree: true,
-    inLanguage: 'en',
+    inLanguage: routedLocale,
     keywords: page.keywords.join(', '),
     featureList: page.features,
     offers: {
@@ -111,7 +132,7 @@ export default async function PhotoToolPage({ params }: PhotoToolPageProps) {
     name: `${page.h1} FAQ`,
     description: page.description,
     url: pageUrl,
-    inLanguage: 'en',
+    inLanguage: routedLocale,
     mainEntity: page.faqs.map((faq) => ({
       '@type': 'Question',
       name: faq.question,
@@ -133,12 +154,12 @@ export default async function PhotoToolPage({ params }: PhotoToolPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <BreadcrumbJsonLd
-        locale="en"
+        locale={routedLocale}
         path={page.path}
         currentName={page.h1}
         parent={{ name: 'Photo Tools', path: '/photo-tools' }}
       />
-      <StandalonePhotoToolsPageView locale="en" initialTool={page.activeId} seoContent={page} />
+      <StandalonePhotoToolsPageView locale={routedLocale} initialTool={page.activeId} seoContent={page} />
     </>
   )
 }

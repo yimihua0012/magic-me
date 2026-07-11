@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
+import type { Locale } from '@/lib/i18n'
 import { Download, ImagePlus, RefreshCw, SlidersHorizontal } from 'lucide-react'
 
 type ResizeResult = {
@@ -21,14 +22,196 @@ type ResizeImageKbToolProps = {
   description?: string
   actionLabel?: string
   targetKbOnly?: boolean
+  locale?: Locale
+}
+
+const resizeText: Record<Locale, {
+  title: string
+  description: string
+  action: string
+  upload: string
+  formatHint: string
+  uploadedAlt: string
+  originalSize: string
+  dimensions: string
+  outputTarget: string
+  outputSize: string
+  outputDimensions: string
+  quality: string
+  download: string
+  resizeMode: string
+  proportional: string
+  exactSize: string
+  scalePercentage: string
+  exactDimensions: string
+  width: string
+  height: string
+  keepAspectRatio: string
+  targetFileSize: string
+  outputFormat: string
+  invalidFile: string
+  readFailed: string
+  uploadFirst: string
+  resizeFailed: string
+}> = {
+  en: {
+    title: 'Resize Image',
+    description: 'Resize a JPG, PNG, or WebP image by proportional scaling, exact pixel dimensions, or target file size for online applications, school portals, job forms, profile uploads, and document-style photo requirements. Processing happens locally in your browser.',
+    action: 'Resize image',
+    upload: 'Upload image',
+    formatHint: 'JPG, PNG, or WebP',
+    uploadedAlt: 'Uploaded preview',
+    originalSize: 'Original size',
+    dimensions: 'Dimensions',
+    outputTarget: 'Output target',
+    outputSize: 'Output size',
+    outputDimensions: 'Output dimensions',
+    quality: 'Quality',
+    download: 'Download resized image',
+    resizeMode: 'Resize mode',
+    proportional: 'Proportional',
+    exactSize: 'Exact size',
+    scalePercentage: 'Scale percentage',
+    exactDimensions: 'Exact dimensions',
+    width: 'Width px',
+    height: 'Height px',
+    keepAspectRatio: 'Keep aspect ratio',
+    targetFileSize: 'Target file size',
+    outputFormat: 'Output format',
+    invalidFile: 'Please upload a JPG, PNG, or WebP image.',
+    readFailed: 'Could not read this image. Try another JPG, PNG, or WebP file.',
+    uploadFirst: 'Upload an image first.',
+    resizeFailed: 'Could not resize this image.',
+  },
+  es: {
+    title: 'Redimensionar imagen',
+    description: 'Cambia el tamaño de JPG, PNG o WebP por proporción, píxeles exactos o tamaño objetivo en KB. El procesamiento ocurre en tu navegador.',
+    action: 'Redimensionar imagen',
+    upload: 'Subir imagen',
+    formatHint: 'JPG, PNG o WebP',
+    uploadedAlt: 'Vista previa subida',
+    originalSize: 'Tamaño original',
+    dimensions: 'Dimensiones',
+    outputTarget: 'Objetivo de salida',
+    outputSize: 'Tamaño final',
+    outputDimensions: 'Dimensiones finales',
+    quality: 'Calidad',
+    download: 'Descargar imagen',
+    resizeMode: 'Modo de tamaño',
+    proportional: 'Proporcional',
+    exactSize: 'Tamaño exacto',
+    scalePercentage: 'Porcentaje',
+    exactDimensions: 'Dimensiones exactas',
+    width: 'Ancho px',
+    height: 'Alto px',
+    keepAspectRatio: 'Mantener proporción',
+    targetFileSize: 'Tamaño objetivo',
+    outputFormat: 'Formato de salida',
+    invalidFile: 'Sube una imagen JPG, PNG o WebP.',
+    readFailed: 'No se pudo leer esta imagen. Prueba con otro JPG, PNG o WebP.',
+    uploadFirst: 'Sube una imagen primero.',
+    resizeFailed: 'No se pudo redimensionar esta imagen.',
+  },
+  fr: {
+    title: 'Redimensionner image',
+    description: 'Redimensionnez JPG, PNG ou WebP par proportion, pixels exacts ou taille cible en KB. Le traitement reste dans le navigateur.',
+    action: 'Redimensionner',
+    upload: 'Importer image',
+    formatHint: 'JPG, PNG ou WebP',
+    uploadedAlt: 'Aperçu importé',
+    originalSize: 'Taille originale',
+    dimensions: 'Dimensions',
+    outputTarget: 'Cible de sortie',
+    outputSize: 'Taille finale',
+    outputDimensions: 'Dimensions finales',
+    quality: 'Qualité',
+    download: 'Télécharger l’image',
+    resizeMode: 'Mode de taille',
+    proportional: 'Proportionnel',
+    exactSize: 'Taille exacte',
+    scalePercentage: 'Pourcentage',
+    exactDimensions: 'Dimensions exactes',
+    width: 'Largeur px',
+    height: 'Hauteur px',
+    keepAspectRatio: 'Conserver les proportions',
+    targetFileSize: 'Taille cible',
+    outputFormat: 'Format de sortie',
+    invalidFile: 'Importez une image JPG, PNG ou WebP.',
+    readFailed: 'Impossible de lire cette image. Essayez un autre JPG, PNG ou WebP.',
+    uploadFirst: 'Importez une image d’abord.',
+    resizeFailed: 'Impossible de redimensionner cette image.',
+  },
+  de: {
+    title: 'Bild skalieren',
+    description: 'Skaliere JPG, PNG oder WebP proportional, mit exakten Pixelmassen oder Zielgroesse in KB. Die Verarbeitung bleibt im Browser.',
+    action: 'Bild skalieren',
+    upload: 'Bild hochladen',
+    formatHint: 'JPG, PNG oder WebP',
+    uploadedAlt: 'Hochgeladene Vorschau',
+    originalSize: 'Originalgroesse',
+    dimensions: 'Abmessungen',
+    outputTarget: 'Ausgabeziel',
+    outputSize: 'Ausgabegroesse',
+    outputDimensions: 'Ausgabeabmessungen',
+    quality: 'Qualitaet',
+    download: 'Bild herunterladen',
+    resizeMode: 'Skalierungsmodus',
+    proportional: 'Proportional',
+    exactSize: 'Exakte Groesse',
+    scalePercentage: 'Prozentwert',
+    exactDimensions: 'Exakte Abmessungen',
+    width: 'Breite px',
+    height: 'Hoehe px',
+    keepAspectRatio: 'Seitenverhaeltnis behalten',
+    targetFileSize: 'Zieldateigroesse',
+    outputFormat: 'Ausgabeformat',
+    invalidFile: 'Bitte lade ein JPG, PNG oder WebP hoch.',
+    readFailed: 'Dieses Bild konnte nicht gelesen werden. Versuche ein anderes JPG, PNG oder WebP.',
+    uploadFirst: 'Lade zuerst ein Bild hoch.',
+    resizeFailed: 'Bild konnte nicht skaliert werden.',
+  },
+  ja: {
+    title: '画像サイズ変更',
+    description: 'JPG、PNG、WebPを比率、ピクセル指定、または目標KBサイズで調整できます。処理はブラウザ内で行われます。',
+    action: '画像サイズを変更',
+    upload: '画像をアップロード',
+    formatHint: 'JPG、PNG、WebP',
+    uploadedAlt: 'アップロード画像プレビュー',
+    originalSize: '元サイズ',
+    dimensions: '画像サイズ',
+    outputTarget: '出力目標',
+    outputSize: '出力サイズ',
+    outputDimensions: '出力画像サイズ',
+    quality: '画質',
+    download: '画像を保存',
+    resizeMode: 'サイズ変更モード',
+    proportional: '比率指定',
+    exactSize: 'サイズ指定',
+    scalePercentage: '拡大縮小率',
+    exactDimensions: '正確なサイズ',
+    width: '幅 px',
+    height: '高さ px',
+    keepAspectRatio: '縦横比を維持',
+    targetFileSize: '目標ファイルサイズ',
+    outputFormat: '出力形式',
+    invalidFile: 'JPG、PNG、WebP画像をアップロードしてください。',
+    readFailed: '画像を読み込めませんでした。別のJPG、PNG、WebPを試してください。',
+    uploadFirst: '先に画像をアップロードしてください。',
+    resizeFailed: '画像サイズを変更できませんでした。',
+  },
 }
 
 export default function ResizeImageKbTool({
-  title = 'Resize Image',
-  description = 'Resize a JPG, PNG, or WebP image by proportional scaling, exact pixel dimensions, or target file size for online applications, school portals, job forms, profile uploads, and document-style photo requirements. Processing happens locally in your browser.',
-  actionLabel = 'Resize image',
+  title,
+  description,
+  actionLabel,
   targetKbOnly = false,
+  locale = 'en',
 }: ResizeImageKbToolProps) {
+  const text = resizeText[locale]
+  const resolvedTitle = title || text.title
+  const resolvedDescription = description || text.description
+  const resolvedActionLabel = actionLabel || text.action
   const [sourceFile, setSourceFile] = useState<File | null>(null)
   const [sourcePreview, setSourcePreview] = useState('')
   const [sourceInfo, setSourceInfo] = useState<{ width: number; height: number; sizeBytes: number } | null>(null)
@@ -84,7 +267,7 @@ export default function ResizeImageKbTool({
     }
 
     if (!file.type.startsWith('image/')) {
-      setError('Please upload a JPG, PNG, or WebP image.')
+      setError(text.invalidFile)
       return
     }
 
@@ -96,7 +279,7 @@ export default function ResizeImageKbTool({
       setTargetWidth(dimensions.width)
       setTargetHeight(dimensions.height)
     } catch {
-      setError('Could not read this image. Try another JPG, PNG, or WebP file.')
+      setError(text.readFailed)
     }
   }
 
@@ -118,7 +301,7 @@ export default function ResizeImageKbTool({
 
   const resizeImage = async () => {
     if (!sourceFile) {
-      setError('Upload an image first.')
+      setError(text.uploadFirst)
       return
     }
 
@@ -136,7 +319,7 @@ export default function ResizeImageKbTool({
       })
       setResult(output)
     } catch (resizeError) {
-      setError(resizeError instanceof Error ? resizeError.message : 'Could not resize this image.')
+      setError(resizeError instanceof Error ? resizeError.message : text.resizeFailed)
     } finally {
       setIsProcessing(false)
     }
@@ -147,10 +330,10 @@ export default function ResizeImageKbTool({
       <div className="border-b border-slate-200 bg-white p-5 sm:p-6">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-5 w-5 text-blue-600" />
-          <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+          <h2 className="text-xl font-bold text-slate-900">{resolvedTitle}</h2>
         </div>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-          {description}
+          {resolvedDescription}
         </p>
       </div>
 
@@ -159,12 +342,12 @@ export default function ResizeImageKbTool({
           <label className="flex min-h-[280px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center transition-colors hover:border-blue-300 hover:bg-blue-50/40">
             {sourcePreview ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={sourcePreview} alt="Uploaded preview" className="max-h-[360px] max-w-full rounded-lg object-contain shadow-sm" />
+              <img src={sourcePreview} alt={text.uploadedAlt} className="max-h-[360px] max-w-full rounded-lg object-contain shadow-sm" />
             ) : (
               <>
                 <ImagePlus className="h-10 w-10 text-slate-400" />
-                <span className="mt-3 text-sm font-bold text-slate-800">Upload image</span>
-                <span className="mt-1 text-xs text-slate-500">JPG, PNG, or WebP</span>
+                <span className="mt-3 text-sm font-bold text-slate-800">{text.upload}</span>
+                <span className="mt-1 text-xs text-slate-500">{text.formatHint}</span>
               </>
             )}
             <input
@@ -177,9 +360,9 @@ export default function ResizeImageKbTool({
 
           {sourceInfo && (
             <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-              <Metric label="Original size" value={sourceSizeLabel} />
-              <Metric label="Dimensions" value={`${sourceInfo.width} x ${sourceInfo.height}`} />
-              <Metric label="Output target" value={`${outputDimensions.width} x ${outputDimensions.height}`} />
+              <Metric label={text.originalSize} value={sourceSizeLabel} />
+              <Metric label={text.dimensions} value={`${sourceInfo.width} x ${sourceInfo.height}`} />
+              <Metric label={text.outputTarget} value={`${outputDimensions.width} x ${outputDimensions.height}`} />
             </div>
           )}
 
@@ -192,14 +375,14 @@ export default function ResizeImageKbTool({
           {result && (
             <div className="mt-5 rounded-xl border border-green-200 bg-green-50 p-4">
               <div className="grid gap-3 text-sm sm:grid-cols-3">
-                <Metric label="Output size" value={resultSizeLabel} />
-                <Metric label="Output dimensions" value={`${result.width} x ${result.height}`} />
-                <Metric label="Quality" value={`${Math.round(result.quality * 100)}%`} />
+                <Metric label={text.outputSize} value={resultSizeLabel} />
+                <Metric label={text.outputDimensions} value={`${result.width} x ${result.height}`} />
+                <Metric label={text.quality} value={`${Math.round(result.quality * 100)}%`} />
               </div>
               <a href={result.url} download={result.fileName} className="mt-4 inline-flex w-full sm:w-auto">
                 <Button className="w-full sm:w-auto">
                   <Download className="mr-2 h-4 w-4" />
-                  Download resized image
+                  {text.download}
                 </Button>
               </a>
             </div>
@@ -209,7 +392,7 @@ export default function ResizeImageKbTool({
         <div className="space-y-5 bg-white p-5 sm:p-6">
           {!targetKbOnly && (
             <div>
-              <div className="text-sm font-bold text-slate-900">Resize mode</div>
+              <div className="text-sm font-bold text-slate-900">{text.resizeMode}</div>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -218,7 +401,7 @@ export default function ResizeImageKbTool({
                     resizeMode === 'scale' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  Proportional
+                  {text.proportional}
                 </button>
                 <button
                   type="button"
@@ -227,7 +410,7 @@ export default function ResizeImageKbTool({
                     resizeMode === 'exact' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  Exact size
+                  {text.exactSize}
                 </button>
               </div>
             </div>
@@ -235,7 +418,7 @@ export default function ResizeImageKbTool({
 
           {!targetKbOnly && resizeMode === 'scale' ? (
             <div>
-              <label className="text-sm font-bold text-slate-900" htmlFor="scale-percent">Scale percentage</label>
+              <label className="text-sm font-bold text-slate-900" htmlFor="scale-percent">{text.scalePercentage}</label>
               <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-center text-2xl font-bold text-blue-700">
                 {scalePercent}%
               </div>
@@ -256,10 +439,10 @@ export default function ResizeImageKbTool({
             </div>
           ) : !targetKbOnly ? (
             <div>
-              <div className="text-sm font-bold text-slate-900">Exact dimensions</div>
+              <div className="text-sm font-bold text-slate-900">{text.exactDimensions}</div>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <label className="block">
-                  <span className="text-xs font-semibold text-slate-500">Width px</span>
+                  <span className="text-xs font-semibold text-slate-500">{text.width}</span>
                   <input
                     type="number"
                     min={1}
@@ -269,7 +452,7 @@ export default function ResizeImageKbTool({
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-semibold text-slate-500">Height px</span>
+                  <span className="text-xs font-semibold text-slate-500">{text.height}</span>
                   <input
                     type="number"
                     min={1}
@@ -286,18 +469,18 @@ export default function ResizeImageKbTool({
                   onChange={(event) => setKeepAspectRatio(event.target.checked)}
                   className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
-                Keep aspect ratio
+                {text.keepAspectRatio}
               </label>
             </div>
           ) : null}
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-            Output dimensions: <span className="font-bold text-slate-900">{outputDimensions.width || '-'} x {outputDimensions.height || '-'}</span>
+            {text.outputDimensions}: <span className="font-bold text-slate-900">{outputDimensions.width || '-'} x {outputDimensions.height || '-'}</span>
           </div>
 
           <div>
             {targetKbOnly ? (
-              <label className="text-sm font-bold text-slate-900" htmlFor="target-kb">Target file size</label>
+              <label className="text-sm font-bold text-slate-900" htmlFor="target-kb">{text.targetFileSize}</label>
             ) : (
               <label className="flex items-center gap-2 text-sm font-bold text-slate-900" htmlFor="target-kb">
                 <input
@@ -306,7 +489,7 @@ export default function ResizeImageKbTool({
                   onChange={(event) => setLimitFileSize(event.target.checked)}
                   className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
-                Target file size
+                {text.targetFileSize}
               </label>
             )}
             <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-center text-2xl font-bold text-blue-700">
@@ -330,7 +513,7 @@ export default function ResizeImageKbTool({
           </div>
 
           <div>
-            <label className="text-sm font-bold text-slate-900" htmlFor="output-format">Output format</label>
+            <label className="text-sm font-bold text-slate-900" htmlFor="output-format">{text.outputFormat}</label>
             <select
               id="output-format"
               value={format}
@@ -344,7 +527,7 @@ export default function ResizeImageKbTool({
 
           <Button onClick={resizeImage} isLoading={isProcessing} disabled={!sourceFile || isProcessing} className="w-full">
             <RefreshCw className="mr-2 h-4 w-4" />
-            {actionLabel}
+            {resolvedActionLabel}
           </Button>
         </div>
       </div>

@@ -1,3 +1,5 @@
+import type { Locale } from '@/lib/i18n'
+
 export type PhotoToolPageId =
   | 'id-photo-crop'
   | 'resize-image'
@@ -257,6 +259,417 @@ export const photoToolPages: PhotoToolPageContent[] = [
   },
 ]
 
-export function getPhotoToolPage(id: string) {
-  return photoToolPages.find((page) => page.id === id)
+type PhotoToolPageTranslation = Omit<PhotoToolPageContent, 'id' | 'activeId' | 'path'>
+
+const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPageId, PhotoToolPageTranslation>>>> = {
+  es: {
+    'id-photo-crop': {
+      label: 'Recortar foto ID',
+      title: 'Herramienta gratis para recortar fotos ID, pasaporte y CV',
+      h1: 'Recorta fotos ID para pasaporte, CV, exámenes y perfiles',
+      description:
+        'Sube una imagen JPG, PNG o WebP, elige un tamaño de foto ID, ajusta el encuadre y descarga un JPG listo para formularios, CV, exámenes o perfiles.',
+      keywords: ['recortar foto ID', 'recortar foto pasaporte online', 'foto para CV', 'foto para exámenes'],
+      features: ['Recorte para fotos ID', 'Tamaños comunes para documentos', 'Ajuste de zoom y posición', 'Procesamiento local en el navegador', 'Descarga en JPG'],
+      faqs: [
+        { question: '¿Sirve para recortar una foto ID online?', answer: 'Sí. Puedes cargar una imagen local y convertirla en una foto con tamaño y encuadre de documento.' },
+        { question: '¿La imagen se sube al servidor?', answer: 'No. El recorte se procesa en tu navegador.' },
+        { question: '¿Puedo usarla para CV, exámenes o tarjetas?', answer: 'Sí. Los tamaños son útiles para CV, portales escolares, registros de exámenes y credenciales internas.' },
+        { question: '¿Es válida para pasaporte oficial?', answer: 'Úsala para preparar una foto de estilo documento. Para trámites oficiales, revisa siempre las normas de la autoridad correspondiente.' },
+      ],
+    },
+    'resize-image': {
+      label: 'Redimensionar imagen',
+      title: 'Redimensionar imagen online gratis: JPG, PNG y WebP',
+      h1: 'Redimensiona imágenes JPG, PNG y WebP online',
+      description:
+        'Cambia el tamaño de una imagen por porcentaje o por píxeles exactos para perfiles, formularios, portales escolares, solicitudes de empleo y fotos de documento.',
+      keywords: ['redimensionar imagen online', 'cambiar tamaño imagen', 'redimensionar JPG', 'redimensionar PNG'],
+      features: ['Redimensiona por porcentaje', 'Define píxeles exactos', 'Compatible con JPG, PNG y WebP', 'Útil para formularios y perfiles', 'Procesamiento local'],
+      faqs: [
+        { question: '¿Puedo redimensionar por porcentaje?', answer: 'Sí. Usa el modo proporcional y ajusta el porcentaje.' },
+        { question: '¿Puedo definir ancho y alto exactos?', answer: 'Sí. Usa el modo de tamaño exacto e introduce los píxeles necesarios.' },
+        { question: '¿Funciona con JPG y PNG?', answer: 'Sí. Acepta JPG, PNG y WebP.' },
+        { question: '¿Sirve para formularios online?', answer: 'Sí. Está pensada para perfiles, portales escolares, solicitudes y cargas de fotos de documento.' },
+      ],
+    },
+    'resize-image-to-kb': {
+      label: 'Imagen a KB',
+      title: 'Comprimir imagen a KB gratis: reducir JPG para formularios',
+      h1: 'Comprime una imagen a un tamaño objetivo en KB',
+      description:
+        'Reduce una foto a un límite de KB, por ejemplo 200 KB, y exporta JPG o WebP para formularios, perfiles, portales escolares y solicitudes.',
+      keywords: ['comprimir imagen a KB', 'reducir JPG a 200KB', 'reducir tamaño de foto'],
+      features: ['Objetivo en KB', 'Compresión local', 'Exporta JPG o WebP', 'Útil para formularios', 'Reduce tamaño de archivo'],
+      toolTitle: 'Imagen a KB',
+      toolDescription:
+        'Comprime una imagen JPG, PNG o WebP a un tamaño objetivo en KB para formularios, portales escolares, perfiles y solicitudes. El procesamiento ocurre en tu navegador.',
+      actionLabel: 'Comprimir imagen',
+      faqs: [
+        { question: '¿Puedo reducir una imagen para un formulario?', answer: 'Sí. Define el objetivo en KB y la herramienta intentará dejar el archivo por debajo de ese límite.' },
+        { question: '¿Necesito subir la imagen?', answer: 'No. La compresión se ejecuta localmente en el navegador.' },
+        { question: '¿Puedo reducir un JPG a 200 KB?', answer: 'Sí. Selecciona 200 KB como objetivo y exporta el resultado.' },
+        { question: '¿Por qué el resultado puede quedar por debajo del objetivo?', answer: 'La herramienta equilibra dimensiones y calidad; a veces un archivo menor da un resultado más limpio.' },
+      ],
+    },
+    'remove-background': {
+      label: 'Remove background',
+      title: 'Remove Background online: PNG transparente para personas y productos',
+      h1: 'Remove Background para personas, productos y objetos',
+      description:
+        'Sube una imagen de persona, producto u objeto, elimina el fondo online y descarga un PNG transparente. Cada usuario registrado tiene 1 uso gratis; después se usa 1 crédito por resultado.',
+      keywords: ['remove background online', 'PNG transparente', 'quitar fondo producto', 'quitar fondo persona'],
+      features: ['Personas y retratos', 'Productos y objetos', 'Descarga PNG transparente', '1 uso gratis con cuenta', 'Uso con créditos después'],
+      toolTitle: 'Remove Background',
+      toolDescription: 'Sube una imagen de persona, producto u objeto. La herramienta elimina el fondo y entrega un PNG transparente.',
+      actionLabel: 'Remove background',
+      faqs: [
+        { question: '¿Funciona con personas y productos?', answer: 'Sí. Está pensada para retratos, productos, objetos y fotos de estilo documento.' },
+        { question: '¿Qué archivo descargo?', answer: 'Descargas un PNG transparente con el fondo eliminado.' },
+        { question: '¿Es gratis?', answer: 'Cada usuario registrado tiene 1 uso gratis. Después, cada exportación correcta usa 1 crédito.' },
+        { question: '¿El recorte siempre queda perfecto?', answer: 'En imágenes complejas puede requerir ajuste adicional, especialmente con cabello, sombras, fondos cargados, objetos transparentes o baja resolución.' },
+      ],
+    },
+    'background-color-tool': {
+      label: 'Color de fondo',
+      title: 'Cambiar fondo de foto ID: blanco, azul o rojo',
+      h1: 'Cambia el fondo de una foto ID a blanco, azul o rojo',
+      description:
+        'Sube un PNG transparente, elige tamaño de foto y cambia el fondo a blanco, azul, rojo o gris claro. Después descarga un JPG terminado.',
+      keywords: ['cambiar fondo foto ID', 'foto fondo blanco', 'foto fondo azul', 'foto fondo rojo'],
+      features: ['Fondo blanco', 'Fondo azul', 'Fondo rojo', 'Tamaños de foto ID', 'Descarga JPG'],
+      faqs: [
+        { question: '¿Necesito un PNG transparente?', answer: 'Sí. Esta herramienta coloca un color limpio detrás del sujeto, por eso funciona mejor con PNG transparente.' },
+        { question: '¿Puedo usar fondo blanco, azul o rojo?', answer: 'Sí. Incluye blanco, azul, rojo y gris claro.' },
+        { question: '¿Puedo elegir tamaño de foto?', answer: 'Sí. Puedes elegir tamaños comunes de foto ID antes de descargar.' },
+        { question: '¿Qué formato se descarga?', answer: 'Se descarga un JPG con el tamaño y el fondo seleccionados.' },
+      ],
+    },
+    'print-layout-builder': {
+      label: 'Hoja de impresión',
+      title: 'Crear hoja de impresión para fotos ID: 4x6, A4 y Letter',
+      h1: 'Crea hojas de impresión para fotos ID',
+      description:
+        'Sube una foto terminada, elige tamaño de foto y papel, genera varias copias en una hoja y descarga un JPG listo para imprimir.',
+      keywords: ['hoja impresión foto ID', 'imprimir varias fotos', 'layout 4x6 foto', 'A4 fotos ID'],
+      features: ['Varias copias por hoja', 'Tamaños 4x6, 5x7, A4 y Letter', 'Foto ajustada al tamaño elegido', 'Vista previa', 'Descarga JPG'],
+      faqs: [
+        { question: '¿Puedo crear varias fotos en una hoja?', answer: 'Sí. La herramienta repite la foto según el tamaño elegido y el papel disponible.' },
+        { question: '¿Incluye 4x6 y A4?', answer: 'Sí. Incluye tamaños comunes como 4 x 6, 5 x 7, A4 y Letter.' },
+        { question: '¿Recorta la foto?', answer: 'Ajusta la foto al tamaño elegido. Para controlar la cara con precisión, usa primero Recortar foto ID.' },
+        { question: '¿Qué formato se descarga?', answer: 'Descargas un JPG listo para imprimir en casa o en una tienda.' },
+      ],
+    },
+  },
+  fr: {
+    'id-photo-crop': {
+      label: 'Recadrer photo ID',
+      title: 'Outil gratuit pour recadrer une photo ID, passeport ou CV',
+      h1: 'Recadrez une photo ID pour passeport, CV, examens et profils',
+      description:
+        'Importez une image JPG, PNG ou WebP, choisissez un format de photo ID, ajustez le cadrage et téléchargez un JPG prêt pour formulaires, CV, examens ou profils.',
+      keywords: ['recadrer photo ID', 'photo passeport en ligne', 'photo CV', 'photo examen'],
+      features: ['Recadrage photo ID', 'Formats courants de documents', 'Zoom et position', 'Traitement local dans le navigateur', 'Téléchargement JPG'],
+      faqs: [
+        { question: 'Puis-je recadrer une photo ID en ligne ?', answer: 'Oui. Chargez une image locale et préparez une photo au format document.' },
+        { question: 'La photo est-elle envoyée au serveur ?', answer: 'Non. Le recadrage se fait dans votre navigateur.' },
+        { question: 'Est-ce utile pour CV, examens ou badges ?', answer: 'Oui. Les formats conviennent aux CV, portails scolaires, inscriptions d’examen et badges internes.' },
+        { question: 'Puis-je l’utiliser pour une demande officielle ?', answer: 'Utilisez-le pour préparer une photo de style document. Pour passeports et visas, suivez les règles officielles.' },
+      ],
+    },
+    'resize-image': {
+      label: 'Redimensionner image',
+      title: 'Redimensionner une image en ligne : JPG, PNG et WebP',
+      h1: 'Redimensionnez des images JPG, PNG et WebP en ligne',
+      description:
+        'Changez la taille d’une image par pourcentage ou dimensions exactes pour profils, formulaires, portails scolaires, candidatures et photos de document.',
+      keywords: ['redimensionner image', 'changer dimensions image', 'redimensionner JPG', 'redimensionner PNG'],
+      features: ['Redimensionnement par pourcentage', 'Dimensions exactes', 'JPG, PNG et WebP', 'Pour formulaires et profils', 'Traitement local'],
+      faqs: [
+        { question: 'Puis-je redimensionner par pourcentage ?', answer: 'Oui. Choisissez le mode proportionnel et ajustez le curseur.' },
+        { question: 'Puis-je définir des pixels exacts ?', answer: 'Oui. Choisissez le mode dimensions exactes.' },
+        { question: 'Les fichiers JPG et PNG sont-ils pris en charge ?', answer: 'Oui. L’outil accepte JPG, PNG et WebP.' },
+        { question: 'Est-ce adapté aux formulaires en ligne ?', answer: 'Oui. Il est conçu pour profils, portails scolaires, candidatures et photos de document.' },
+      ],
+    },
+    'resize-image-to-kb': {
+      label: 'Image en KB',
+      title: 'Compresser une image en KB : réduire JPG pour formulaires',
+      h1: 'Compressez une image vers une taille cible en KB',
+      description:
+        'Réduisez une photo à une limite en KB, par exemple 200 KB, puis exportez en JPG ou WebP pour formulaires, profils, portails scolaires et candidatures.',
+      keywords: ['compresser image en KB', 'réduire JPG 200KB', 'réduire taille photo'],
+      features: ['Taille cible en KB', 'Compression locale', 'Export JPG ou WebP', 'Pour formulaires', 'Réduction du poids'],
+      toolTitle: 'Image en KB',
+      toolDescription:
+        'Compressez une image JPG, PNG ou WebP vers une taille cible en KB pour formulaires, portails scolaires, profils et candidatures. Le traitement reste dans le navigateur.',
+      actionLabel: 'Compresser l’image',
+      faqs: [
+        { question: 'Puis-je réduire une image pour un formulaire ?', answer: 'Oui. Définissez la limite en KB et l’outil essaie de rester sous cette taille.' },
+        { question: 'L’image est-elle envoyée ?', answer: 'Non. La compression se fait localement.' },
+        { question: 'Puis-je réduire un JPG à 200 KB ?', answer: 'Oui. Choisissez 200 KB comme cible.' },
+        { question: 'Pourquoi le fichier final peut-il être plus petit ?', answer: 'L’outil équilibre dimensions et qualité; un fichier plus petit peut donner un meilleur résultat.' },
+      ],
+    },
+    'remove-background': {
+      label: 'Remove background',
+      title: 'Remove Background en ligne : PNG transparent pour personnes et produits',
+      h1: 'Remove Background pour personnes, produits et objets',
+      description:
+        'Importez une image de personne, produit ou objet, retirez l’arrière-plan en ligne et téléchargez un PNG transparent. Chaque compte a 1 essai gratuit; ensuite 1 crédit par export réussi.',
+      keywords: ['remove background', 'PNG transparent', 'retirer fond produit', 'retirer fond portrait'],
+      features: ['Portraits et personnes', 'Produits et objets', 'PNG transparent', '1 essai gratuit avec compte', 'Crédits ensuite'],
+      toolTitle: 'Remove Background',
+      toolDescription: 'Importez une personne, un produit ou un objet. L’outil retire l’arrière-plan et produit un PNG transparent.',
+      actionLabel: 'Remove background',
+      faqs: [
+        { question: 'Fonctionne-t-il avec personnes et produits ?', answer: 'Oui. Il couvre portraits, produits, objets et images de style document.' },
+        { question: 'Quel fichier est téléchargé ?', answer: 'Un PNG transparent avec l’arrière-plan retiré.' },
+        { question: 'Est-ce gratuit ?', answer: 'Chaque utilisateur inscrit dispose d’un essai gratuit. Ensuite chaque export réussi utilise 1 crédit.' },
+        { question: 'Le détourage est-il toujours parfait ?', answer: 'Les images complexes peuvent demander un ajustement supplémentaire, notamment cheveux, ombres, fonds chargés, objets transparents ou basse résolution.' },
+      ],
+    },
+    'background-color-tool': {
+      label: 'Couleur de fond',
+      title: 'Changer le fond d’une photo ID : blanc, bleu ou rouge',
+      h1: 'Changez le fond d’une photo ID en blanc, bleu ou rouge',
+      description:
+        'Importez un PNG transparent, choisissez un format de photo et appliquez un fond blanc, bleu, rouge ou gris clair, puis téléchargez un JPG final.',
+      keywords: ['changer fond photo ID', 'photo fond blanc', 'photo fond bleu', 'photo fond rouge'],
+      features: ['Fond blanc', 'Fond bleu', 'Fond rouge', 'Formats photo ID', 'Export JPG'],
+      faqs: [
+        { question: 'Faut-il un PNG transparent ?', answer: 'Oui. L’outil place une couleur nette derrière le sujet.' },
+        { question: 'Puis-je choisir blanc, bleu ou rouge ?', answer: 'Oui. Les options incluent blanc, bleu, rouge et gris clair.' },
+        { question: 'Puis-je choisir la taille de photo ?', answer: 'Oui. Sélectionnez un format ID avant téléchargement.' },
+        { question: 'Quel format est exporté ?', answer: 'Un JPG avec la taille et la couleur de fond choisies.' },
+      ],
+    },
+    'print-layout-builder': {
+      label: 'Planche photo',
+      title: 'Créer une planche photo ID : 4x6, A4 et Letter',
+      h1: 'Créez une planche d’impression pour photos ID',
+      description:
+        'Importez une photo finalisée, choisissez format photo et papier, générez plusieurs copies sur une page et téléchargez un JPG prêt à imprimer.',
+      keywords: ['planche photo ID', 'imprimer plusieurs photos', 'photo 4x6', 'photos ID A4'],
+      features: ['Plusieurs copies par page', 'Formats 4x6, 5x7, A4 et Letter', 'Photo adaptée au format choisi', 'Aperçu', 'Téléchargement JPG'],
+      faqs: [
+        { question: 'Puis-je mettre plusieurs photos sur une page ?', answer: 'Oui. L’outil répète la photo selon le format et le papier.' },
+        { question: 'Les formats 4x6 et A4 sont-ils inclus ?', answer: 'Oui. 4 x 6, 5 x 7, A4 et Letter sont disponibles.' },
+        { question: 'L’outil recadre-t-il la photo ?', answer: 'Il l’adapte au format choisi. Pour un placement précis du visage, utilisez d’abord Recadrer photo ID.' },
+        { question: 'Quel format est téléchargé ?', answer: 'Un JPG prêt pour impression à domicile ou en boutique.' },
+      ],
+    },
+  },
+  de: {
+    'id-photo-crop': {
+      label: 'ID-Foto zuschneiden',
+      title: 'Kostenloses Tool zum Zuschneiden von ID-Fotos, Passbildern und Bewerbungsfotos',
+      h1: 'ID-Fotos fuer Pass, Bewerbung, Pruefung und Profile zuschneiden',
+      description:
+        'Lade ein JPG, PNG oder WebP hoch, waehle eine ID-Fotogroesse, passe den Ausschnitt an und lade ein fertiges JPG fuer Formulare, Bewerbungen, Pruefungen oder Profile herunter.',
+      keywords: ['ID-Foto zuschneiden', 'Passfoto online zuschneiden', 'Bewerbungsfoto zuschneiden', 'Pruefungsfoto'],
+      features: ['ID-Foto-Zuschnitt', 'Gaengige Dokumentformate', 'Zoom und Position', 'Lokale Verarbeitung im Browser', 'JPG-Download'],
+      faqs: [
+        { question: 'Kann ich ein ID-Foto online zuschneiden?', answer: 'Ja. Du kannst ein lokales Bild laden und als Dokumentfoto vorbereiten.' },
+        { question: 'Wird das Bild hochgeladen?', answer: 'Nein. Der Zuschnitt laeuft im Browser.' },
+        { question: 'Eignet es sich fuer Bewerbung, Pruefung oder Ausweis?', answer: 'Ja. Die Formate passen fuer Bewerbungen, Schulportale, Pruefungsanmeldungen und interne Ausweise.' },
+        { question: 'Ist es fuer amtliche Paesse geeignet?', answer: 'Nutze es zur Vorbereitung. Fuer amtliche Dokumente gelten immer die Vorgaben der jeweiligen Behoerde.' },
+      ],
+    },
+    'resize-image': {
+      label: 'Bild skalieren',
+      title: 'Bild online skalieren: JPG, PNG und WebP',
+      h1: 'JPG-, PNG- und WebP-Bilder online skalieren',
+      description:
+        'Aendere Bildgroessen per Prozentwert oder exakten Pixelmassen fuer Profile, Formulare, Schulportale, Bewerbungen und Dokumentfotos.',
+      keywords: ['Bild skalieren online', 'Bildgroesse aendern', 'JPG skalieren', 'PNG skalieren'],
+      features: ['Skalierung per Prozent', 'Exakte Pixelmasse', 'JPG, PNG und WebP', 'Fuer Formulare und Profile', 'Lokale Verarbeitung'],
+      faqs: [
+        { question: 'Kann ich per Prozent skalieren?', answer: 'Ja. Waehle den proportionalen Modus und stelle den Prozentwert ein.' },
+        { question: 'Kann ich genaue Pixelmasse eingeben?', answer: 'Ja. Nutze den Modus fuer exakte Groesse.' },
+        { question: 'Werden JPG und PNG unterstuetzt?', answer: 'Ja. Das Tool akzeptiert JPG, PNG und WebP.' },
+        { question: 'Eignet es sich fuer Online-Formulare?', answer: 'Ja. Es ist fuer Profile, Schulportale, Bewerbungen und Dokumentfoto-Uploads gedacht.' },
+      ],
+    },
+    'resize-image-to-kb': {
+      label: 'Bild auf KB',
+      title: 'Bild auf KB komprimieren: JPG fuer Formulare verkleinern',
+      h1: 'Bild auf eine Zielgroesse in KB komprimieren',
+      description:
+        'Reduziere ein Foto auf eine KB-Grenze, zum Beispiel 200 KB, und exportiere JPG oder WebP fuer Formulare, Profile, Schulportale und Bewerbungen.',
+      keywords: ['Bild auf KB komprimieren', 'JPG auf 200KB verkleinern', 'Fotodatei verkleinern'],
+      features: ['KB-Zielgroesse', 'Lokale Komprimierung', 'JPG- oder WebP-Export', 'Fuer Formulare', 'Dateigroesse reduzieren'],
+      toolTitle: 'Bild auf KB',
+      toolDescription:
+        'Komprimiere JPG, PNG oder WebP auf eine Zielgroesse in KB fuer Formulare, Schulportale, Profile und Bewerbungen. Die Verarbeitung bleibt im Browser.',
+      actionLabel: 'Bild komprimieren',
+      faqs: [
+        { question: 'Kann ich ein Bild fuer ein Formular verkleinern?', answer: 'Ja. Lege die Zielgroesse in KB fest und das Tool versucht, darunter zu bleiben.' },
+        { question: 'Wird mein Bild hochgeladen?', answer: 'Nein. Die Komprimierung laeuft lokal im Browser.' },
+        { question: 'Kann ich ein JPG auf 200 KB reduzieren?', answer: 'Ja. Setze 200 KB als Ziel.' },
+        { question: 'Warum ist die Datei manchmal kleiner als das Ziel?', answer: 'Das Tool balanciert Masse und Qualitaet; ein kleineres Ergebnis kann sauberer sein.' },
+      ],
+    },
+    'remove-background': {
+      label: 'Remove background',
+      title: 'Remove Background online: transparentes PNG fuer Personen und Produkte',
+      h1: 'Remove Background fuer Personen, Produkte und Objekte',
+      description:
+        'Lade ein Bild von Person, Produkt oder Objekt hoch, entferne den Hintergrund online und lade ein transparentes PNG herunter. Registrierte Nutzer erhalten 1 kostenlosen Lauf; danach kostet jeder erfolgreiche Export 1 Credit.',
+      keywords: ['remove background online', 'transparentes PNG', 'Produkthintergrund entfernen', 'Person Hintergrund entfernen'],
+      features: ['Personen und Portraets', 'Produkte und Objekte', 'Transparentes PNG', '1 kostenloser Lauf mit Konto', 'Danach Credit-Nutzung'],
+      toolTitle: 'Remove Background',
+      toolDescription: 'Lade eine Person, ein Produkt oder Objekt hoch. Das Tool entfernt den Hintergrund und liefert ein transparentes PNG.',
+      actionLabel: 'Remove background',
+      faqs: [
+        { question: 'Funktioniert es fuer Personen und Produkte?', answer: 'Ja. Es ist fuer Portraets, Produkte, Objekte und dokumentaehnliche Bilder gedacht.' },
+        { question: 'Welche Datei lade ich herunter?', answer: 'Ein transparentes PNG mit entferntem Hintergrund.' },
+        { question: 'Ist es kostenlos?', answer: 'Registrierte Nutzer haben 1 kostenlosen Lauf. Danach nutzt jeder erfolgreiche PNG-Export 1 Credit.' },
+        { question: 'Ist das Freistellen immer perfekt?', answer: 'Komplexe Bilder koennen Nacharbeit brauchen, etwa Haare, Schatten, unruhige Hintergruende, transparente Objekte oder niedrige Aufloesung.' },
+      ],
+    },
+    'background-color-tool': {
+      label: 'Hintergrundfarbe',
+      title: 'ID-Foto-Hintergrund aendern: weiss, blau oder rot',
+      h1: 'ID-Foto-Hintergrund auf weiss, blau oder rot aendern',
+      description:
+        'Lade ein transparentes PNG hoch, waehle Fotogroesse und Hintergrundfarbe, und lade ein fertiges JPG mit weissem, blauem, rotem oder hellgrauem Hintergrund herunter.',
+      keywords: ['ID-Foto Hintergrund aendern', 'Foto weisser Hintergrund', 'blauer Hintergrund ID-Foto', 'roter Hintergrund Foto'],
+      features: ['Weisser Hintergrund', 'Blauer Hintergrund', 'Roter Hintergrund', 'ID-Fotogroessen', 'JPG-Export'],
+      faqs: [
+        { question: 'Brauche ich ein transparentes PNG?', answer: 'Ja. Das Tool legt eine saubere Farbe hinter das Motiv.' },
+        { question: 'Kann ich weiss, blau oder rot waehlen?', answer: 'Ja. Verfuegbar sind weiss, blau, rot und hellgrau.' },
+        { question: 'Kann ich die Fotogroesse waehlen?', answer: 'Ja. Waehle eine gaengige ID-Fotogroesse vor dem Download.' },
+        { question: 'Welches Format wird heruntergeladen?', answer: 'Ein JPG mit gewaehlter Groesse und Hintergrundfarbe.' },
+      ],
+    },
+    'print-layout-builder': {
+      label: 'Druckbogen',
+      title: 'ID-Foto-Druckbogen erstellen: 4x6, A4 und Letter',
+      h1: 'Druckbogen fuer ID-Fotos erstellen',
+      description:
+        'Lade ein fertiges Foto hoch, waehle Foto- und Papiergroesse, erstelle mehrere Kopien auf einer Seite und lade ein druckfertiges JPG herunter.',
+      keywords: ['ID-Foto Druckbogen', 'mehrere Fotos drucken', '4x6 Fotolayout', 'A4 ID-Fotos'],
+      features: ['Mehrere Kopien pro Seite', '4x6, 5x7, A4 und Letter', 'Foto wird auf Zielgroesse vorbereitet', 'Vorschau', 'JPG-Download'],
+      faqs: [
+        { question: 'Kann ich mehrere Fotos auf eine Seite setzen?', answer: 'Ja. Das Tool wiederholt das Foto passend zu Format und Papier.' },
+        { question: 'Sind 4x6 und A4 enthalten?', answer: 'Ja. 4 x 6, 5 x 7, A4 und Letter sind enthalten.' },
+        { question: 'Schneidet das Tool das Foto zu?', answer: 'Es passt das Foto in die gewaehlte Groesse ein. Fuer genaue Kopfposition nutze zuerst ID-Foto zuschneiden.' },
+        { question: 'Welches Format wird heruntergeladen?', answer: 'Ein JPG fuer Heimdruck oder Fotoladen.' },
+      ],
+    },
+  },
+  ja: {
+    'id-photo-crop': {
+      label: 'ID写真トリミング',
+      title: 'ID写真、パスポート、履歴書用の無料トリミングツール',
+      h1: 'ID写真、履歴書、試験、プロフィール用に写真を整える',
+      description:
+        'JPG、PNG、WebP画像をアップロードし、ID写真サイズを選び、位置を調整して、フォームや履歴書、試験登録、プロフィール用のJPGをダウンロードできます。',
+      keywords: ['ID写真 トリミング', 'パスポート写真 オンライン', '履歴書写真', '試験用写真'],
+      features: ['ID写真向けトリミング', 'よく使う証明写真サイズ', 'ズームと位置調整', 'ブラウザ内で処理', 'JPGで保存'],
+      faqs: [
+        { question: 'オンラインでID写真を切り抜けますか？', answer: 'はい。手元の画像を読み込み、証明写真向けのサイズと構図に整えられます。' },
+        { question: '画像はサーバーに送信されますか？', answer: 'いいえ。このトリミング処理はブラウザ内で行われます。' },
+        { question: '履歴書や試験登録にも使えますか？', answer: 'はい。履歴書、学校ポータル、試験登録、社員証や学生証などに使いやすい設定です。' },
+        { question: '公式パスポート申請に使えますか？', answer: '書類用写真の準備には使えますが、公式申請では必ず提出先の規定を確認してください。' },
+      ],
+    },
+    'resize-image': {
+      label: '画像サイズ変更',
+      title: '画像サイズ変更オンライン：JPG、PNG、WebP対応',
+      h1: 'JPG、PNG、WebP画像のサイズをオンラインで変更',
+      description:
+        '比率指定またはピクセル指定で画像サイズを変更し、プロフィール、フォーム、学校ポータル、求人応募、書類用写真に合わせられます。',
+      keywords: ['画像サイズ変更', '画像 ピクセル 変更', 'JPG サイズ変更', 'PNG サイズ変更'],
+      features: ['比率でサイズ変更', '正確なピクセル指定', 'JPG、PNG、WebP対応', 'フォームやプロフィール向け', 'ブラウザ内処理'],
+      faqs: [
+        { question: '比率でサイズ変更できますか？', answer: 'はい。比例モードでパーセントを調整できます。' },
+        { question: 'ピクセル数を指定できますか？', answer: 'はい。正確なサイズモードで幅と高さを指定できます。' },
+        { question: 'JPGやPNGに対応していますか？', answer: 'はい。JPG、PNG、WebPに対応しています。' },
+        { question: 'オンラインフォーム用に使えますか？', answer: 'はい。プロフィール、学校ポータル、応募フォーム、書類用写真アップロード向けです。' },
+      ],
+    },
+    'resize-image-to-kb': {
+      label: '画像をKB指定',
+      title: '画像をKB指定で圧縮：フォーム用JPGを軽量化',
+      h1: '画像を目標KBサイズに圧縮',
+      description:
+        '写真を200KBなどの上限に合わせて圧縮し、フォーム、プロフィール、学校ポータル、応募用にJPGまたはWebPで書き出せます。',
+      keywords: ['画像 KB 圧縮', 'JPG 200KB', '写真ファイル 軽量化'],
+      features: ['KB目標サイズ', 'ローカル圧縮', 'JPGまたはWebP出力', 'フォーム向け', 'ファイルサイズ削減'],
+      toolTitle: '画像をKB指定',
+      toolDescription:
+        'JPG、PNG、WebP画像をフォーム、学校ポータル、プロフィール、応募用の目標KBサイズに圧縮します。処理はブラウザ内で行われます。',
+      actionLabel: '画像を圧縮',
+      faqs: [
+        { question: 'フォーム用に画像を小さくできますか？', answer: 'はい。目標KBを設定すると、そのサイズ以下に近づけて出力します。' },
+        { question: '画像はアップロードされますか？', answer: 'いいえ。圧縮はブラウザ内で行われます。' },
+        { question: 'JPGを200KBにできますか？', answer: 'はい。目標を200KBに設定して出力できます。' },
+        { question: 'なぜ目標より小さいファイルになりますか？', answer: '画質とサイズのバランスを取るため、よりきれいな結果として目標より小さくなる場合があります。' },
+      ],
+    },
+    'remove-background': {
+      label: 'Remove background',
+      title: 'Remove Background：人物、商品、物体を透明PNGに',
+      h1: '人物、商品、物体の背景を削除',
+      description:
+        '人物、商品、物体の画像をアップロードし、背景を削除して透明PNGをダウンロードできます。登録ユーザーは1回無料、その後は成功した出力ごとに1クレジットを使用します。',
+      keywords: ['remove background', '透明PNG', '商品 背景削除', '人物 背景削除'],
+      features: ['人物とポートレート', '商品と物体', '透明PNGを保存', '登録ユーザーは1回無料', '以降はクレジット利用'],
+      toolTitle: 'Remove Background',
+      toolDescription: '人物、商品、物体の画像をアップロードすると、背景を削除して透明PNGを生成します。',
+      actionLabel: 'Remove background',
+      faqs: [
+        { question: '人物や商品に使えますか？', answer: 'はい。人物、ポートレート、商品、物体、書類用写真風の画像に使えます。' },
+        { question: 'どの形式で保存できますか？', answer: '背景を削除した透明PNGを保存できます。' },
+        { question: '無料で使えますか？', answer: '登録ユーザーは1回無料です。その後、成功したPNG出力ごとに1クレジットを使用します。' },
+        { question: '切り抜きは常に完璧ですか？', answer: '髪、影、複雑な背景、透明な物体、低解像度画像では追加調整が必要になる場合があります。' },
+      ],
+    },
+    'background-color-tool': {
+      label: '背景色ツール',
+      title: 'ID写真の背景色を白、青、赤に変更',
+      h1: 'ID写真の背景を白、青、赤に変更',
+      description:
+        '透明PNGをアップロードし、写真サイズを選び、背景を白、青、赤、ライトグレーに変更して、完成したJPGを保存できます。',
+      keywords: ['ID写真 背景色', '白背景 写真', '青背景 証明写真', '赤背景 写真'],
+      features: ['白背景', '青背景', '赤背景', 'ID写真サイズ', 'JPG出力'],
+      faqs: [
+        { question: '透明PNGが必要ですか？', answer: 'はい。被写体の後ろにきれいな背景色を配置するため、透明PNG向けのツールです。' },
+        { question: '白、青、赤を選べますか？', answer: 'はい。白、青、赤、ライトグレーを選べます。' },
+        { question: '写真サイズを選べますか？', answer: 'はい。保存前によく使うID写真サイズを選択できます。' },
+        { question: '保存形式は何ですか？', answer: '選択したサイズと背景色のJPGを保存します。' },
+      ],
+    },
+    'print-layout-builder': {
+      label: '印刷レイアウト',
+      title: 'ID写真の印刷シート作成：4x6、A4、Letter',
+      h1: 'ID写真の印刷シートを作成',
+      description:
+        '完成した写真をアップロードし、写真サイズと用紙サイズを選び、1枚に複数枚配置した印刷用JPGを作成できます。',
+      keywords: ['ID写真 印刷シート', '写真 複数 印刷', '4x6 写真 レイアウト', 'A4 証明写真'],
+      features: ['1枚に複数コピー', '4x6、5x7、A4、Letter対応', '選択サイズに合わせて配置', 'プレビュー', 'JPG保存'],
+      faqs: [
+        { question: '1枚に複数の写真を配置できますか？', answer: 'はい。選択した写真サイズと用紙サイズに合わせて自動配置します。' },
+        { question: '4x6やA4に対応していますか？', answer: 'はい。4 x 6、5 x 7、A4、Letterを選べます。' },
+        { question: '写真をトリミングしますか？', answer: '選択した写真サイズに合わせて配置します。顔位置を正確にしたい場合は、先にID写真トリミングを使ってください。' },
+        { question: '保存形式は何ですか？', answer: '自宅や店舗で印刷しやすいJPGを保存します。' },
+      ],
+    },
+  },
+}
+
+export function getPhotoToolPages(locale: Locale = 'en') {
+  if (locale === 'en') return photoToolPages
+
+  const translations = localizedPhotoToolPages[locale] || {}
+  return photoToolPages.map((page) => ({
+    ...page,
+    ...(translations[page.id] || {}),
+  }))
+}
+
+export function getPhotoToolPage(id: string, locale: Locale = 'en') {
+  return getPhotoToolPages(locale).find((page) => page.id === id)
 }
