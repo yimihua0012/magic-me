@@ -14,7 +14,6 @@ export default function Footer({ locale = 'en' }: FooterProps) {
   const homeHref = localePath(locale)
   const featuresHref = `${homeHref === '/' ? '' : homeHref}/#features`
   const pricingHref = localePath(locale, '/pricing')
-  const isEnglish = locale === 'en'
   const content = localizedLayoutContent[locale].footer
 
   return (
@@ -49,6 +48,11 @@ export default function Footer({ locale = 'en' }: FooterProps) {
                   {content.generate}
                 </FooterGenerateLink>
               </li>
+              <li>
+                <Link href={withSource(localePath(locale, '/free-id-photo-tool'), `footer_photo_tools_${locale}`)} className="text-sm text-slate-400 transition-colors hover:text-white">
+                  {content.photoTools}
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -65,13 +69,11 @@ export default function Footer({ locale = 'en' }: FooterProps) {
                   {content.samples}
                 </Link>
               </li>
-              {isEnglish && (
-                <li>
-                  <Link href="/blog" className="text-sm text-slate-400 transition-colors hover:text-white">
-                    {content.blog}
-                  </Link>
-                </li>
-              )}
+              <li>
+                <Link href={withSource(localePath(locale, '/blog'), `footer_blog_${locale}`)} className="text-sm text-slate-400 transition-colors hover:text-white">
+                  {content.blog}
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, BookOpen, CalendarDays } from 'lucide-react'
 import BlogCoverImage from '@/components/blog/blog-cover-image'
+import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
 import Navbar from '@/components/layout/localized-navbar'
 import Footer from '@/components/layout/localized-footer'
 import BlogJsonLd from '@/components/seo/blog-json-ld'
@@ -12,6 +13,7 @@ import { getBlogPublishDate } from '@/lib/blog-dates'
 import {
   blogCategoryPath,
   blogPostCategoryLabel,
+  getBlogCategoriesFromPosts,
   getBlogIndexLanguageAlternates,
   getCmsPublishedBlogPosts,
   localeHasPublishedCmsBlogPosts,
@@ -32,6 +34,17 @@ const localizedBlogIndexContent: Record<
     intro: string
     keywords: string[]
     readArticle: string
+    categoriesHeading: string
+    categoriesDescription: string
+    toolsHeading: string
+    toolsDescription: string
+    toolsLink: string
+    workflowHeading: string
+    workflowDescription: string
+    workflowLink: string
+    pricingHeading: string
+    pricingDescription: string
+    pricingLink: string
   }
 > = {
   es: {
@@ -43,6 +56,17 @@ const localizedBlogIndexContent: Record<
       'Guias practicas para elegir retratos IA realistas, preparar fotos base, mejorar perfiles profesionales y usar imagenes para LinkedIn, CV, marca personal o proyectos creativos.',
     keywords: ['AI headshots', 'fotos para LinkedIn', 'foto profesional IA', 'retrato realista', 'foto para CV', 'perfil profesional'],
     readArticle: 'Leer articulo',
+    categoriesHeading: 'Explorar categorias del blog',
+    categoriesDescription: 'Usa estas paginas para agrupar guias sobre perfiles, CV, documentos, equipos y decisiones antes de publicar una foto profesional.',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: 'Despues de leer una guia, usa las herramientas de foto para recortar, cambiar tamano, preparar hojas imprimibles o ajustar el fondo antes de publicar o enviar una imagen.',
+    toolsLink: 'Abrir herramientas de foto',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: 'Genera retratos IA realistas para LinkedIn, CV, paginas de equipo y perfiles profesionales cuando ya tengas claro el estilo y los controles que necesitas.',
+    workflowLink: 'Crear retratos',
+    pricingHeading: 'Elige el paquete de creditos adecuado',
+    pricingDescription: 'Compara creditos de pago unico antes de producir imagenes finales para perfil, busqueda de empleo, pagina de equipo o foto tipo documento.',
+    pricingLink: 'Ver precios',
   },
   fr: {
     title: 'Blog sur les portraits IA et photos professionnelles | Magic-Headshot',
@@ -53,6 +77,17 @@ const localizedBlogIndexContent: Record<
       'Des guides pratiques pour choisir un portrait IA realiste, preparer ses photos sources, ameliorer un profil professionnel et adapter son image a LinkedIn, au CV ou a une presence en ligne.',
     keywords: ['portrait IA', 'photo LinkedIn', 'photo professionnelle IA', 'portrait realiste', 'photo CV', 'profil professionnel'],
     readArticle: 'Lire l’article',
+    categoriesHeading: 'Parcourir les categories du blog',
+    categoriesDescription: 'Retrouvez les guides par usage: profil professionnel, CV, document courant, equipe, publication et controles avant mise en ligne.',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: 'Apres la lecture, utilisez les outils photo pour recadrer une image, reduire son poids, preparer une planche imprimable ou ajuster le fond avant publication.',
+    toolsLink: 'Ouvrir les outils photo',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: 'Generez des portraits IA realistes pour LinkedIn, CV, pages equipe et profils professionnels apres avoir choisi le style et les controles utiles.',
+    workflowLink: 'Creer des portraits',
+    pricingHeading: 'Choisir le bon pack de credits',
+    pricingDescription: 'Comparez les packs de credits avant de produire vos images finales pour un profil, une candidature, une page equipe ou une photo de document.',
+    pricingLink: 'Voir les tarifs',
   },
   de: {
     title: 'Blog zu KI-Headshots und professionellen Profilbildern | Magic-Headshot',
@@ -63,6 +98,17 @@ const localizedBlogIndexContent: Record<
       'Praxisnahe Guides fuer realistische KI-Portrats, bessere Ausgangsfotos, berufliche Profile, LinkedIn, Bewerbungen, Personal Branding und kreative Online-Auftritte.',
     keywords: ['KI Headshot', 'LinkedIn Foto', 'professionelles KI Foto', 'realistisches Portrat', 'Bewerbungsfoto', 'Profilbild'],
     readArticle: 'Artikel lesen',
+    categoriesHeading: 'Blog-Kategorien ansehen',
+    categoriesDescription: 'Finde zusammenhaengende Guides zu Profilbildern, Bewerbungsfotos, Dokumentfotos, Teamseiten und Checks vor der Veroeffentlichung.',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: 'Nach dem Lesen kannst du die Fotowerkzeuge nutzen, um Bilder zuzuschneiden, Dateigroessen anzupassen, Druckboegen vorzubereiten oder Hintergruende zu pruefen.',
+    toolsLink: 'Fotowerkzeuge oeffnen',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: 'Erstelle realistische KI-Portrats fuer LinkedIn, Bewerbungen, Teamseiten und berufliche Profile, sobald Stil und Qualitaetschecks klar sind.',
+    workflowLink: 'Portrats erstellen',
+    pricingHeading: 'Passendes Credit-Paket waehlen',
+    pricingDescription: 'Vergleiche Einmal-Credits, bevor du finale Bilder fuer Profil, Bewerbung, Teamseite oder dokumentaehnliche Fotos produzierst.',
+    pricingLink: 'Preise ansehen',
   },
   ja: {
     title: 'AIヘッドショットとプロフィール写真のブログ | Magic-Headshot',
@@ -73,6 +119,17 @@ const localizedBlogIndexContent: Record<
       '自然に見えるAIポートレートの選び方、元写真の準備、LinkedInや履歴書、仕事用プロフィール、SNSや創作向けの写真活用をまとめています。',
     keywords: ['AIヘッドショット', 'LinkedIn写真', 'AIプロフィール写真', 'リアルなAIポートレート', '履歴書写真', '仕事用プロフィール'],
     readArticle: '記事を読む',
+    categoriesHeading: 'ブログカテゴリから探す',
+    categoriesDescription: 'プロフィール写真、履歴書、書類用写真、チーム紹介、公開前チェックなど、用途に近い記事をカテゴリ別に確認できます。',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: '記事を読んだあと、写真ツールで切り抜き、サイズ調整、印刷用レイアウト、背景色の確認を行い、提出や公開前の状態を整えられます。',
+    toolsLink: '写真ツールを開く',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: '用途や確認ポイントを決めたうえで、LinkedIn、履歴書、チーム紹介、仕事用プロフィール向けの自然なAI写真を作成できます。',
+    workflowLink: '写真を作成',
+    pricingHeading: 'クレジットプランを確認',
+    pricingDescription: 'プロフィール更新、応募、チームページ、書類風写真などに使う最終画像を作る前に、必要なクレジット数を確認できます。',
+    pricingLink: '料金を見る',
   },
 }
 
@@ -134,6 +191,7 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
     notFound()
   }
   const content = localizedBlogIndexContent[routedLocale]
+  const categories = getBlogCategoriesFromPosts(posts, routedLocale)
 
   return (
     <div className="min-h-screen bg-white">
@@ -153,6 +211,25 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
             </p>
             <div className="mt-7">
               <KeywordStrip keywords={content.keywords} />
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-slate-200 bg-white py-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-slate-950">{content.categoriesHeading}</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{content.categoriesDescription}</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <Link
+                  key={category.slug}
+                  href={blogCategoryPath(routedLocale, category.slug)}
+                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+                >
+                  {category.label}
+                  <span className="ml-2 text-slate-400">{category.count}</span>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -200,6 +277,24 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
             })}
           </div>
         </section>
+        <BlogPhotoToolsCta
+          locale={routedLocale}
+          photoTools={{
+            heading: content.toolsHeading,
+            description: content.toolsDescription,
+            linkLabel: content.toolsLink,
+          }}
+          workflow={{
+            heading: content.workflowHeading,
+            description: content.workflowDescription,
+            linkLabel: content.workflowLink,
+          }}
+          pricing={{
+            heading: content.pricingHeading,
+            description: content.pricingDescription,
+            linkLabel: content.pricingLink,
+          }}
+        />
       </main>
       <Footer locale={routedLocale} />
     </div>

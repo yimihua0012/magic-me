@@ -130,6 +130,9 @@ export default function Navbar({ onOpenAuthModal, locale = 'en', solid = true }:
   const testimonialsHref = `${homeHref === '/' ? '' : homeHref}/#testimonials`
   const pricingHref = localePath(locale, '/pricing')
   const photoToolsHref = localePath(locale, '/free-id-photo-tool')
+  const samplesHref = localePath(locale, '/sample')
+  const blogHref = localePath(locale, '/blog')
+  const questionsHref = localePath(locale, '/questions')
   const uploadHref = localePath(locale, '/upload')
   const dashboardHref = localePath(locale, '/dashboard')
   const sourcedUploadHref = withSource(uploadHref, `nav_generate_${locale}`)
@@ -181,18 +184,27 @@ export default function Navbar({ onOpenAuthModal, locale = 'en', solid = true }:
               <span className="text-lg font-bold text-slate-900 sm:text-xl">{appConfig.name}</span>
             </Link>
 
-            <div className="hidden items-center gap-8 lg:flex">
-              <Link href={featuresHref} className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
+            <div className="hidden items-center gap-4 lg:flex">
+              <Link href={featuresHref} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
                 {content.features}
               </Link>
-              <Link href={withSource(pricingHref, `nav_pricing_${locale}`)} className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
-                {content.pricing}
-              </Link>
-              <Link href={photoToolsHref} className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+              <Link href={photoToolsHref} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
                 {content.photoTools}
               </Link>
-              <Link href={testimonialsHref} className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
+              <Link href={withSource(pricingHref, `nav_pricing_${locale}`)} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                {content.pricing}
+              </Link>
+              <Link href={testimonialsHref} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
                 {content.testimonials}
+              </Link>
+              <Link href={samplesHref} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                {content.samples}
+              </Link>
+              <Link href={blogHref} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                {content.blog}
+              </Link>
+              <Link href={questionsHref} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                {content.questions}
               </Link>
             </div>
 
@@ -253,13 +265,6 @@ export default function Navbar({ onOpenAuthModal, locale = 'en', solid = true }:
                 {content.features}
               </Link>
               <Link
-                href={withSource(pricingHref, `nav_mobile_pricing_${locale}`)}
-                className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                onClick={closeMenu}
-              >
-                {content.pricing}
-              </Link>
-              <Link
                 href={photoToolsHref}
                 className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 onClick={closeMenu}
@@ -267,11 +272,11 @@ export default function Navbar({ onOpenAuthModal, locale = 'en', solid = true }:
                 {content.photoTools}
               </Link>
               <Link
-                href={testimonialsHref}
+                href={withSource(pricingHref, `nav_mobile_pricing_${locale}`)}
                 className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 onClick={closeMenu}
               >
-                {content.testimonials}
+                {content.pricing}
               </Link>
               <hr className="my-2 border-slate-100" />
               <div className="px-4 py-2">

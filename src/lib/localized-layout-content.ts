@@ -6,6 +6,9 @@ type LocalizedLayoutContent = {
     pricing: string
     photoTools: string
     testimonials: string
+    samples: string
+    blog: string
+    questions: string
     dashboard: string
     logout: string
     signIn: string
@@ -19,6 +22,7 @@ type LocalizedLayoutContent = {
     product: string
     features: string
     pricing: string
+    photoTools: string
     generate: string
     resources: string
     questions: string
@@ -40,6 +44,9 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
       pricing: 'Pricing',
       photoTools: 'Photo Tools',
       testimonials: 'Testimonials',
+      samples: 'Samples',
+      blog: 'Blog',
+      questions: 'Questions',
       dashboard: 'Dashboard',
       logout: 'Logout',
       signIn: 'Sign In',
@@ -53,6 +60,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
       product: 'Product',
       features: 'Features',
       pricing: 'Pricing',
+      photoTools: 'Photo Tools',
       generate: 'Generate Now',
       resources: 'Resources',
       questions: 'Questions',
@@ -68,10 +76,13 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
   },
   es: {
     nav: {
-      features: 'Funciones',
-      pricing: 'Precios',
-      photoTools: 'Herramientas de foto',
-      testimonials: 'Opiniones',
+      features: 'Features',
+      pricing: 'Pricing',
+      photoTools: 'Photo Tools',
+      testimonials: 'Testimonials',
+      samples: 'Samples',
+      blog: 'Blog',
+      questions: 'Questions',
       dashboard: 'Panel',
       logout: 'Cerrar sesion',
       signIn: 'Iniciar sesion',
@@ -85,6 +96,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
       product: 'Producto',
       features: 'Funciones',
       pricing: 'Precios',
+      photoTools: 'Herramientas de foto',
       generate: 'Crear ahora',
       resources: 'Recursos',
       questions: 'Preguntas',
@@ -100,10 +112,13 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
   },
   fr: {
     nav: {
-      features: 'Fonctionnalites',
-      pricing: 'Tarifs',
-      photoTools: 'Outils photo',
-      testimonials: 'Avis',
+      features: 'Features',
+      pricing: 'Pricing',
+      photoTools: 'Photo Tools',
+      testimonials: 'Testimonials',
+      samples: 'Samples',
+      blog: 'Blog',
+      questions: 'Questions',
       dashboard: 'Tableau de bord',
       logout: 'Se deconnecter',
       signIn: 'Connexion',
@@ -117,6 +132,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
       product: 'Produit',
       features: 'Fonctionnalites',
       pricing: 'Tarifs',
+      photoTools: 'Outils photo',
       generate: 'Creer maintenant',
       resources: 'Ressources',
       questions: 'Questions',
@@ -132,10 +148,13 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
   },
   de: {
     nav: {
-      features: 'Funktionen',
-      pricing: 'Preise',
-      photoTools: 'Fototools',
-      testimonials: 'Bewertungen',
+      features: 'Features',
+      pricing: 'Pricing',
+      photoTools: 'Photo Tools',
+      testimonials: 'Testimonials',
+      samples: 'Samples',
+      blog: 'Blog',
+      questions: 'Questions',
       dashboard: 'Dashboard',
       logout: 'Abmelden',
       signIn: 'Anmelden',
@@ -149,6 +168,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
       product: 'Produkt',
       features: 'Funktionen',
       pricing: 'Preise',
+      photoTools: 'Fototools',
       generate: 'Jetzt erstellen',
       resources: 'Ressourcen',
       questions: 'Fragen',
@@ -164,10 +184,13 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
   },
   ja: {
     nav: {
-      features: '機能',
-      pricing: '料金',
-      photoTools: '写真ツール',
-      testimonials: 'レビュー',
+      features: 'Features',
+      pricing: 'Pricing',
+      photoTools: 'Photo Tools',
+      testimonials: 'Testimonials',
+      samples: 'Samples',
+      blog: 'Blog',
+      questions: 'Questions',
       dashboard: 'ダッシュボード',
       logout: 'ログアウト',
       signIn: 'ログイン',
@@ -181,6 +204,7 @@ export const localizedLayoutContent: Record<Locale, LocalizedLayoutContent> = {
       product: 'プロダクト',
       features: '機能',
       pricing: '料金',
+      photoTools: '写真ツール',
       generate: '今すぐ作成',
       resources: 'リソース',
       questions: 'よくある質問',
@@ -201,10 +225,13 @@ Object.assign(localizedLayoutContent, {
     ...localizedLayoutContent.es,
     nav: {
       ...localizedLayoutContent.es.nav,
-      features: 'Funciones',
-      pricing: 'Precios',
-      photoTools: 'Herramientas de foto',
-      testimonials: 'Resultados',
+      features: 'Features',
+      pricing: 'Pricing',
+      photoTools: 'Photo Tools',
+      testimonials: 'Testimonials',
+      samples: 'Samples',
+      blog: 'Blog',
+      questions: 'Questions',
       dashboard: 'Panel',
       signIn: 'Entrar',
       generate: 'Crear retratos',
@@ -218,6 +245,7 @@ Object.assign(localizedLayoutContent, {
       product: 'Producto',
       features: 'Funciones',
       pricing: 'Precios',
+      photoTools: 'Herramientas de foto',
       generate: 'Crear retratos',
       resources: 'Recursos',
       questions: 'Preguntas',
@@ -234,10 +262,13 @@ Object.assign(localizedLayoutContent, {
     ...localizedLayoutContent.de,
     nav: {
       ...localizedLayoutContent.de.nav,
-      features: 'Funktionen',
-      pricing: 'Preise',
-      photoTools: 'Fotowerkzeuge',
-      testimonials: 'Beispiele',
+      features: 'Features',
+      pricing: 'Pricing',
+      photoTools: 'Photo Tools',
+      testimonials: 'Testimonials',
+      samples: 'Samples',
+      blog: 'Blog',
+      questions: 'Questions',
       dashboard: 'Dashboard',
       signIn: 'Anmelden',
       generate: 'Portrats erstellen',
@@ -251,6 +282,7 @@ Object.assign(localizedLayoutContent, {
       product: 'Produkt',
       features: 'Funktionen',
       pricing: 'Preise',
+      photoTools: 'Fotowerkzeuge',
       generate: 'Portrats erstellen',
       resources: 'Ressourcen',
       questions: 'Fragen',
@@ -267,10 +299,13 @@ Object.assign(localizedLayoutContent, {
     ...localizedLayoutContent.ja,
     nav: {
       ...localizedLayoutContent.ja.nav,
-      features: '機能',
-      pricing: '料金',
-      photoTools: '写真ツール',
-      testimonials: '作例',
+      features: 'Features',
+      pricing: 'Pricing',
+      photoTools: 'Photo Tools',
+      testimonials: 'Testimonials',
+      samples: 'Samples',
+      blog: 'Blog',
+      questions: 'Questions',
       dashboard: 'ダッシュボード',
       signIn: 'ログイン',
       generate: '写真を作成',
@@ -284,6 +319,7 @@ Object.assign(localizedLayoutContent, {
       product: 'プロダクト',
       features: '機能',
       pricing: '料金',
+      photoTools: '写真ツール',
       generate: '写真を作成',
       resources: 'リソース',
       questions: 'よくある質問',

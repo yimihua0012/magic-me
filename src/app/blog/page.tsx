@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, BookOpen, CalendarDays } from 'lucide-react'
 import BlogCoverImage from '@/components/blog/blog-cover-image'
+import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import BlogJsonLd from '@/components/seo/blog-json-ld'
@@ -11,6 +12,7 @@ import { getBlogEnhancement } from '@/lib/blog-enhancements'
 import {
   blogCategoryPath,
   blogPostCategoryLabel,
+  getBlogCategoriesFromPosts,
   getBlogIndexLanguageAlternates,
   getPublishedBlogPosts,
   slugifyBlogCategory,
@@ -36,6 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function BlogPage() {
   const posts = await getPublishedBlogPosts('en')
+  const categories = getBlogCategoriesFromPosts(posts, 'en')
 
   return (
     <StaticMarketingShell>
@@ -57,6 +60,27 @@ export default async function BlogPage() {
             </p>
             <div className="mt-7">
               <KeywordStrip keywords={coreSeoKeywords.slice(0, 6)} />
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-slate-200 bg-white py-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-slate-950">Browse blog categories</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+              Use these category pages to find related headshot, profile photo, resume photo, document photo, and publishing workflow guides.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <Link
+                  key={category.slug}
+                  href={blogCategoryPath('en', category.slug)}
+                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+                >
+                  {category.label}
+                  <span className="ml-2 text-slate-400">{category.count}</span>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -118,6 +142,25 @@ export default async function BlogPage() {
             })}
           </div>
         </section>
+
+        <BlogPhotoToolsCta
+          locale="en"
+          photoTools={{
+            heading: 'Try the photo tools',
+            description: 'After reading a guide, use the photo tools to crop an ID-style image, resize files, prepare printable photo sheets, or adjust a background before publishing or submitting a profile photo.',
+            linkLabel: 'Open photo tools',
+          }}
+          workflow={{
+            heading: 'Try the workflow in Magic-Headshot',
+            description: 'Generate realistic AI headshots for LinkedIn, resumes, team pages, and professional profiles after you understand which photo style and checks fit your goal.',
+            linkLabel: 'Generate headshots',
+          }}
+          pricing={{
+            heading: 'Choose the right credit pack',
+            description: 'Compare one-time credit packs before producing final images for a profile refresh, job application, team page, or document-style photo workflow.',
+            linkLabel: 'View pricing',
+          }}
+        />
       </main>
     </StaticMarketingShell>
   )

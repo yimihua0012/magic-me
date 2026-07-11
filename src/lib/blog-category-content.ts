@@ -18,6 +18,15 @@ export type BlogCategorySeoContent = {
   readArticle: string
   faqHeading: string
   blogName: string
+  toolsHeading: string
+  toolsDescription: string
+  toolsLink: string
+  workflowHeading: string
+  workflowDescription: string
+  workflowLink: string
+  pricingHeading: string
+  pricingDescription: string
+  pricingLink: string
 }
 
 export function getBlogCategorySeoContent(locale: Locale, category: BlogCategorySummary): BlogCategorySeoContent {
@@ -62,6 +71,15 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     readArticle: 'Read article',
     faqHeading: 'Category FAQ',
     blogName: 'Magic-Headshot Blog',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: `Use the photo tools after reading these ${label} guides to crop, resize, prepare printable layouts, or adjust a background before you publish a profile, resume, or document-style photo.`,
+    toolsLink: 'Open photo tools',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: `Use the ${label} guidance to choose a realistic AI headshot style, then generate polished profile, resume, team, or document-style images in Magic-Headshot.`,
+    workflowLink: 'Generate headshots',
+    pricingHeading: 'Choose the right credit pack',
+    pricingDescription: `Review pricing before turning ${label} planning into final images for profile updates, applications, team pages, or everyday document photo needs.`,
+    pricingLink: 'View pricing',
   }),
   es: (label, count) => ({
     title: `${label}: guías prácticas para fotos profesionales | Magic-Headshot`,
@@ -87,6 +105,15 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     readArticle: 'Leer artículo',
     faqHeading: 'FAQ de la categoría',
     blogName: 'Blog de Magic-Headshot',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: 'Después de elegir una guía, usa las herramientas de foto para recortar, cambiar tamaño, preparar una hoja imprimible o revisar el fondo antes de publicar o enviar la imagen.',
+    toolsLink: 'Abrir herramientas de foto',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: `Usa las guías de ${label} para elegir un estilo creíble y generar retratos para LinkedIn, CV, perfiles profesionales, equipos o fotos tipo documento.`,
+    workflowLink: 'Crear retratos',
+    pricingHeading: 'Elige el paquete de creditos adecuado',
+    pricingDescription: `Revisa los precios antes de convertir la planificación de ${label} en imágenes finales para perfil, empleo, equipo o documentos cotidianos.`,
+    pricingLink: 'Ver precios',
   }),
   fr: (label, count) => ({
     title: `${label}: guides photo professionnelle IA | Magic-Headshot`,
@@ -112,6 +139,15 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     readArticle: 'Lire l article',
     faqHeading: 'FAQ de la catégorie',
     blogName: 'Blog Magic-Headshot',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: 'Après avoir choisi un guide, utilisez les outils photo pour recadrer, alléger le fichier, préparer une planche imprimable ou ajuster le fond avant publication.',
+    toolsLink: 'Ouvrir les outils photo',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: `Utilisez les guides ${label} pour choisir un style credible, puis generer des portraits pour LinkedIn, CV, profils professionnels, equipes ou documents.`,
+    workflowLink: 'Creer des portraits',
+    pricingHeading: 'Choisir le bon pack de credits',
+    pricingDescription: `Consultez les tarifs avant de transformer votre preparation ${label} en images finales pour profil, candidature, equipe ou documents courants.`,
+    pricingLink: 'Voir les tarifs',
   }),
   de: (label, count) => ({
     title: `${label}: Ratgeber fuer Profilbilder und Bewerbungsfotos | Magic-Headshot`,
@@ -137,6 +173,15 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     readArticle: 'Artikel lesen',
     faqHeading: 'Kategorie FAQ',
     blogName: 'Magic-Headshot Blog',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: 'Nach dem passenden Guide kannst du die Fotowerkzeuge nutzen, um Bilder zuzuschneiden, Dateigroessen anzupassen, Drucklayouts vorzubereiten oder den Hintergrund zu pruefen.',
+    toolsLink: 'Fotowerkzeuge oeffnen',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: `Nutze die ${label} Guides fuer die Stilentscheidung und erstelle anschliessend KI-Portrats fuer LinkedIn, Bewerbung, Teamseiten oder dokumentaehnliche Fotos.`,
+    workflowLink: 'Portrats erstellen',
+    pricingHeading: 'Passendes Credit-Paket waehlen',
+    pricingDescription: `Pruefe die Preise, bevor du deine ${label} Planung in finale Bilder fuer Profil, Bewerbung, Teamseite oder Dokumentfoto umsetzt.`,
+    pricingLink: 'Preise ansehen',
   }),
   ja: (label, count) => ({
     title: `${label}の用途別ガイド | Magic-Headshot`,
@@ -162,5 +207,14 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     readArticle: '記事を読む',
     faqHeading: 'カテゴリFAQ',
     blogName: 'Magic-Headshotブログ',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: '用途に合う記事を確認したあと、写真ツールで切り抜き、サイズ調整、印刷用レイアウト、背景色の確認を行い、公開や提出前の状態を整えられます。',
+    toolsLink: '写真ツールを開く',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: `${label}の記事で用途やスタイルを整理したあと、LinkedIn、履歴書、チーム紹介、書類風写真に使える自然なAI写真を作成できます。`,
+    workflowLink: '写真を作成',
+    pricingHeading: 'クレジットプランを確認',
+    pricingDescription: `${label}向けの最終画像を作る前に、プロフィール更新、応募、チームページ、書類風写真に必要なクレジットを確認できます。`,
+    pricingLink: '料金を見る',
   }),
 }

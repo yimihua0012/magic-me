@@ -144,18 +144,27 @@ export default function Navbar({ onOpenAuthModal, solid = true }: NavbarProps) {
               <span className="text-lg font-bold text-slate-900 sm:text-xl">{appConfig.name}</span>
             </Link>
 
-            <div className="hidden items-center gap-8 lg:flex">
-              <Link href="/#features" className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
+            <div className="hidden items-center gap-4 lg:flex">
+              <Link href="/#features" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
                 Features
               </Link>
-              <Link href="/pricing" className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
-                Pricing
-              </Link>
-              <Link href="/free-id-photo-tool" className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+              <Link href="/free-id-photo-tool" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
                 Photo Tools
               </Link>
-              <Link href="/#testimonials" className="font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
+              <Link href="/pricing" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                Pricing
+              </Link>
+              <Link href="/#testimonials" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch={false}>
                 Testimonials
+              </Link>
+              <Link href="/sample" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                Samples
+              </Link>
+              <Link href="/blog" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                Blog
+              </Link>
+              <Link href="/questions" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900" prefetch>
+                Questions
               </Link>
             </div>
 
@@ -215,13 +224,6 @@ export default function Navbar({ onOpenAuthModal, solid = true }: NavbarProps) {
                 Features
               </Link>
               <Link
-                href="/pricing"
-                className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                onClick={closeMenu}
-              >
-                Pricing
-              </Link>
-              <Link
                 href="/free-id-photo-tool"
                 className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 onClick={closeMenu}
@@ -229,11 +231,11 @@ export default function Navbar({ onOpenAuthModal, solid = true }: NavbarProps) {
                 Photo Tools
               </Link>
               <Link
-                href="/#testimonials"
+                href="/pricing"
                 className="block touch-target rounded-xl px-4 py-3 font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 onClick={closeMenu}
               >
-                Testimonials
+                Pricing
               </Link>
               <hr className="my-2 border-slate-100" />
               {isAuthenticated ? (

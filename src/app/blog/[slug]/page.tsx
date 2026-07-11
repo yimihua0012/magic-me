@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Compass, TriangleAlert } from 'lucide-react'
+import { ArrowLeft, CalendarDays, CheckCircle2, Compass, TriangleAlert } from 'lucide-react'
 import BlogCoverImage from '@/components/blog/blog-cover-image'
+import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import BlogPostJsonLd from '@/components/seo/blog-post-json-ld'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
-import { buttonStyles } from '@/components/ui/button-styles'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 import { getBlogEnhancement } from '@/lib/blog-enhancements'
 import { getBlogLanguageAlternates, getPublishedBlogPost, getPublishedBlogPosts, getPublishedBlogSlugs } from '@/lib/blog-store'
@@ -103,7 +103,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     <StaticMarketingShell>
       <BlogPostJsonLd post={post} index={postIndex} imagePath={portrait?.url} />
       <main>
-        <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <article className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <Link href="/blog" className="mb-8 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back to blog
@@ -124,7 +124,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                 src={portrait.url}
                 alt={portrait.alt}
                 priority
-                sizes="(min-width: 768px) 768px, calc(100vw - 32px)"
+                sizes="(min-width: 1280px) 1216px, calc(100vw - 32px)"
                 className="h-full w-full object-cover object-top"
               />
             </div>
@@ -198,18 +198,6 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             </>
           )}
 
-          <section className="content-auto mt-12 rounded-lg border border-primary-100 bg-primary-50 p-6">
-            <h2 className="break-words text-2xl font-bold text-slate-950">Try the workflow in Magic-Headshot</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-700">
-              Use Magic-Headshot when you need AI headshots for LinkedIn, professional headshots without photographer
-              scheduling, an AI resume photo generator look, or a realistic professional profile photo maker workflow.
-            </p>
-            <Link href="/pricing" className={buttonStyles({ size: 'lg', className: 'mt-6 w-full text-center sm:w-auto' })}>
-              View Credit Packs
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </section>
-
           <section className="content-auto mt-10">
             <h2 className="break-words text-2xl font-bold text-slate-950">Plan your AI headshot workflow</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
@@ -227,8 +215,27 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           </section>
         </article>
 
+        <BlogPhotoToolsCta
+          locale="en"
+          photoTools={{
+            heading: 'Try the photo tools',
+            description: 'Use the photo tools after reading this guide to crop an ID-style image, resize files, prepare printable photo sheets, or adjust a background before publishing or submitting a profile photo.',
+            linkLabel: 'Open photo tools',
+          }}
+          workflow={{
+            heading: 'Try the workflow in Magic-Headshot',
+            description: 'Generate realistic AI headshots for LinkedIn, resumes, team pages, and professional profiles after you understand which photo style and quality checks fit your goal.',
+            linkLabel: 'Generate headshots',
+          }}
+          pricing={{
+            heading: 'Choose the right credit pack',
+            description: 'Compare one-time credit packs before producing final images for a profile refresh, job application, team page, or document-style photo workflow.',
+            linkLabel: 'View pricing',
+          }}
+        />
+
         <section className="content-auto border-t border-slate-200 bg-slate-50 py-12">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <h2 className="break-words text-2xl font-bold text-slate-950">Related AI Headshot Guides</h2>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               {related.map((item) => (

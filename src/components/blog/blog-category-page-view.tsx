@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, HelpCircle } from 'lucide-react'
 import BlogCoverImage from '@/components/blog/blog-cover-image'
+import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
 import BlogJsonLd from '@/components/seo/blog-json-ld'
 import { FaqPageJsonLd } from '@/components/seo/page-json-ld'
 import KeywordStrip from '@/components/seo/keyword-strip'
@@ -102,6 +103,26 @@ export default function BlogCategoryPageView({ locale, category, content }: Blog
             })}
           </div>
         </section>
+
+        <BlogPhotoToolsCta
+          locale={locale}
+          photoTools={{
+            heading: content.toolsHeading,
+            description: content.toolsDescription,
+            linkLabel: content.toolsLink,
+          }}
+          workflow={{
+            heading: content.workflowHeading,
+            description: content.workflowDescription,
+            linkLabel: content.workflowLink,
+          }}
+          pricing={{
+            heading: content.pricingHeading,
+            description: content.pricingDescription,
+            linkLabel: content.pricingLink,
+          }}
+          variant="white"
+        />
 
         <section className="bg-slate-50 py-12 sm:py-16">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
