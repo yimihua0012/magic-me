@@ -1061,7 +1061,7 @@ export class GenerationService {
     
     const isPhotoToolStyle = isPhotoToolStyleId(styleId)
     const prompt = isPhotoToolStyle
-      ? `Create a square 1:1 realistic ID photo portrait from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness, facial structure, face shape, and recognizable likeness. Front-facing head and shoulders, centered composition. Use even studio lighting and a clean pure white background suitable for ID photo printing. Chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
+      ? `Create a square 1:1 realistic ID photo portrait from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness, facial structure, face shape, and recognizable likeness. Front-facing head and shoulders, centered composition. Use even studio lighting and follow the chosen style's requested ID photo background color exactly. Chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
       : `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Preserve the person's facial structure, face shape, and recognizable likeness. Make the result look naturally polished and slightly refreshed, with a subtly younger appearance, without changing identity or facial proportions. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
 
     const replicateApiKey = process.env.REPLICATE_API_KEY

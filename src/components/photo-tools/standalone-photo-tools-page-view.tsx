@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import BackgroundColorTool from '@/components/photo-tools/background-color-tool'
 import IdPhotoCropPrintTool from '@/components/photo-tools/id-photo-crop-print-tool'
+import PhotoToolsAiWorkflowCard from '@/components/photo-tools/photo-tools-ai-workflow-card'
 import PrintLayoutBuilderTool from '@/components/photo-tools/print-layout-builder-tool'
 import ResizeImageKbTool from '@/components/photo-tools/resize-image-kb-tool'
 import RemoveBackgroundTool from '@/components/photo-tools/remove-background-tool'
@@ -26,6 +27,7 @@ export default function StandalonePhotoToolsPageView({
   const [activeTool, setActiveTool] = useState<ToolId>(initialTool)
   const pageTitle = seoContent?.h1 || 'Free Online Photo Tools'
   const pageDescription = seoContent?.description || 'Remove backgrounds, crop ID photos, resize images to a target KB, and build printable photo layouts.'
+  const showAiWorkflowCard = activeTool !== 'remove-background'
   const activeToolContent =
     activeTool === 'resize-image'
       ? <ResizeImageKbTool />
@@ -131,7 +133,12 @@ export default function StandalonePhotoToolsPageView({
               </div>
             </aside>
 
-            <div className="min-w-0">{activeToolContent}</div>
+            <div className="min-w-0">
+              <div className="space-y-6">
+                {activeToolContent}
+                {showAiWorkflowCard && <PhotoToolsAiWorkflowCard />}
+              </div>
+            </div>
           </div>
 
           {seoContent && (

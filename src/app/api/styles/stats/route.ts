@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@backend/config/supabase'
 import { getCurrentUser } from '@/lib/auth/server'
 import { isLocale, type Locale } from '@/lib/i18n'
+import { PHOTO_TOOL_STYLE_CONFIGS } from '@/lib/photo-tool-styles'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(
       {
-        styles: (data || []).map((style) => localizeStyle(style, locale)),
+        styles: (data || []).map(applyPhotoToolStyleOverrides).map((style) => localizeStyle(style, locale)),
       },
       {
         headers: {
@@ -55,11 +56,31 @@ export async function GET(request: Request) {
 }
 
 type StyleRow = {
+  id?: string
   name: string
   category: string
   localized_names?: Record<string, string> | null
   localized_category_labels?: Record<string, string> | null
   [key: string]: unknown
+}
+
+function applyPhotoToolStyleOverrides(style: StyleRow): StyleRow {
+  const photoToolStyle = PHOTO_TOOL_STYLE_CONFIGS.find((config) => config.id === style.id)
+  if (!photoToolStyle) return style
+
+  return {
+    ...style,
+    name: photoToolStyle.name,
+    category: photoToolStyle.category,
+    localized_names: {
+      ...(style.localized_names || {}),
+      ...photoToolStyle.localized_names,
+    },
+    localized_category_labels: {
+      ...(style.localized_category_labels || {}),
+      ...photoToolStyle.localized_category_labels,
+    },
+  }
 }
 
 function localizeStyle(style: StyleRow, locale: Locale) {

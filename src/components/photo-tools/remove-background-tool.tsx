@@ -1,12 +1,19 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
+import PhotoToolsAiWorkflowCard from '@/components/photo-tools/photo-tools-ai-workflow-card'
+import {
+  downloadPngCanvas,
+  photoSpecs,
+  photoSpecToPixels,
+  renderImageToPhotoCanvas,
+} from '@/components/photo-tools/photo-print-utils'
 import { loginPathForReturn } from '@/lib/auth-return'
 import { supabase } from '@/lib/supabase/client'
-import { Download, ImagePlus, Sparkles, Upload } from 'lucide-react'
+import { Download, ImagePlus, SlidersHorizontal, Sparkles, Upload } from 'lucide-react'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 
@@ -18,10 +25,16 @@ export default function RemoveBackgroundTool() {
   const [sourceUrl, setSourceUrl] = useState('')
   const [sourceName, setSourceName] = useState('')
   const [resultUrl, setResultUrl] = useState('')
+  const [selectedSpecId, setSelectedSpecId] = useState(photoSpecs[1].id)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [chargedCredits, setChargedCredits] = useState<number | null>(null)
+  const selectedSpec = useMemo(
+    () => photoSpecs.find((spec) => spec.id === selectedSpecId) || photoSpecs[0],
+    [selectedSpecId],
+  )
+  const outputSize = useMemo(() => photoSpecToPixels(selectedSpec), [selectedSpec])
 
   const handleUpload = (file?: File) => {
     if (sourceUrl) URL.revokeObjectURL(sourceUrl)
@@ -97,14 +110,14 @@ export default function RemoveBackgroundTool() {
     if (!resultUrl) return
     const baseName = sourceName.replace(/\.[^.]+$/, '') || 'image'
     try {
-      const response = await fetch(resultUrl)
-      if (!response.ok) throw new Error('Could not download PNG.')
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      triggerDownload(url, `${baseName}-no-background.png`)
-      URL.revokeObjectURL(url)
-    } catch {
-      triggerDownload(resultUrl, `${baseName}-no-background.png`)
+      const canvas = await renderImageToPhotoCanvas({
+        sourceUrl: resultUrl,
+        spec: selectedSpec,
+        backgroundColor: null,
+      })
+      await downloadPngCanvas(canvas, `${baseName}-${selectedSpec.id}-no-background.png`)
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : 'Could not download PNG.')
     }
   }
 
@@ -119,6 +132,9 @@ export default function RemoveBackgroundTool() {
             </div>
             <p className="mt-1 text-sm text-slate-600">
               Upload a person, product, object, or document-style image and export a transparent PNG after the background is removed.
+            </p>
+            <p className="mt-2 text-sm text-slate-600">
+              Automatic cutout may be less precise with complex hair, shadows, busy backgrounds, transparent objects, or low-resolution images.
             </p>
             <p className="mt-2 text-sm font-semibold text-slate-800">
               Registered users get 1 free remove-background run. After that, each successful PNG export uses 1 credit.
@@ -172,6 +188,26 @@ export default function RemoveBackgroundTool() {
             <p className="text-sm leading-6 text-slate-600">
               Sign in to use your 1 free remove-background run. When the free run is used, each successful PNG export uses 1 credit.
             </p>
+            <div className="mt-4">
+              <label className="block">
+                <span className="mb-1.5 flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <SlidersHorizontal className="h-4 w-4 text-blue-600" />
+                  Photo size
+                </span>
+                <select
+                  value={selectedSpecId}
+                  onChange={(event) => setSelectedSpecId(event.target.value)}
+                  className="min-h-[48px] w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  {photoSpecs.map((spec) => (
+                    <option key={spec.id} value={spec.id}>{spec.label}</option>
+                  ))}
+                </select>
+              </label>
+              <p className="mt-2 text-xs font-medium text-slate-500">
+                PNG download size: {outputSize.width} x {outputSize.height}px at {selectedSpec.dpi} DPI
+              </p>
+            </div>
             {chargedCredits !== null && (
               <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
                 Credits used: {chargedCredits}
@@ -186,6 +222,8 @@ export default function RemoveBackgroundTool() {
               Download PNG
             </Button>
           </Card>
+
+          <PhotoToolsAiWorkflowCard />
         </div>
       </div>
     </div>
@@ -218,13 +256,4 @@ function PreviewPanel({
       </div>
     </div>
   )
-}
-
-function triggerDownload(url: string, filename: string) {
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
 }

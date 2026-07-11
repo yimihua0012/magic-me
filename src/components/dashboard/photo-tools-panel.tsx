@@ -31,10 +31,138 @@ interface PhotoToolsPanelProps {
   locale?: Locale
 }
 
-const photoToolStyleLabels: Record<string, string> = {
-  print_professional_transparent: 'Professional No Background',
-  print_child_id_transparent: 'Child ID No Background',
-  print_student_id_transparent: 'Student ID No Background',
+const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
+  print_professional_transparent: {
+    en: 'Professional ID Photo(White)',
+    es: 'Foto ID profesional(fondo blanco)',
+    fr: 'Photo ID professionnelle(fond blanc)',
+    de: 'Professionelles ID-Foto(weisser Hintergrund)',
+    ja: 'プロ向け証明写真(白)',
+  },
+  print_professional_blue_png: {
+    en: 'Professional ID Photo(Blue)',
+    es: 'Foto ID profesional(fondo azul)',
+    fr: 'Photo ID professionnelle(fond bleu)',
+    de: 'Professionelles ID-Foto(blauer Hintergrund)',
+    ja: 'プロ向け証明写真(青)',
+  },
+  print_professional_red_png: {
+    en: 'Professional ID Photo(Red)',
+    es: 'Foto ID profesional(fondo rojo)',
+    fr: 'Photo ID professionnelle(fond rouge)',
+    de: 'Professionelles ID-Foto(roter Hintergrund)',
+    ja: 'プロ向け証明写真(赤)',
+  },
+  print_child_id_transparent: {
+    en: 'Child ID Photo(White)',
+    es: 'Foto ID infantil(fondo blanco)',
+    fr: 'Photo ID enfant(fond blanc)',
+    de: 'Kinder-ID-Foto(weisser Hintergrund)',
+    ja: '子ども証明写真(白)',
+  },
+  print_child_id_blue_png: {
+    en: 'Child ID Photo(Blue)',
+    es: 'Foto ID infantil(fondo azul)',
+    fr: 'Photo ID enfant(fond bleu)',
+    de: 'Kinder-ID-Foto(blauer Hintergrund)',
+    ja: '子ども証明写真(青)',
+  },
+  print_child_id_red_png: {
+    en: 'Child ID Photo(Red)',
+    es: 'Foto ID infantil(fondo rojo)',
+    fr: 'Photo ID enfant(fond rouge)',
+    de: 'Kinder-ID-Foto(roter Hintergrund)',
+    ja: '子ども証明写真(赤)',
+  },
+  print_student_id_transparent: {
+    en: 'Student ID Photo(White)',
+    es: 'Foto ID estudiante(fondo blanco)',
+    fr: 'Photo ID etudiant(fond blanc)',
+    de: 'Studenten-ID-Foto(weisser Hintergrund)',
+    ja: '学生証明写真(白)',
+  },
+  print_student_id_blue_png: {
+    en: 'Student ID Photo(Blue)',
+    es: 'Foto ID estudiante(fondo azul)',
+    fr: 'Photo ID etudiant(fond bleu)',
+    de: 'Studenten-ID-Foto(blauer Hintergrund)',
+    ja: '学生証明写真(青)',
+  },
+  print_student_id_red_png: {
+    en: 'Student ID Photo(Red)',
+    es: 'Foto ID estudiante(fondo rojo)',
+    fr: 'Photo ID etudiant(fond rouge)',
+    de: 'Studenten-ID-Foto(roter Hintergrund)',
+    ja: '学生証明写真(赤)',
+  },
+}
+
+const panelText: Record<Locale, {
+  sourceDescription: string
+  uploadLabel: string
+  generate: string
+  loading: string
+  emptyPrefix: string
+  emptySuffix: string
+  generatePhotoTools: string
+  png: string
+  legacy: string
+}> = {
+  en: {
+    sourceDescription: 'Choose a generated ID photo portrait, transparent PNG portrait, or upload a local image, then export ID-sized copies.',
+    uploadLabel: 'Upload Local Image',
+    generate: 'Generate ID Photo And PNG',
+    loading: 'Loading generated photos...',
+    emptyPrefix: 'No Photo Tools portraits yet. Generate one of these styles first:',
+    emptySuffix: '.',
+    generatePhotoTools: 'Generate Photo Tools Portrait',
+    png: 'PNG',
+    legacy: 'Legacy',
+  },
+  es: {
+    sourceDescription: 'Elige una foto ID generada, un PNG transparente o sube una imagen local para exportar copias en tamanos de documento.',
+    uploadLabel: 'Subir imagen local',
+    generate: 'Crear foto ID y PNG',
+    loading: 'Cargando fotos generadas...',
+    emptyPrefix: 'Aun no hay fotos de Photo Tools. Primero genera uno de estos estilos:',
+    emptySuffix: '.',
+    generatePhotoTools: 'Crear foto para herramientas',
+    png: 'PNG',
+    legacy: 'Anterior',
+  },
+  fr: {
+    sourceDescription: 'Choisissez une photo ID generee, un PNG transparent ou importez une image locale pour exporter des formats de photo d identite.',
+    uploadLabel: 'Importer une image locale',
+    generate: 'Creer une photo ID et PNG',
+    loading: 'Chargement des photos generees...',
+    emptyPrefix: 'Aucune photo Photo Tools pour le moment. Generez d abord un de ces styles :',
+    emptySuffix: '.',
+    generatePhotoTools: 'Creer une photo pour les outils',
+    png: 'PNG',
+    legacy: 'Ancien',
+  },
+  de: {
+    sourceDescription: 'Waehle ein generiertes ID-Foto, ein transparentes PNG oder lade ein lokales Bild hoch, um Ausweisfoto-Groessen zu exportieren.',
+    uploadLabel: 'Lokales Bild hochladen',
+    generate: 'Passfoto und PNG erstellen',
+    loading: 'Generierte Fotos werden geladen...',
+    emptyPrefix: 'Noch keine Photo-Tools-Bilder vorhanden. Erstelle zuerst einen dieser Stile:',
+    emptySuffix: '.',
+    generatePhotoTools: 'Photo-Tools-Bild erstellen',
+    png: 'PNG',
+    legacy: 'Alt',
+  },
+  ja: {
+    sourceDescription: '生成済みの証明写真、透明PNG、またはローカル画像を選び、証明写真サイズで書き出せます。',
+    uploadLabel: 'ローカル画像をアップロード',
+    generate: '証明写真とPNGを作成',
+    loading: '生成済み写真を読み込み中...',
+    emptyPrefix: 'Photo Tools 用の写真はまだありません。まず次のスタイルを生成してください:',
+    emptySuffix: '。',
+    generatePhotoTools: 'Photo Tools 用写真を作成',
+    png: 'PNG',
+    legacy: '旧形式',
+  },
 }
 
 export default function PhotoToolsPanel({ accessToken, locale = 'en' }: PhotoToolsPanelProps) {
@@ -42,6 +170,7 @@ export default function PhotoToolsPanel({ accessToken, locale = 'en' }: PhotoToo
   const [isLoadingGenerations, setIsLoadingGenerations] = useState(false)
   const [error, setError] = useState('')
   const uploadHref = localePath(locale, '/upload')
+  const text = panelText[locale]
 
   const loadGenerations = useCallback(async () => {
     if (!accessToken) return
@@ -58,13 +187,13 @@ export default function PhotoToolsPanel({ accessToken, locale = 'en' }: PhotoToo
         throw new Error(typeof data.error === 'string' ? data.error : 'Failed to load generated photos.')
       }
 
-      setSourcePhotos(((data.generations || []) as GenerationRecord[]).flatMap(sourcePhotosFromGeneration))
+      setSourcePhotos(((data.generations || []) as GenerationRecord[]).flatMap((generation) => sourcePhotosFromGeneration(generation, locale)))
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Failed to load generated photos.')
     } finally {
       setIsLoadingGenerations(false)
     }
-  }, [accessToken])
+  }, [accessToken, locale])
 
   useEffect(() => {
     void loadGenerations()
@@ -76,13 +205,13 @@ export default function PhotoToolsPanel({ accessToken, locale = 'en' }: PhotoToo
         locale={locale}
         sources={sourcePhotos}
         allowUpload
-        sourceDescription="Choose a generated white-background portrait, transparent PNG portrait, or upload a local image, then export ID-sized copies."
-        uploadLabel="Upload Local Image"
+        sourceDescription={text.sourceDescription}
+        uploadLabel={text.uploadLabel}
         sourceActions={(
           <Link href={uploadHref} className="w-full sm:w-auto">
             <Button size="sm" className="w-full sm:w-auto">
               <Sparkles className="mr-2 h-4 w-4" />
-              Generate Transparent PNG Portrait
+              {text.generate}
             </Button>
           </Link>
         )}
@@ -92,14 +221,14 @@ export default function PhotoToolsPanel({ accessToken, locale = 'en' }: PhotoToo
           <div className="space-y-4">
             <p>
               {error || (isLoadingGenerations
-                ? 'Loading generated photos...'
-                : `No Photo Tools portraits yet. Generate one of these styles first: ${PHOTO_TOOL_STYLE_IDS.map((id) => photoToolStyleLabels[id]).join(', ')}.`)}
+                ? text.loading
+                : `${text.emptyPrefix} ${PHOTO_TOOL_STYLE_IDS.map((id) => photoToolStyleLabel(id, locale)).join(', ')}${text.emptySuffix}`)}
             </p>
             {!isLoadingGenerations && (
               <Link href={uploadHref}>
                 <Button>
                   <ImageIcon className="mr-2 h-4 w-4" />
-                  Generate Photo Tools Portrait
+                  {text.generatePhotoTools}
                 </Button>
               </Link>
             )}
@@ -110,7 +239,8 @@ export default function PhotoToolsPanel({ accessToken, locale = 'en' }: PhotoToo
   )
 }
 
-function sourcePhotosFromGeneration(generation: GenerationRecord): SourcePhoto[] {
+function sourcePhotosFromGeneration(generation: GenerationRecord, locale: Locale): SourcePhoto[] {
+  const text = panelText[locale]
   const structuredOutputs = parsePhotoToolOutputs(generation.metadata?.photoToolOutputs)
   if (structuredOutputs.length > 0) {
     return structuredOutputs.flatMap((record) => {
@@ -123,7 +253,7 @@ function sourcePhotosFromGeneration(generation: GenerationRecord): SourcePhoto[]
         createdAt: generation.created_at,
         styleId: record.styleId,
         variant: 'white',
-        label: `${photoToolStyleLabels[record.styleId] || record.styleId} - White`,
+        label: photoToolStyleLabel(record.styleId, locale),
         caption: new Date(generation.created_at).toLocaleDateString(),
         mimeType: 'image/jpeg',
       }]
@@ -136,7 +266,7 @@ function sourcePhotosFromGeneration(generation: GenerationRecord): SourcePhoto[]
           createdAt: generation.created_at,
           styleId: record.styleId,
           variant: 'transparent',
-          label: `${photoToolStyleLabels[record.styleId] || record.styleId} - PNG`,
+          label: `${photoToolStyleLabel(record.styleId, locale)} - ${text.png}`,
           caption: new Date(generation.created_at).toLocaleDateString(),
           mimeType: 'image/png',
         })
@@ -162,7 +292,7 @@ function sourcePhotosFromGeneration(generation: GenerationRecord): SourcePhoto[]
       createdAt: generation.created_at,
       styleId,
       variant: 'white',
-      label: `${photoToolStyleLabels[styleId] || styleId} - Legacy`,
+      label: `${photoToolStyleLabel(styleId, locale)} - ${text.legacy}`,
       caption: new Date(generation.created_at).toLocaleDateString(),
       mimeType: undefined,
     })
@@ -196,4 +326,8 @@ function parsePhotoToolOutputs(value: unknown): Array<{
       transparentPngUrl: typeof record.transparentPngUrl === 'string' ? record.transparentPngUrl : undefined,
     }]
   })
+}
+
+function photoToolStyleLabel(styleId: string, locale: Locale) {
+  return photoToolStyleLabels[styleId]?.[locale] || photoToolStyleLabels[styleId]?.en || styleId
 }

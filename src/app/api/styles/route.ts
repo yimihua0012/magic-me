@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       throw error
     }
 
-    const styles = includeFallbackPhotoToolStyles(data || [])
+    const styles = includeFallbackPhotoToolStyles(data || []).map(applyPhotoToolStyleOverrides)
 
     return NextResponse.json(
       {
@@ -107,6 +107,25 @@ function includeFallbackPhotoToolStyles(styles: StyleRow[]) {
     const rightStyleOrder = typeof right.style_order === 'number' ? right.style_order : 0
     return leftStyleOrder - rightStyleOrder
   })
+}
+
+function applyPhotoToolStyleOverrides(style: StyleRow): StyleRow {
+  const photoToolStyle = PHOTO_TOOL_STYLE_CONFIGS.find((config) => config.id === style.id)
+  if (!photoToolStyle) return style
+
+  return {
+    ...style,
+    name: photoToolStyle.name,
+    category: photoToolStyle.category,
+    localized_names: {
+      ...(style.localized_names || {}),
+      ...photoToolStyle.localized_names,
+    },
+    localized_category_labels: {
+      ...(style.localized_category_labels || {}),
+      ...photoToolStyle.localized_category_labels,
+    },
+  }
 }
 
 function localizeStyle(style: StyleRow, locale: Locale) {

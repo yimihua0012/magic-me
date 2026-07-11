@@ -4,34 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import { Download, ImagePlus, SlidersHorizontal, Upload } from 'lucide-react'
-import { downloadCanvas, loadImage, mmToPx } from '@/components/photo-tools/photo-print-utils'
-
-type PhotoSpec = {
-  id: string
-  label: string
-  widthMm: number
-  heightMm: number
-  dpi: number
-}
-
-const photoSpecs: PhotoSpec[] = [
-  { id: 'cn-1-inch', label: 'China 1 inch - 25 x 35 mm', widthMm: 25, heightMm: 35, dpi: 300 },
-  { id: 'cn-2-inch', label: 'China 2 inch - 35 x 49 mm', widthMm: 35, heightMm: 49, dpi: 300 },
-  { id: 'cn-small-2-inch', label: 'China small 2 inch - 35 x 45 mm', widthMm: 35, heightMm: 45, dpi: 300 },
-  { id: 'cn-passport-reference', label: 'China passport reference - 33 x 48 mm', widthMm: 33, heightMm: 48, dpi: 300 },
-  { id: 'us-2x2', label: 'United States 2 x 2 inch', widthMm: 50.8, heightMm: 50.8, dpi: 300 },
-  { id: 'india-2x2', label: 'India 2 x 2 inch', widthMm: 50.8, heightMm: 50.8, dpi: 300 },
-  { id: 'canada-50x70', label: 'Canada style - 50 x 70 mm', widthMm: 50, heightMm: 70, dpi: 300 },
-  { id: 'uk-35x45', label: 'United Kingdom common - 35 x 45 mm', widthMm: 35, heightMm: 45, dpi: 300 },
-  { id: 'eu-35x45', label: 'EU / Schengen common - 35 x 45 mm', widthMm: 35, heightMm: 45, dpi: 300 },
-  { id: 'japan-35x45', label: 'Japan common - 35 x 45 mm', widthMm: 35, heightMm: 45, dpi: 300 },
-  { id: 'korea-35x45', label: 'South Korea common - 35 x 45 mm', widthMm: 35, heightMm: 45, dpi: 300 },
-  { id: 'hong-kong-40x50', label: 'Hong Kong common - 40 x 50 mm', widthMm: 40, heightMm: 50, dpi: 300 },
-  { id: 'singapore-35x45', label: 'Singapore common - 35 x 45 mm', widthMm: 35, heightMm: 45, dpi: 300 },
-  { id: 'malaysia-35x50', label: 'Malaysia common - 35 x 50 mm', widthMm: 35, heightMm: 50, dpi: 300 },
-  { id: 'brazil-30x40', label: 'Brazil 3 x 4 cm', widthMm: 30, heightMm: 40, dpi: 300 },
-  { id: 'square-avatar', label: 'Square badge / avatar - 50 x 50 mm', widthMm: 50, heightMm: 50, dpi: 300 },
-]
+import { downloadCanvas, photoSpecs, photoSpecToPixels, renderImageToPhotoCanvas } from '@/components/photo-tools/photo-print-utils'
 
 interface IdPhotoCropPrintToolProps {
   sourceDescription: string
@@ -59,10 +32,7 @@ export default function IdPhotoCropPrintTool({
     () => photoSpecs.find((spec) => spec.id === selectedSpecId) || photoSpecs[0],
     [selectedSpecId],
   )
-  const outputSize = useMemo(() => ({
-    width: mmToPx(selectedSpec.widthMm, selectedSpec.dpi),
-    height: mmToPx(selectedSpec.heightMm, selectedSpec.dpi),
-  }), [selectedSpec])
+  const outputSize = useMemo(() => photoSpecToPixels(selectedSpec), [selectedSpec])
 
   const handleUpload = (file?: File) => {
     if (sourceUrl) URL.revokeObjectURL(sourceUrl)
@@ -89,25 +59,15 @@ export default function IdPhotoCropPrintTool({
   const renderCrop = useCallback(async () => {
     if (!sourceUrl) return null
 
-    const image = await loadImage(sourceUrl)
-    const canvas = document.createElement('canvas')
-    canvas.width = outputSize.width
-    canvas.height = outputSize.height
-    const context = canvas.getContext('2d')
-    if (!context) throw new Error('Canvas is not available in this browser.')
-
-    context.fillStyle = '#ffffff'
-    context.fillRect(0, 0, canvas.width, canvas.height)
-
-    const coverScale = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight) * zoom
-    const drawWidth = image.naturalWidth * coverScale
-    const drawHeight = image.naturalHeight * coverScale
-    const drawX = (canvas.width - drawWidth) / 2 + (offsetX / 100) * canvas.width
-    const drawY = (canvas.height - drawHeight) / 2 + (offsetY / 100) * canvas.height
-    context.drawImage(image, drawX, drawY, drawWidth, drawHeight)
-
-    return canvas
-  }, [offsetX, offsetY, outputSize.height, outputSize.width, sourceUrl, zoom])
+    return renderImageToPhotoCanvas({
+      sourceUrl,
+      spec: selectedSpec,
+      backgroundColor: '#ffffff',
+      zoom,
+      offsetX,
+      offsetY,
+    })
+  }, [offsetX, offsetY, selectedSpec, sourceUrl, zoom])
 
   const drawPreview = useCallback(async () => {
     const preview = previewRef.current
