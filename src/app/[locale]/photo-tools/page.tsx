@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: content.title,
     description: content.description,
-    keywords: content.keywords,
+    keywords: content.keywords.slice(0, 3),
     robots: {
       index: true,
       follow: true,

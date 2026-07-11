@@ -11,8 +11,6 @@ const keywords = [
   'free ID photo print sheet',
   'free resume photo crop',
   'free exam photo tool',
-  'free employee badge photo',
-  'free student card photo',
 ]
 
 export const metadata: Metadata = {

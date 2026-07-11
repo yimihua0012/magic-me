@@ -11,12 +11,11 @@ import { coreSeoKeywords, questions } from '@/lib/seo-content'
 export const metadata: Metadata = {
   title: 'AI Headshot Questions and Answers for LinkedIn, Resumes, and Profile Photos',
   description:
-    'Answers about Magic-Headshot, AI headshots for LinkedIn, resume photo generation, likeness, upload quality, and professional headshots without photographer sessions.',
+    'Answers about AI headshots for LinkedIn, resume photo generation, likeness, upload quality, and professional headshots without photographer sessions.',
   keywords: [
     'Magic-Headshot',
     'AI headshots for LinkedIn',
     'professional headshots without photographer',
-    'AI resume photo generator',
   ],
   alternates: {
     canonical: '/questions',

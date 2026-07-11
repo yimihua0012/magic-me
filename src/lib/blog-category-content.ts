@@ -32,7 +32,7 @@ export type BlogCategorySeoContent = {
 export function getBlogCategorySeoContent(locale: Locale, category: BlogCategorySummary): BlogCategorySeoContent {
   const label = category.label
   const count = category.count
-  const keywords = Array.from(new Set([label, ...category.keywords])).slice(0, 6)
+  const keywords = Array.from(new Set([label, ...category.keywords])).slice(0, 3)
 
   const content = categoryContentByLocale[locale](label, count)
   return {

@@ -1175,7 +1175,11 @@ export const useCasePages: Record<UseCasePageSlug, Record<Locale, UseCasePageCon
 }
 
 export function getUseCasePageContent(slug: UseCasePageSlug, locale: Locale) {
-  return useCasePages[slug][locale]
+  const content = useCasePages[slug][locale]
+  return {
+    ...content,
+    keywords: content.keywords.slice(0, 3),
+  }
 }
 
 export function isUseCasePageSlug(value: string): value is UseCasePageSlug {
@@ -1198,7 +1202,7 @@ export function buildUseCasePageMetadata({
   return {
     title: content.title,
     description: content.description,
-    keywords: keywords ?? content.keywords,
+    keywords: (keywords ?? content.keywords).slice(0, 3),
     alternates: {
       canonical: localePath(locale, path),
       languages: languageAlternatesForPath(path),

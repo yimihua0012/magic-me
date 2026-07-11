@@ -231,7 +231,11 @@ export const localizedSeoContent: Record<RoutedLocale, Record<LocalizedSeoPage, 
 }
 
 export function getLocalizedSeo(locale: RoutedLocale, page: LocalizedSeoPage) {
-  return localizedSeoContent[locale][page]
+  const content = localizedSeoContent[locale][page]
+  return {
+    ...content,
+    keywords: content.keywords.slice(0, 3),
+  }
 }
 
 Object.assign(localizedSeoContent.es, {

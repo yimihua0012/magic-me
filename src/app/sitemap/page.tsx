@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: 'Magic-Headshot Sitemap Index',
   description:
     'Find every Magic-Headshot XML sitemap for English, Spanish, French, German, and Japanese pages in one public sitemap index.',
+  keywords: [
+    'Magic-Headshot sitemap',
+    'XML sitemap index',
+    'localized sitemap',
+  ],
   alternates: {
     canonical: '/sitemap',
     languages: {

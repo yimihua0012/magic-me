@@ -401,6 +401,93 @@ function keywordOverlapMinimum(keyword) {
   return tokenizeSeoText(keyword).length >= 3 ? 2 : 1
 }
 
+function metaDescriptionLengthIssue(locale, description) {
+  const length = Array.from(description.trim()).length
+
+  if (locale === 'ja') {
+    if (length < 55 || length > 90) {
+      return `description length must be 55-90 Japanese characters; got ${length}.`
+    }
+    return null
+  }
+
+  if (length < 120 || length > 160) {
+    return `description length must be 120-160 Unicode characters; got ${length}.`
+  }
+
+  return null
+}
+
+function normalizedKeywordKey(keyword) {
+  return normalizeSeoText(keyword).replace(/\s+/g, ' ').trim()
+}
+
+function duplicateKeywords(keywords) {
+  const seen = new Set()
+  const duplicates = []
+
+  for (const keyword of keywords) {
+    const key = normalizedKeywordKey(keyword)
+    if (!key) continue
+    if (seen.has(key)) {
+      duplicates.push(keyword)
+    } else {
+      seen.add(key)
+    }
+  }
+
+  return duplicates
+}
+
+function inferLocaleFromRepoPath(repoPath) {
+  const parts = repoPath.split('/')
+  const locale = parts[2]
+  return ['en', 'es', 'fr', 'de', 'ja'].includes(locale) ? locale : 'en'
+}
+
+function validateSeoBasics(label, { locale = 'en', title = '', h1 = '', description = '', keywords = [], checkH1 = true }, issues) {
+  const normalizedDescription = typeof description === 'string' ? description.trim() : ''
+  const normalizedTitle = typeof title === 'string' ? title.trim() : ''
+  const normalizedH1 = typeof h1 === 'string' ? h1.trim() : ''
+  const normalizedKeywords = Array.isArray(keywords) ? keywords.filter((keyword) => typeof keyword === 'string' && keyword.trim()) : []
+
+  if (!normalizedDescription) {
+    issues.push(`${label}: missing description.`)
+    return
+  }
+
+  const descriptionLengthIssue = metaDescriptionLengthIssue(locale, normalizedDescription)
+  if (descriptionLengthIssue) {
+    issues.push(`${label}: ${descriptionLengthIssue}`)
+  }
+
+  if (normalizedKeywords.length === 0) {
+    issues.push(`${label}: missing keywords.`)
+  }
+
+  if (normalizedKeywords.length > 3) {
+    issues.push(`${label}: keywords must contain 1-3 items; got ${normalizedKeywords.length}.`)
+  }
+
+  const repeatedKeywords = duplicateKeywords(normalizedKeywords)
+  if (repeatedKeywords.length > 0) {
+    issues.push(`${label}: duplicate keyword(s): ${repeatedKeywords.map((keyword) => `"${keyword}"`).join(', ')}.`)
+  }
+
+  if (normalizedTitle && !hasSeoTopicOverlap(normalizedTitle, normalizedDescription, 2)) {
+    issues.push(`${label}: title does not match description topic.`)
+  }
+
+  if (checkH1 && normalizedH1 && !hasSeoTopicOverlap(normalizedH1, normalizedDescription, 2)) {
+    issues.push(`${label}: H1 does not match description topic.`)
+  }
+
+  const mismatchedKeywords = normalizedKeywords.filter((keyword) => !hasSeoTopicOverlap(keyword, normalizedDescription, keywordOverlapMinimum(keyword)))
+  if (mismatchedKeywords.length > 0) {
+    issues.push(`${label}: keyword(s) do not match description topic: ${mismatchedKeywords.map((keyword) => `"${keyword}"`).join(', ')}.`)
+  }
+}
+
 function compactSeoText(text) {
   return normalizeSeoText(text).replace(/[^a-z0-9\u00c0-\u024f\u0370-\u03ff\u0400-\u04ff\u3040-\u30ff\u3400-\u9fff]+/g, '')
 }
@@ -667,20 +754,14 @@ function validateSeoFieldConsistency(repoPath, metadataSource, h1Source, source,
     return
   }
 
-  if (snapshot.title && !hasSeoTopicOverlap(snapshot.title, snapshot.description, 2)) {
-    issues.push(`${repoPath}: title does not match description topic. title="${snapshot.title}", description="${snapshot.description}".`)
-  }
-
-  if (snapshot.h1 && !hasSeoTopicOverlap(snapshot.h1, snapshot.description, 2) && !sourceUsesSharedSeoContent(source)) {
-    issues.push(`${repoPath}: H1 does not match description topic. H1="${snapshot.h1}", description="${snapshot.description}".`)
-  }
-
-  if (snapshot.keywords) {
-    const mismatchedKeywords = snapshot.keywords.filter((keyword) => !hasSeoTopicOverlap(keyword, snapshot.description, 1))
-    if (mismatchedKeywords.length > 0) {
-      issues.push(`${repoPath}: keyword(s) do not match description topic: ${mismatchedKeywords.map((keyword) => `"${keyword}"`).join(', ')}.`)
-    }
-  }
+  validateSeoBasics(repoPath, {
+    locale: inferLocaleFromRepoPath(repoPath),
+    title: snapshot.title,
+    h1: snapshot.h1,
+    description: snapshot.description,
+    keywords: snapshot.keywords || [],
+    checkH1: !sourceUsesSharedSeoContent(source),
+  }, issues)
 }
 
 function validateJsonLdConsistency(repoPath, source, issues) {
@@ -815,19 +896,13 @@ async function checkPublishedCmsBlogSeoConsistency() {
     const title = typeof row.title === 'string' ? row.title.trim() : ''
     const keywords = Array.isArray(row.keywords) ? row.keywords.filter((keyword) => typeof keyword === 'string' && keyword.trim()) : []
 
-    if (!description) {
-      issues.push(`CMS blog_posts ${label}: missing description.`)
-      continue
-    }
-
-    if (title && !hasSeoTopicOverlap(title, description, 2)) {
-      issues.push(`CMS blog_posts ${label}: title/H1 does not match description topic.`)
-    }
-
-    const mismatchedKeywords = keywords.filter((keyword) => !hasSeoTopicOverlap(keyword, description, keywordOverlapMinimum(keyword)))
-    if (mismatchedKeywords.length > 0) {
-      issues.push(`CMS blog_posts ${label}: keyword(s) do not match description topic: ${mismatchedKeywords.map((keyword) => `"${keyword}"`).join(', ')}.`)
-    }
+    validateSeoBasics(`CMS blog_posts ${label}`, {
+      locale: row.locale,
+      title,
+      description,
+      keywords,
+      checkH1: false,
+    }, issues)
   }
 
   return { checked: rows.length, warnings, issues }
@@ -905,22 +980,13 @@ function validatePhotoToolContentConsistency(contentSource, issues) {
     const description = resolveStringExpression(propertyExpression(objectLiteral, 'description'), context)
     const keywords = resolveStringArrayExpression(propertyExpression(objectLiteral, 'keywords'), context)
 
-    if (!description) {
-      issues.push(`src/lib/photo-tool-page-content.ts ${path}: missing description for consistency validation.`)
-      return
-    }
-    if (title && !hasSeoTopicOverlap(title, description, 2)) {
-      issues.push(`src/lib/photo-tool-page-content.ts ${path}: title does not match description topic.`)
-    }
-    if (h1 && !hasSeoTopicOverlap(h1, description, 2)) {
-      issues.push(`src/lib/photo-tool-page-content.ts ${path}: H1 does not match description topic.`)
-    }
-    if (keywords) {
-      const mismatchedKeywords = keywords.filter((keyword) => !hasSeoTopicOverlap(keyword, description, 1))
-      if (mismatchedKeywords.length > 0) {
-        issues.push(`src/lib/photo-tool-page-content.ts ${path}: keyword(s) do not match description topic: ${mismatchedKeywords.map((keyword) => `"${keyword}"`).join(', ')}.`)
-      }
-    }
+    validateSeoBasics(`src/lib/photo-tool-page-content.ts ${path}`, {
+      locale: path.startsWith('/ja/') ? 'ja' : path.startsWith('/de/') ? 'de' : path.startsWith('/es/') ? 'es' : path.startsWith('/fr/') ? 'fr' : 'en',
+      title,
+      h1,
+      description,
+      keywords: keywords || [],
+    }, issues)
   }
 
   function visit(node) {
@@ -950,6 +1016,25 @@ function validateSitemapHreflangSource(issues) {
   for (const signal of requiredSignals) {
     if (!source.includes(signal)) {
       issues.push(`src/lib/sitemap.ts: missing sitemap hreflang signal "${signal}".`)
+    }
+  }
+}
+
+function validateSharedKeywordLimitSources(issues) {
+  const requiredSignals = [
+    ['src/lib/blog-category-content.ts', 'const keywords = Array.from(new Set([label, ...category.keywords])).slice(0, 3)'],
+    ['src/lib/use-case-pages.ts', 'keywords: content.keywords.slice(0, 3)'],
+    ['src/lib/use-case-pages.ts', 'keywords: (keywords ?? content.keywords).slice(0, 3)'],
+    ['src/lib/localized-seo.ts', 'keywords: content.keywords.slice(0, 3)'],
+    ['src/lib/photo-tool-page-content.ts', 'keywords: page.keywords.slice(0, 3)'],
+    ['src/lib/photo-tool-page-content.ts', 'keywords: localizedPage.keywords.slice(0, 3)'],
+    ['src/lib/sample-gallery-content.ts', 'content.keywords = content.keywords.slice(0, 3)'],
+    ['src/app/[locale]/photo-tools/page.tsx', 'keywords: content.keywords.slice(0, 3)'],
+  ]
+
+  for (const [path, signal] of requiredSignals) {
+    if (!read(path).includes(signal)) {
+      issues.push(`${path}: missing shared keywords 1-3 limit signal "${signal}".`)
     }
   }
 }
@@ -1004,6 +1089,7 @@ export function checkAllPagesSeoConsistency() {
   validatePhotoToolSource(issues)
   validateBlogPostJsonLdSourceConsistency(issues)
   validateSitemapHreflangSource(issues)
+  validateSharedKeywordLimitSources(issues)
 
   return { checked, skipped, warnings, issues }
 }

@@ -104,3 +104,7 @@ export const sampleGalleryContent: Record<Locale, SampleGalleryContent> = {
     keywords: ['AIヘッドショット事例', 'AIポートレートスタイル', 'AIアバター事例', 'リアルなAIポートレート', 'ヘッドショット短時間生成'],
   },
 }
+
+for (const content of Object.values(sampleGalleryContent)) {
+  content.keywords = content.keywords.slice(0, 3)
+}

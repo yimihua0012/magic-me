@@ -33,7 +33,6 @@ export const metadata: Metadata = {
     'AI headshot generator',
     'AI headshots for LinkedIn',
     'AI resume photo generator',
-    'professional profile photo',
   ],
   alternates: {
     canonical: '/',

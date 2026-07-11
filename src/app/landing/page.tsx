@@ -27,6 +27,11 @@ export const metadata: Metadata = {
   title: 'AI LinkedIn Headshots That Look Professional in Minutes',
   description:
     'A conversion-focused AI headshot landing page for professionals who need realistic LinkedIn, resume, and team portraits without booking a photographer.',
+  keywords: [
+    'AI LinkedIn headshots',
+    'realistic AI headshots',
+    'resume headshot generator',
+  ],
   alternates: {
     canonical: '/landing',
     languages: languageAlternatesForPath('/landing'),

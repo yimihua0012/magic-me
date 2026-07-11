@@ -27,7 +27,6 @@ export async function generateMetadata(): Promise<Metadata> {
       'Magic-Headshot',
       'AI headshots for LinkedIn',
       'professional headshots without photographer',
-      'AI resume photo generator',
     ],
     alternates: {
       canonical: '/blog',

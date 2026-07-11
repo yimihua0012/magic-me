@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   title: 'AI Headshot Generator Pricing for LinkedIn and Resume Photos',
   description:
     'One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages.',
+  keywords: [
+    'AI headshot pricing',
+    'LinkedIn headshot pricing',
+    'resume photo pricing',
+  ],
   alternates: {
     canonical: '/pricing',
     languages: languageAlternatesForPath('/pricing'),
