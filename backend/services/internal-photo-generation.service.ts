@@ -1,6 +1,4 @@
 import { supabaseAdmin } from '@backend/config/supabase'
-import { PhotoProcessResultService } from './photo-process-result.service'
-
 type InternalTaskStatus = 'processing' | 'completed' | 'failed'
 type ProductType = 'idphoto' | 'portrait'
 
@@ -44,13 +42,6 @@ type InternalPhotoGenerationResponse = {
 type StoredImage = {
   path: string
   publicUrl: string | null
-}
-
-type AutoProcessConfig = {
-  openid: string
-  orderid: string
-  type: ProductType
-  suitColor?: string
 }
 
 type GenerationSpec = {
@@ -103,7 +94,7 @@ export class InternalPhotoGenerationService {
         input_photos: imageUrls,
         output_photos: [],
         progress: 0,
-        current_step: 'Initializing internal photo generation...',
+        current_step: '初始化图片生成任务...',
         client_generation_id: input.clientGenerationId || null,
         metadata: { ...(input.metadata || {}), productType, generationPrompts },
         started_at: new Date().toISOString(),
@@ -133,7 +124,7 @@ export class InternalPhotoGenerationService {
     await this.updateTask(taskId, {
       status: 'processing',
       progress: 10,
-      current_step: 'Generating photo from prompt...',
+      current_step: '正在根据提示词生成图片...',
       started_at: new Date().toISOString(),
     })
 
@@ -143,78 +134,29 @@ export class InternalPhotoGenerationService {
       await this.updateTask(taskId, {
         input_photos: preparedInputPhotos,
         progress: 20,
-        current_step: 'Preparing reference image for generation...',
+        current_step: '正在准备参考图片...',
       })
 
       const productType = this.getProductType(preparedTask.metadata)
       const outputUrls = await this.generateProductImages(preparedTask, productType)
-      const autoProcess = this.getAutoProcessConfig(task.metadata)
-
-      if (autoProcess) {
-        await this.updateTask(taskId, {
-          progress: 60,
-          current_step: 'Generated image is ready. Running backend post-processing...',
-          output_photos: [],
-          metadata: {
-            ...(task.metadata || {}),
-            generatedOutputUrls: outputUrls,
-          },
-        })
-
-        const processTask = await PhotoProcessResultService.createTask({
-          openid: autoProcess.openid,
-          orderid: autoProcess.orderid,
-          type: autoProcess.type,
-          taskId,
-          suitColor: autoProcess.suitColor,
-          outputUrls,
-          metadata: {
-            source: 'internal_photo_generation',
-            internalGenerationTaskId: taskId,
-            productType,
-          },
-        })
-
-        await this.updateTask(taskId, {
-          metadata: {
-            ...(task.metadata || {}),
-            generatedOutputUrls: outputUrls,
-            processResultTaskId: processTask.taskId,
-          },
-        })
-
-        await PhotoProcessResultService.processTask(processTask.taskId)
-        const completedProcessTask = await PhotoProcessResultService.getTask(processTask.taskId)
-        const processResponse = completedProcessTask ? PhotoProcessResultService.toResponse(completedProcessTask) : null
-        await this.updateTask(taskId, {
-          status: 'completed',
-          progress: 100,
-          current_step: 'Generated image and backend photo package are ready.',
-          output_photos: processResponse?.zipUrl ? [processResponse.zipUrl] : [],
-          metadata: {
-            ...(task.metadata || {}),
-            generatedOutputUrls: outputUrls,
-            processResultTaskId: processTask.taskId,
-            processResult: processResponse,
-          },
-          completed_at: new Date().toISOString(),
-        })
-        return
-      }
 
       await this.updateTask(taskId, {
         status: 'completed',
         progress: 100,
-        current_step: 'Internal photo generation completed.',
+        current_step: '图片生成完成。',
         output_photos: outputUrls,
+        metadata: {
+          ...(task.metadata || {}),
+          generatedOutputUrls: outputUrls,
+        },
         completed_at: new Date().toISOString(),
       })
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Internal photo generation failed'
+      const message = error instanceof Error ? error.message : '图片生成失败'
       await this.updateTask(taskId, {
         status: 'failed',
         progress: 0,
-        current_step: 'Internal photo generation failed.',
+        current_step: '图片生成失败。',
         error_message: message,
       })
       throw error
@@ -226,7 +168,7 @@ export class InternalPhotoGenerationService {
       id: task.id,
       status: task.status,
       progress: task.progress || 0,
-      currentStep: task.current_step || 'Processing internal photo generation...',
+      currentStep: task.current_step || '正在处理图片生成任务...',
       outputUrls: task.output_photos || [],
       reused,
     }
@@ -250,18 +192,6 @@ export class InternalPhotoGenerationService {
       .eq('id', taskId)
 
     if (error) throw error
-  }
-
-  private static getAutoProcessConfig(metadata: Record<string, unknown> | null): AutoProcessConfig | null {
-    const value = metadata?.autoProcess
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return null
-    const record = value as Record<string, unknown>
-    const openid = typeof record.openid === 'string' ? record.openid.trim() : ''
-    const orderid = typeof record.orderid === 'string' ? record.orderid.trim() : ''
-    const type = record.type === 'portrait' ? 'portrait' : record.type === 'idphoto' ? 'idphoto' : null
-    const suitColor = typeof record.suitColor === 'string' && record.suitColor.trim() ? record.suitColor.trim() : undefined
-    if (!openid || !orderid || !type) return null
-    return { openid, orderid, type, suitColor }
   }
 
   private static getProductType(metadata: Record<string, unknown> | null): ProductType {
@@ -367,7 +297,7 @@ export class InternalPhotoGenerationService {
     for (let index = 0; index < specs.length; index += 1) {
       await this.updateTask(task.id, {
         progress: 25 + Math.round((index / specs.length) * 30),
-        current_step: `Generating ${specs[index].label}...`,
+        current_step: this.generationStepLabel(specs[index].label),
       })
       outputUrls.push(await this.generateWithReplicate(task, specs[index]))
     }
@@ -447,6 +377,14 @@ export class InternalPhotoGenerationService {
     }
 
     throw new Error('Internal photo generation attempts exhausted')
+  }
+
+  private static generationStepLabel(label: string) {
+    if (label === 'idphoto-white-1024') return '正在生成1024白底证件照...'
+    if (label === 'portrait-white-1024') return '正在生成1024白底头像...'
+    if (label === 'portrait-front-upper-body-1200x1800') return '正在生成1200x1800正脸上半身照...'
+    if (label === 'portrait-side-shoulder-upper-body-1200x1800') return '正在生成1200x1800侧肩上半身照...'
+    return '正在生成图片...'
   }
 
   private static extractReplicateOutputUrl(output: unknown): string | null {

@@ -44,7 +44,7 @@ type StoredFile = {
 }
 
 type ProcessOutput = {
-  previewUrls: string[]
+  outputUrls: string[]
   idPhotoUrls: Record<string, Record<string, string>>
   layoutUrls: Record<string, Record<string, string>>
   portraitUrls?: Record<string, string>
@@ -101,7 +101,7 @@ export class PhotoProcessResultService {
         input_urls: outputUrls,
         status: 'processing',
         progress: 0,
-        current_step: 'Queued for backend photo processing...',
+        current_step: '后处理任务已创建，等待处理...',
         preview_urls: [],
         id_photo_urls: {},
         layout_urls: {},
@@ -114,7 +114,7 @@ export class PhotoProcessResultService {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) throw new Error(error.message)
     return this.toResponse(data as ProcessRow)
   }
 
@@ -125,7 +125,7 @@ export class PhotoProcessResultService {
       .eq('id', taskId)
       .maybeSingle()
 
-    if (error) throw error
+    if (error) throw new Error(error.message)
     return data as ProcessRow | null
   }
 
@@ -134,13 +134,13 @@ export class PhotoProcessResultService {
     if (!task) throw new Error('Photo process task not found')
 
     try {
-      await this.updateTask(taskId, { status: 'processing', progress: 10, current_step: 'Preparing generated white-background image...' })
+      await this.updateTask(taskId, { status: 'processing', progress: 10, current_step: '正在准备1024白底图...' })
       const output = await this.buildOutputs(task)
       await this.updateTask(taskId, {
         status: 'completed',
         progress: 100,
-        current_step: 'Backend photo processing completed.',
-        preview_urls: output.previewUrls,
+        current_step: '裁剪、换底、排版、打包已完成。',
+        preview_urls: output.outputUrls,
         id_photo_urls: output.idPhotoUrls,
         layout_urls: output.layoutUrls,
         zip_url: output.zipUrl,
@@ -148,11 +148,11 @@ export class PhotoProcessResultService {
       })
       await this.notifyOrderSystem(task, output)
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Backend photo processing failed'
+      const message = error instanceof Error ? error.message : '后处理失败'
       await this.updateTask(taskId, {
         status: 'failed',
         progress: 0,
-        current_step: 'Backend photo processing failed.',
+        current_step: '后处理失败。',
         error_message: message,
       })
       throw error
@@ -165,6 +165,7 @@ export class PhotoProcessResultService {
       status: task.status,
       progress: task.progress,
       currentStep: task.current_step,
+      outputUrls: this.collectOutputUrls(task),
       zipUrl: task.zip_url,
       error: task.error_message,
     }
@@ -177,7 +178,7 @@ export class PhotoProcessResultService {
     const avatarWhiteUrl = task.input_urls[0]
     const transparentUrl = await this.createTransparentPng(avatarWhiteUrl, task)
 
-    await this.updateTask(task.id, { progress: 35, current_step: 'Compositing white, blue, and red background photos...' })
+    await this.updateTask(task.id, { progress: 35, current_step: '正在生成白底、蓝底、红底大图和小图...' })
     const transparentImage = await this.downloadImage(transparentUrl)
     const transparentSizeBuffers: Record<string, Buffer> = {}
     const largeTransparent = await this.createTransparentCanvas(transparentImage.data, LARGE_SIZE, LARGE_SIZE, {
@@ -226,10 +227,16 @@ export class PhotoProcessResultService {
       idPhotoUrls.portrait = portraitUrls
     }
 
-    await this.updateTask(task.id, { progress: 85, current_step: 'Packing processed images into ZIP...' })
+    await this.updateTask(task.id, { progress: 85, current_step: '正在打包ZIP文件...' })
     const zipUrl = await this.createAndStoreZip(task, storedFiles)
     return {
-      previewUrls: [idPhotoUrls.white.large, idPhotoUrls.blue.large, idPhotoUrls.red.large].filter(Boolean),
+      outputUrls: [
+        idPhotoUrls.white.large,
+        idPhotoUrls.blue.large,
+        idPhotoUrls.red.large,
+        portraitUrls?.['front-upper-body'],
+        portraitUrls?.['side-shoulder-upper-body'],
+      ].filter((url): url is string => typeof url === 'string' && url.trim().length > 0),
       idPhotoUrls,
       layoutUrls,
       portraitUrls,
@@ -240,7 +247,7 @@ export class PhotoProcessResultService {
   private static async createTransparentPng(imageUrl: string, task: ProcessRow) {
     this.validateImageReference(imageUrl)
     const preparedUrl = await this.prepareInputImage(imageUrl, task, 'source-white.jpg')
-    await this.updateTask(task.id, { progress: 20, current_step: 'Removing background on the backend...' })
+    await this.updateTask(task.id, { progress: 20, current_step: '正在移除背景并生成透明PNG...' })
     const result = await BackgroundRemovalService.removeBackground(preparedUrl, `photo-process:${task.id}`)
     return result.outputUrl
   }
@@ -454,6 +461,19 @@ export class PhotoProcessResultService {
     return portraitUrls
   }
 
+  private static collectOutputUrls(task: ProcessRow) {
+    const idPhotoUrls = (task.id_photo_urls || {}) as Record<string, Record<string, string>>
+    const portraitUrls = (idPhotoUrls.portrait || {}) as Record<string, string>
+
+    return [
+      idPhotoUrls.white?.large,
+      idPhotoUrls.blue?.large,
+      idPhotoUrls.red?.large,
+      portraitUrls['front-upper-body'],
+      portraitUrls['side-shoulder-upper-body'],
+    ].filter((url): url is string => typeof url === 'string' && url.trim().length > 0)
+  }
+
   private static async createAndStoreZip(task: ProcessRow, files: StoredFile[]) {
     const zip = new JSZip()
     files.forEach((file) => zip.file(file.filename, file.data))
@@ -477,7 +497,7 @@ export class PhotoProcessResultService {
         orderid: task.orderid,
         type: task.type,
         status: 'completed',
-        previewUrls: output.previewUrls,
+        outputUrls: output.outputUrls,
         idPhotoUrls: output.idPhotoUrls,
         layoutUrls: output.layoutUrls,
         portraitUrls: output.portraitUrls || {},
@@ -495,7 +515,7 @@ export class PhotoProcessResultService {
       .from('photo_process_results')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', taskId)
-    if (error) throw error
+    if (error) throw new Error(error.message)
   }
 
   private static async storeBuffer(task: ProcessRow, data: Buffer, filename: string, contentType: string): Promise<StoredFile> {

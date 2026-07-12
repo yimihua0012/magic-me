@@ -74,6 +74,7 @@ export async function POST(request: Request) {
       status: task.status,
       progress: task.progress,
       currentStep: task.currentStep,
+      outputUrls: task.outputUrls,
       zipUrl: task.zipUrl,
     })
   } catch (error) {

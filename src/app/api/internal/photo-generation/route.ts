@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { InternalPhotoGenerationService } from '@backend/services/internal-photo-generation.service'
-import { PhotoProcessResultService } from '@backend/services/photo-process-result.service'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,11 +16,8 @@ type InternalGenerationBody = {
   generationPrompts?: unknown
   clientGenerationId?: unknown
   metadata?: unknown
-  openid?: unknown
-  orderid?: unknown
   type?: unknown
   productType?: unknown
-  suitColor?: unknown
 }
 
 function isAuthorized(request: Request) {
@@ -67,24 +63,6 @@ function normalizeGenerationPrompts(value: unknown) {
   return Object.keys(prompts).length > 0 ? prompts : undefined
 }
 
-function normalizeAutoProcess(body: InternalGenerationBody): Record<string, unknown> | null {
-  const openid = typeof body.openid === 'string' ? body.openid.trim() : ''
-  const orderid = typeof body.orderid === 'string' ? body.orderid.trim() : ''
-  const requestedType = body.productType || body.type
-  const type = requestedType === 'portrait' ? 'portrait' : requestedType === 'idphoto' ? 'idphoto' : null
-  if (!openid && !orderid) return null
-  if (!openid || !orderid || !type) {
-    throw new Error('openid, orderid, and productType are required together for automatic post-processing')
-  }
-
-  return {
-    openid,
-    orderid,
-    type,
-    ...(typeof body.suitColor === 'string' && body.suitColor.trim() ? { suitColor: body.suitColor.trim() } : {}),
-  }
-}
-
 export async function POST(request: Request) {
   const auth = isAuthorized(request)
   if (!auth.ok) {
@@ -116,7 +94,6 @@ export async function POST(request: Request) {
     const productType = requestedType === 'portrait' ? 'portrait' : 'idphoto'
 
     const metadata = normalizeMetadata(body.metadata) || {}
-    const autoProcess = normalizeAutoProcess(body)
     const task = await InternalPhotoGenerationService.createTask({
       prompt,
       imageUrls,
@@ -126,7 +103,7 @@ export async function POST(request: Request) {
       styleName: typeof body.styleName === 'string' ? body.styleName.trim() : undefined,
       negativePrompt: typeof body.negativePrompt === 'string' ? body.negativePrompt.trim() : undefined,
       clientGenerationId: typeof body.clientGenerationId === 'string' ? body.clientGenerationId.trim() : undefined,
-      metadata: autoProcess ? { ...metadata, autoProcess } : metadata,
+      metadata,
     })
 
     if (!task.reused) {
@@ -168,36 +145,12 @@ export async function GET(request: Request) {
     if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 })
     }
-
-    const metadata = task.metadata || {}
-    const processResultTaskId = typeof metadata.processResultTaskId === 'string' ? metadata.processResultTaskId : ''
-    if (processResultTaskId) {
-      const processTask = await PhotoProcessResultService.getTask(processResultTaskId)
-      if (processTask) {
-        const response = PhotoProcessResultService.toResponse(processTask)
-        return NextResponse.json({
-          taskId: task.id,
-          processTaskId: processResultTaskId,
-          status: response.status,
-          progress: response.status === 'completed' ? 100 : Math.min(99, 60 + Math.round(response.progress * 0.4)),
-          currentStep: response.currentStep,
-          outputUrls: response.status === 'completed' && response.zipUrl ? [response.zipUrl] : [],
-          zipUrl: response.status === 'completed' ? response.zipUrl : null,
-          error: response.error,
-          styleId: task.style_id,
-          styleName: task.style_name,
-        })
-      }
-    }
-
-    const autoProcess = metadata.autoProcess
-    const shouldHideIntermediateOutputs = Boolean(autoProcess && typeof autoProcess === 'object')
     return NextResponse.json({
       taskId: task.id,
       status: task.status,
       progress: task.progress,
       currentStep: task.current_step,
-      outputUrls: shouldHideIntermediateOutputs ? [] : task.output_photos,
+      outputUrls: task.output_photos,
       error: task.error_message,
       styleId: task.style_id,
       styleName: task.style_name,
