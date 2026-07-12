@@ -6,6 +6,10 @@ interface EmailOptions {
   subject: string
   html: string
   from?: string
+  attachments?: {
+    filename: string
+    content: string
+  }[]
 }
 
 interface WelcomeEmailData {
@@ -75,6 +79,13 @@ interface InboundEmailForwardData {
   messageId?: string
 }
 
+interface ZipAttachmentEmailData {
+  email: string
+  zipUrl: string
+  filename?: string
+  orderid?: string
+}
+
 const escapeHtml = (value: string) => value
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -114,6 +125,7 @@ export class EmailService {
         to: options.to,
         subject: options.subject,
         html: options.html,
+        ...(options.attachments?.length ? { attachments: options.attachments } : {}),
       }),
     })
 
@@ -463,6 +475,55 @@ export class EmailService {
       to: '896783781@qq.com',
       subject: `${appName} - Inbound Email - ${originalSubject}`,
       html,
+    })
+  }
+
+  async sendZipAttachmentEmail(data: ZipAttachmentEmailData): Promise<void> {
+    const appName = config.email.fromName
+    const filename = data.filename || `photo-results-${data.orderid || 'package'}.zip`
+    const response = await fetch(data.zipUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to download ZIP attachment: ${response.status}`)
+    }
+
+    const contentType = response.headers.get('content-type') || 'application/zip'
+    if (!contentType.includes('zip') && !data.zipUrl.toLowerCase().includes('.zip')) {
+      throw new Error(`Attachment URL does not look like a ZIP file: ${contentType}`)
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer())
+    const sizeMb = buffer.byteLength / (1024 * 1024)
+    if (sizeMb > 35) {
+      throw new Error(`ZIP attachment is too large for email: ${sizeMb.toFixed(1)}MB`)
+    }
+
+    const safeOrder = data.orderid ? escapeHtml(data.orderid) : ''
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${appName} - Photo Package Ready</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #10B981;">Your photo package is ready</h1>
+            <p>The processed photo package is attached as a ZIP file.</p>
+            ${safeOrder ? `<p><strong>Order ID:</strong> ${safeOrder}</p>` : ''}
+            <p>If the attachment is unavailable in your email client, contact support with the order ID.</p>
+          </div>
+        </body>
+      </html>
+    `
+
+    await this.sendEmail({
+      to: data.email,
+      subject: `${appName} - Photo Package Ready${data.orderid ? ` - ${data.orderid}` : ''}`,
+      html,
+      attachments: [{
+        filename,
+        content: buffer.toString('base64'),
+      }],
     })
   }
 }

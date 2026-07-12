@@ -1,6 +1,8 @@
 import { supabaseAdmin } from '@backend/config/supabase'
+import { PhotoProcessResultService } from './photo-process-result.service'
 
 type InternalTaskStatus = 'processing' | 'completed' | 'failed'
+type ProductType = 'idphoto' | 'portrait'
 
 type InternalPhotoGenerationRow = {
   id: string
@@ -21,6 +23,8 @@ type InternalPhotoGenerationRow = {
 export type CreateInternalPhotoGenerationInput = {
   prompt: string
   imageUrls: string[]
+  productType?: ProductType
+  generationPrompts?: Partial<Record<'idphoto' | 'portraitWhite' | 'portraitFront' | 'portraitSide', string>>
   styleId?: string
   styleName?: string
   negativePrompt?: string
@@ -40,6 +44,20 @@ type InternalPhotoGenerationResponse = {
 type StoredImage = {
   path: string
   publicUrl: string | null
+}
+
+type AutoProcessConfig = {
+  openid: string
+  orderid: string
+  type: ProductType
+  suitColor?: string
+}
+
+type GenerationSpec = {
+  label: string
+  prompt: string
+  aspectRatio: '1:1' | '2:3'
+  outputFormat: 'jpg' | 'png'
 }
 
 const OUTPUT_PHOTOS_BUCKET = 'output-photos'
@@ -62,9 +80,12 @@ export class InternalPhotoGenerationService {
   static async createTask(input: CreateInternalPhotoGenerationInput): Promise<InternalPhotoGenerationResponse> {
     const prompt = input.prompt.trim()
     const imageUrls = input.imageUrls.map(url => url.trim()).filter(Boolean).slice(0, MAX_INPUT_PHOTOS)
+    const productType = input.productType === 'portrait' ? 'portrait' : 'idphoto'
+    const generationPrompts = this.normalizeGenerationPrompts(input.generationPrompts)
 
     if (!prompt) throw new Error('prompt is required')
     if (imageUrls.length === 0) throw new Error('At least one image URL is required')
+    imageUrls.forEach((url) => this.validateInputImageReference(url))
 
     if (input.clientGenerationId) {
       const existing = await this.findByClientGenerationId(input.clientGenerationId)
@@ -84,7 +105,7 @@ export class InternalPhotoGenerationService {
         progress: 0,
         current_step: 'Initializing internal photo generation...',
         client_generation_id: input.clientGenerationId || null,
-        metadata: input.metadata || {},
+        metadata: { ...(input.metadata || {}), productType, generationPrompts },
         started_at: new Date().toISOString(),
       })
       .select()
@@ -117,12 +138,75 @@ export class InternalPhotoGenerationService {
     })
 
     try {
-      const outputUrl = await this.generateWithReplicate(task)
+      const preparedInputPhotos = await this.prepareInputPhotosForReplicate(task)
+      const preparedTask = { ...task, input_photos: preparedInputPhotos }
+      await this.updateTask(taskId, {
+        input_photos: preparedInputPhotos,
+        progress: 20,
+        current_step: 'Preparing reference image for generation...',
+      })
+
+      const productType = this.getProductType(preparedTask.metadata)
+      const outputUrls = await this.generateProductImages(preparedTask, productType)
+      const autoProcess = this.getAutoProcessConfig(task.metadata)
+
+      if (autoProcess) {
+        await this.updateTask(taskId, {
+          progress: 60,
+          current_step: 'Generated image is ready. Running backend post-processing...',
+          output_photos: [],
+          metadata: {
+            ...(task.metadata || {}),
+            generatedOutputUrls: outputUrls,
+          },
+        })
+
+        const processTask = await PhotoProcessResultService.createTask({
+          openid: autoProcess.openid,
+          orderid: autoProcess.orderid,
+          type: autoProcess.type,
+          taskId,
+          suitColor: autoProcess.suitColor,
+          outputUrls,
+          metadata: {
+            source: 'internal_photo_generation',
+            internalGenerationTaskId: taskId,
+            productType,
+          },
+        })
+
+        await this.updateTask(taskId, {
+          metadata: {
+            ...(task.metadata || {}),
+            generatedOutputUrls: outputUrls,
+            processResultTaskId: processTask.taskId,
+          },
+        })
+
+        await PhotoProcessResultService.processTask(processTask.taskId)
+        const completedProcessTask = await PhotoProcessResultService.getTask(processTask.taskId)
+        const processResponse = completedProcessTask ? PhotoProcessResultService.toResponse(completedProcessTask) : null
+        await this.updateTask(taskId, {
+          status: 'completed',
+          progress: 100,
+          current_step: 'Generated image and backend photo package are ready.',
+          output_photos: processResponse?.zipUrl ? [processResponse.zipUrl] : [],
+          metadata: {
+            ...(task.metadata || {}),
+            generatedOutputUrls: outputUrls,
+            processResultTaskId: processTask.taskId,
+            processResult: processResponse,
+          },
+          completed_at: new Date().toISOString(),
+        })
+        return
+      }
+
       await this.updateTask(taskId, {
         status: 'completed',
         progress: 100,
         current_step: 'Internal photo generation completed.',
-        output_photos: [outputUrl],
+        output_photos: outputUrls,
         completed_at: new Date().toISOString(),
       })
     } catch (error) {
@@ -168,7 +252,130 @@ export class InternalPhotoGenerationService {
     if (error) throw error
   }
 
-  private static async generateWithReplicate(task: InternalPhotoGenerationRow): Promise<string> {
+  private static getAutoProcessConfig(metadata: Record<string, unknown> | null): AutoProcessConfig | null {
+    const value = metadata?.autoProcess
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+    const record = value as Record<string, unknown>
+    const openid = typeof record.openid === 'string' ? record.openid.trim() : ''
+    const orderid = typeof record.orderid === 'string' ? record.orderid.trim() : ''
+    const type = record.type === 'portrait' ? 'portrait' : record.type === 'idphoto' ? 'idphoto' : null
+    const suitColor = typeof record.suitColor === 'string' && record.suitColor.trim() ? record.suitColor.trim() : undefined
+    if (!openid || !orderid || !type) return null
+    return { openid, orderid, type, suitColor }
+  }
+
+  private static getProductType(metadata: Record<string, unknown> | null): ProductType {
+    return metadata?.productType === 'portrait' ? 'portrait' : 'idphoto'
+  }
+
+  private static normalizeGenerationPrompts(value: CreateInternalPhotoGenerationInput['generationPrompts']) {
+    if (!value) return {}
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter((entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1].trim().length > 0)
+        .map(([key, prompt]) => [key, prompt.trim()])
+    )
+  }
+
+  private static getGenerationPrompt(task: InternalPhotoGenerationRow, key: string) {
+    const prompts = task.metadata?.generationPrompts
+    if (prompts && typeof prompts === 'object' && !Array.isArray(prompts)) {
+      const prompt = (prompts as Record<string, unknown>)[key]
+      if (typeof prompt === 'string' && prompt.trim()) return prompt.trim()
+    }
+    return task.prompt.trim()
+  }
+
+  private static validateInputImageReference(imageUrl: string): void {
+    if (imageUrl.startsWith('data:image/')) return
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return
+    throw new Error('imageUrl must be an http(s) URL or a data:image/... base64 URL')
+  }
+
+  private static async prepareInputPhotosForReplicate(task: InternalPhotoGenerationRow): Promise<string[]> {
+    const preparedPhotos: string[] = []
+
+    for (let index = 0; index < task.input_photos.length; index += 1) {
+      const imageUrl = task.input_photos[index]
+      this.validateInputImageReference(imageUrl)
+
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        preparedPhotos.push(imageUrl)
+        continue
+      }
+
+      const image = await this.loadDataUrlImage(imageUrl, 'image/jpeg')
+      const extension = this.extensionForContentType(image.contentType)
+      const objectPath = [
+        'internal-photo-generations',
+        this.safeStorageSegment(task.id),
+        `input-${String(index + 1).padStart(2, '0')}.${extension}`,
+      ].join('/')
+
+      const storedImage = await this.storeImage(imageUrl, image, {
+        bucket: OUTPUT_PHOTOS_BUCKET,
+        path: objectPath,
+        public: true,
+      })
+
+      if (!storedImage.publicUrl) {
+        throw new Error('Failed to create public URL for internal input image')
+      }
+
+      preparedPhotos.push(storedImage.publicUrl)
+    }
+
+    return preparedPhotos
+  }
+
+  private static buildGenerationSpecs(task: InternalPhotoGenerationRow, productType: ProductType): GenerationSpec[] {
+    if (productType === 'idphoto') {
+      return [{
+        label: 'idphoto-white-1024',
+        prompt: this.getGenerationPrompt(task, 'idphoto'),
+        aspectRatio: '1:1',
+        outputFormat: 'jpg',
+      }]
+    }
+
+    return [
+      {
+        label: 'portrait-white-1024',
+        prompt: this.getGenerationPrompt(task, 'portraitWhite'),
+        aspectRatio: '1:1',
+        outputFormat: 'jpg',
+      },
+      {
+        label: 'portrait-front-upper-body-1200x1800',
+        prompt: this.getGenerationPrompt(task, 'portraitFront'),
+        aspectRatio: '2:3',
+        outputFormat: 'jpg',
+      },
+      {
+        label: 'portrait-side-shoulder-upper-body-1200x1800',
+        prompt: this.getGenerationPrompt(task, 'portraitSide'),
+        aspectRatio: '2:3',
+        outputFormat: 'jpg',
+      },
+    ]
+  }
+
+  private static async generateProductImages(task: InternalPhotoGenerationRow, productType: ProductType): Promise<string[]> {
+    const specs = this.buildGenerationSpecs(task, productType)
+    const outputUrls: string[] = []
+
+    for (let index = 0; index < specs.length; index += 1) {
+      await this.updateTask(task.id, {
+        progress: 25 + Math.round((index / specs.length) * 30),
+        current_step: `Generating ${specs[index].label}...`,
+      })
+      outputUrls.push(await this.generateWithReplicate(task, specs[index]))
+    }
+
+    return outputUrls
+  }
+
+  private static async generateWithReplicate(task: InternalPhotoGenerationRow, spec: GenerationSpec): Promise<string> {
     const replicateApiKey = process.env.REPLICATE_API_KEY
     if (!replicateApiKey) throw new Error('REPLICATE_API_KEY is required')
 
@@ -186,11 +393,11 @@ export class InternalPhotoGenerationService {
             },
             body: JSON.stringify({
               input: {
-                prompt: task.prompt,
+                prompt: spec.prompt,
                 ...(task.negative_prompt ? { negative_prompt: task.negative_prompt } : {}),
                 image_input: task.input_photos.slice(0, MAX_INPUT_PHOTOS),
-                aspect_ratio: '1:1',
-                output_format: 'jpg',
+                aspect_ratio: spec.aspectRatio,
+                output_format: spec.outputFormat,
               },
             }),
           },
@@ -232,7 +439,7 @@ export class InternalPhotoGenerationService {
           throw new Error('Replicate prediction returned no output URL')
         }
 
-        return await this.persistOutputPhoto(temporaryOutputUrl, task)
+        return await this.persistOutputPhoto(temporaryOutputUrl, task, spec.label)
       } catch (error) {
         if (attempt >= GENERATION_ATTEMPTS) throw error
         await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
@@ -258,10 +465,10 @@ export class InternalPhotoGenerationService {
     return null
   }
 
-  private static async persistOutputPhoto(temporaryUrl: string, task: InternalPhotoGenerationRow): Promise<string> {
+  private static async persistOutputPhoto(temporaryUrl: string, task: InternalPhotoGenerationRow, label: string): Promise<string> {
     const image = await this.loadImageFromUrl(temporaryUrl, 'image/jpeg')
     const extension = this.extensionForContentType(image.contentType)
-    const safeStyleId = this.safeStorageSegment(task.style_id || task.style_name || 'internal')
+    const safeStyleId = this.safeStorageSegment(label || task.style_id || task.style_name || 'internal')
     const objectPath = [
       'internal-photo-generations',
       this.safeStorageSegment(task.id),
