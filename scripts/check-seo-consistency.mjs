@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url)
 const ts = require('typescript')
 const root = process.cwd()
 const appDir = join(root, 'src', 'app')
+const firstContentCharacterLimit = 400
 const skippedRoutePatterns = [
   /^src\/app\/(?:\[locale\]\/)?auth\//,
   /^src\/app\/(?:\[locale\]\/)?dashboard\//,
@@ -445,7 +446,7 @@ function inferLocaleFromRepoPath(repoPath) {
   return ['en', 'es', 'fr', 'de', 'ja'].includes(locale) ? locale : 'en'
 }
 
-function validateSeoBasics(label, { locale = 'en', title = '', h1 = '', description = '', keywords = [], checkH1 = true }, issues) {
+function validateSeoBasics(label, { locale = 'en', title = '', h1 = '', description = '', keywords = [], checkH1 = true, firstContent = '' }, issues) {
   const normalizedDescription = typeof description === 'string' ? description.trim() : ''
   const normalizedTitle = typeof title === 'string' ? title.trim() : ''
   const normalizedH1 = typeof h1 === 'string' ? h1.trim() : ''
@@ -486,6 +487,38 @@ function validateSeoBasics(label, { locale = 'en', title = '', h1 = '', descript
   if (mismatchedKeywords.length > 0) {
     issues.push(`${label}: keyword(s) do not match description topic: ${mismatchedKeywords.map((keyword) => `"${keyword}"`).join(', ')}.`)
   }
+
+  validateFirstContentSeoCoverage(label, {
+    title: normalizedTitle,
+    h1: normalizedH1,
+    description: normalizedDescription,
+    keywords: normalizedKeywords,
+    firstContent,
+  }, issues)
+}
+
+function validateFirstContentSeoCoverage(label, { title = '', h1 = '', description = '', keywords = [], firstContent = '' }, issues) {
+  const sourceText = firstContent || [h1 || title, description, ...keywords].filter(Boolean).join(' ')
+  const firstContentText = Array.from(normalizeWhitespace(sourceText)).slice(0, firstContentCharacterLimit).join('')
+  const titleCandidate = h1 || title
+
+  if (!firstContentText) {
+    issues.push(`${label}: first ${firstContentCharacterLimit} visible characters could not be checked.`)
+    return
+  }
+
+  if (titleCandidate && !hasSeoTopicOverlap(titleCandidate, firstContentText, 2)) {
+    issues.push(`${label}: first ${firstContentCharacterLimit} visible characters do not match title/H1 topic.`)
+  }
+
+  const missingKeywords = keywords.filter((keyword) => !hasSeoTopicOverlap(keyword, firstContentText, keywordOverlapMinimum(keyword)))
+  if (missingKeywords.length > 0) {
+    issues.push(`${label}: first ${firstContentCharacterLimit} visible characters do not cover keyword topic(s): ${missingKeywords.map((keyword) => `"${keyword}"`).join(', ')}.`)
+  }
+}
+
+function normalizeWhitespace(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim()
 }
 
 function compactSeoText(text) {
@@ -874,7 +907,7 @@ async function checkPublishedCmsBlogSeoConsistency() {
     })
     const { data, error } = await supabase
       .from('blog_posts')
-      .select('locale,slug,status,title,description,keywords')
+      .select('locale,slug,status,title,description,keywords,intro,content')
       .eq('status', 'published')
       .order('locale')
       .order('slug')
@@ -895,6 +928,17 @@ async function checkPublishedCmsBlogSeoConsistency() {
     const description = typeof row.description === 'string' ? row.description.trim() : ''
     const title = typeof row.title === 'string' ? row.title.trim() : ''
     const keywords = Array.isArray(row.keywords) ? row.keywords.filter((keyword) => typeof keyword === 'string' && keyword.trim()) : []
+    const intro = typeof row.intro === 'string' ? row.intro.trim() : ''
+    const sections = row.content && Array.isArray(row.content.sections) ? row.content.sections : []
+    const firstSection = sections.find((section) => section && typeof section.body === 'string')
+    const firstContent = [
+      title,
+      description,
+      ...keywords,
+      intro,
+      firstSection?.heading,
+      firstSection?.body,
+    ].filter(Boolean).join(' ')
 
     validateSeoBasics(`CMS blog_posts ${label}`, {
       locale: row.locale,
@@ -902,6 +946,7 @@ async function checkPublishedCmsBlogSeoConsistency() {
       description,
       keywords,
       checkH1: false,
+      firstContent,
     }, issues)
   }
 
@@ -1039,6 +1084,39 @@ function validateSharedKeywordLimitSources(issues) {
   }
 }
 
+function validateFirstContentSourceOrder(issues) {
+  const requiredOrderedSignals = [
+    [
+      'src/components/blog/blog-category-page-view.tsx',
+      ['{content.h1}', '{content.intro}', '<KeywordStrip keywords={content.keywords}'],
+    ],
+    [
+      'src/app/blog/[slug]/page.tsx',
+      ['{post.title}', '{post.description}', '<KeywordStrip keywords={post.keywords}', '{post.intro}'],
+    ],
+    [
+      'src/app/[locale]/blog/[slug]/page.tsx',
+      ['{post.title}', '{post.description}', '<KeywordStrip keywords={post.keywords}', '{post.intro}'],
+    ],
+  ]
+
+  for (const [path, signals] of requiredOrderedSignals) {
+    const source = read(path)
+    let lastIndex = -1
+    for (const signal of signals) {
+      const index = source.indexOf(signal)
+      if (index === -1) {
+        issues.push(`${path}: missing first-content SEO signal "${signal}".`)
+        continue
+      }
+      if (index < lastIndex) {
+        issues.push(`${path}: first-content SEO signal "${signal}" appears before the expected previous signal.`)
+      }
+      lastIndex = index
+    }
+  }
+}
+
 export function checkAllPagesSeoConsistency() {
   const issues = []
   const warnings = []
@@ -1090,6 +1168,7 @@ export function checkAllPagesSeoConsistency() {
   validateBlogPostJsonLdSourceConsistency(issues)
   validateSitemapHreflangSource(issues)
   validateSharedKeywordLimitSources(issues)
+  validateFirstContentSourceOrder(issues)
 
   return { checked, skipped, warnings, issues }
 }
