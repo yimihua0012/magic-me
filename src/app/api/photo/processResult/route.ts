@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 import { PhotoProcessResultService } from '@backend/services/photo-process-result.service'
 
 export const dynamic = 'force-dynamic'
@@ -65,9 +65,9 @@ export async function POST(request: Request) {
       metadata: normalizeMetadata(body.metadata),
     })
 
-    PhotoProcessResultService.processTask(task.taskId).catch((error) => {
+    after(() => PhotoProcessResultService.processTask(task.taskId).catch((error) => {
       console.error('[PhotoProcessResult] Background processing error:', error)
-    })
+    }))
 
     return NextResponse.json({
       taskId: task.taskId,

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 import { InternalPhotoGenerationService } from '@backend/services/internal-photo-generation.service'
 
 export const dynamic = 'force-dynamic'
@@ -107,9 +107,9 @@ export async function POST(request: Request) {
     })
 
     if (!task.reused) {
-      InternalPhotoGenerationService.processTask(task.id).catch((error) => {
+      after(() => InternalPhotoGenerationService.processTask(task.id).catch((error) => {
         console.error('[InternalPhotoGeneration] Background generation error:', error)
-      })
+      }))
     }
 
     return NextResponse.json({

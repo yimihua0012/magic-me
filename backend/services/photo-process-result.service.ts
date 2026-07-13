@@ -146,7 +146,6 @@ export class PhotoProcessResultService {
         zip_url: output.zipUrl,
         completed_at: new Date().toISOString(),
       })
-      await this.notifyOrderSystem(task, output)
     } catch (error) {
       const message = error instanceof Error ? error.message : '后处理失败'
       await this.updateTask(taskId, {
@@ -482,34 +481,6 @@ export class PhotoProcessResultService {
     return file.publicUrl
   }
 
-  private static async notifyOrderSystem(task: ProcessRow, output: ProcessOutput) {
-    const endpoint = process.env.PHOTO_ORDER_UPDATE_ENDPOINT?.trim()
-    if (!endpoint) return
-
-    const response = await fetchWithTimeout(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(process.env.PHOTO_ORDER_UPDATE_TOKEN ? { Authorization: `Bearer ${process.env.PHOTO_ORDER_UPDATE_TOKEN}` } : {}),
-      },
-      body: JSON.stringify({
-        openid: task.openid,
-        orderid: task.orderid,
-        type: task.type,
-        status: 'completed',
-        outputUrls: output.outputUrls,
-        idPhotoUrls: output.idPhotoUrls,
-        layoutUrls: output.layoutUrls,
-        portraitUrls: output.portraitUrls || {},
-        zipUrl: output.zipUrl,
-      }),
-    }, 30000)
-
-    if (!response.ok) {
-      throw new Error(`photo/addOrUpdateorder callback failed: ${response.status}`)
-    }
-  }
-
   private static async updateTask(taskId: string, updates: Record<string, unknown>) {
     const { error } = await supabaseAdmin
       .from('photo_process_results')
@@ -533,7 +504,9 @@ export class PhotoProcessResultService {
         upsert: true,
       })
 
-    if (error) throw new Error(`Failed to upload processed file: ${error.message}`)
+    if (error) {
+      throw new Error(`Failed to upload processed file ${objectPath} (${contentType}, ${data.length} bytes): ${JSON.stringify(error)}`)
+    }
     const { data: publicData } = supabaseAdmin.storage.from(OUTPUT_BUCKET).getPublicUrl(objectPath)
     return {
       path: objectPath,
