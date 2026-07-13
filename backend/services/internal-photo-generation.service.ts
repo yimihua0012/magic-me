@@ -94,7 +94,7 @@ export class InternalPhotoGenerationService {
         input_photos: imageUrls,
         output_photos: [],
         progress: 0,
-        current_step: '初始化图片生成任务...',
+        current_step: '任务已创建',
         client_generation_id: input.clientGenerationId || null,
         metadata: { ...(input.metadata || {}), productType, generationPrompts },
         started_at: new Date().toISOString(),
@@ -124,7 +124,7 @@ export class InternalPhotoGenerationService {
     await this.updateTask(taskId, {
       status: 'processing',
       progress: 10,
-      current_step: '正在根据提示词生成图片...',
+      current_step: '生成中',
       started_at: new Date().toISOString(),
     })
 
@@ -134,7 +134,7 @@ export class InternalPhotoGenerationService {
       await this.updateTask(taskId, {
         input_photos: preparedInputPhotos,
         progress: 20,
-        current_step: '正在准备参考图片...',
+        current_step: '准备图片',
       })
 
       const productType = this.getProductType(preparedTask.metadata)
@@ -143,7 +143,7 @@ export class InternalPhotoGenerationService {
       await this.updateTask(taskId, {
         status: 'completed',
         progress: 100,
-        current_step: '图片生成完成。',
+        current_step: '生成完成',
         output_photos: outputUrls,
         metadata: {
           ...(task.metadata || {}),
@@ -152,11 +152,11 @@ export class InternalPhotoGenerationService {
         completed_at: new Date().toISOString(),
       })
     } catch (error) {
-      const message = error instanceof Error ? error.message : '图片生成失败'
+      const message = error instanceof Error ? error.message : '生成失败'
       await this.updateTask(taskId, {
         status: 'failed',
         progress: 0,
-        current_step: '图片生成失败。',
+        current_step: '生成失败',
         error_message: message,
       })
       throw error
@@ -168,7 +168,7 @@ export class InternalPhotoGenerationService {
       id: task.id,
       status: task.status,
       progress: task.progress || 0,
-      currentStep: task.current_step || '正在处理图片生成任务...',
+      currentStep: task.current_step || '处理中',
       outputUrls: task.output_photos || [],
       reused,
     }
@@ -380,11 +380,11 @@ export class InternalPhotoGenerationService {
   }
 
   private static generationStepLabel(label: string) {
-    if (label === 'idphoto-white-1024') return '正在生成1024白底证件照...'
-    if (label === 'portrait-white-1024') return '正在生成1024白底头像...'
-    if (label === 'portrait-front-upper-body-1200x1800') return '正在生成1200x1800正脸上半身照...'
-    if (label === 'portrait-side-shoulder-upper-body-1200x1800') return '正在生成1200x1800侧肩上半身照...'
-    return '正在生成图片...'
+    if (label === 'idphoto-white-1024') return '生成图片'
+    if (label === 'portrait-white-1024') return '生成第1张'
+    if (label === 'portrait-front-upper-body-1200x1800') return '生成第2张'
+    if (label === 'portrait-side-shoulder-upper-body-1200x1800') return '生成第3张'
+    return '生成图片'
   }
 
   private static extractReplicateOutputUrl(output: unknown): string | null {

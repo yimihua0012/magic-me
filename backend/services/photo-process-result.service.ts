@@ -56,15 +56,16 @@ const DPI = 300
 const LARGE_SIZE = 1024
 const SUBJECT_ALPHA_THRESHOLD = 24
 const PAPER_4X6 = { width: 1800, height: 1200 }
+const PRINT_LAYOUT_GAP = 24
 const BACKGROUNDS = {
   white: { label: 'white', color: '#ffffff' },
   blue: { label: 'blue', color: '#438edb' },
   red: { label: 'red', color: '#d62828' },
 } as const
 const PHOTO_SIZES = {
-  oneInch: { label: 'one-inch', width: 295, height: 413, topMarginRatio: 0.05 },
-  smallTwoInch: { label: 'small-two-inch', width: 413, height: 531, topMarginRatio: 0.05 },
-  twoInch: { label: 'two-inch', width: 413, height: 579, topMarginRatio: 0.05 },
+  oneInch: { label: 'one-inch', width: 295, height: 413, topMarginRatio: 0.08 },
+  smallTwoInch: { label: 'small-two-inch', width: 413, height: 531, topMarginRatio: 0.08 },
+  twoInch: { label: 'two-inch', width: 413, height: 579, topMarginRatio: 0.08 },
 } as const
 type PhotoSizeSpec = typeof PHOTO_SIZES[keyof typeof PHOTO_SIZES]
 
@@ -328,18 +329,20 @@ export class PhotoProcessResultService {
 
   private static async createPrintLayout(transparentCanvas: Buffer, color: string, spec: PhotoSizeSpec) {
     const photo = await this.compositePreparedTransparent(transparentCanvas, color)
-    const columns = Math.floor(PAPER_4X6.width / spec.width)
-    const rows = Math.floor(PAPER_4X6.height / spec.height)
-    const startX = Math.floor((PAPER_4X6.width - columns * spec.width) / 2)
-    const startY = Math.floor((PAPER_4X6.height - rows * spec.height) / 2)
+    const columns = Math.max(1, Math.floor((PAPER_4X6.width + PRINT_LAYOUT_GAP) / (spec.width + PRINT_LAYOUT_GAP)))
+    const rows = Math.max(1, Math.floor((PAPER_4X6.height + PRINT_LAYOUT_GAP) / (spec.height + PRINT_LAYOUT_GAP)))
+    const occupiedWidth = columns * spec.width + (columns - 1) * PRINT_LAYOUT_GAP
+    const occupiedHeight = rows * spec.height + (rows - 1) * PRINT_LAYOUT_GAP
+    const startX = Math.floor((PAPER_4X6.width - occupiedWidth) / 2)
+    const startY = Math.floor((PAPER_4X6.height - occupiedHeight) / 2)
     const composites: OverlayOptions[] = []
 
     for (let row = 0; row < rows; row += 1) {
       for (let column = 0; column < columns; column += 1) {
         composites.push({
           input: photo,
-          left: startX + column * spec.width,
-          top: startY + row * spec.height,
+          left: startX + column * (spec.width + PRINT_LAYOUT_GAP),
+          top: startY + row * (spec.height + PRINT_LAYOUT_GAP),
         })
       }
     }
