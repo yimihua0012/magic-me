@@ -451,12 +451,9 @@ export class PhotoProcessResultService {
       const image = imageUrl.startsWith('data:')
         ? this.loadDataUrlImage(imageUrl, 'image/jpeg')
         : await this.downloadImage(imageUrl)
-      const normalized = await sharp(image.data)
-        .resize(1200, 1800, { fit: 'cover', position: 'centre' })
-        .jpeg({ quality: 94 })
-        .toBuffer()
       const label = index === 0 ? 'front-upper-body' : 'side-shoulder-upper-body'
-      const file = await this.storeBuffer(task, normalized, `portrait/${label}.jpg`, 'image/jpeg')
+      const extension = this.extensionForContentType(image.contentType)
+      const file = await this.storeBuffer(task, Buffer.from(image.data), `portrait/${label}.${extension}`, image.contentType)
       storedFiles.push(file)
       portraitUrls[label] = file.publicUrl
     }
