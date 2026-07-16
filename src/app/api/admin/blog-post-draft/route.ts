@@ -57,12 +57,19 @@ export async function POST(request: Request) {
   const mode = body?.mode === 'prepare' ? 'prepare' : 'article'
   const uniquenessHint = makeDraftUniquenessHint(locale, keywords, relatedTerms)
 
-  if (mode === 'prepare' && !relatedTerms) {
-    return NextResponse.json({ error: 'Enter related terms first.' }, { status: 400 })
+  if (mode === 'prepare' && !relatedTerms && keywords.length !== 1) {
+    return NextResponse.json({ error: 'Enter related terms or confirm exactly one localized search keyword first.' }, { status: 400 })
   }
 
   if (mode === 'article' && keywords.length !== 1) {
     return NextResponse.json({ error: 'Confirm exactly one localized search keyword first.' }, { status: 400 })
+  }
+
+  if (mode === 'prepare' && keywords.length === 1 && !relatedTerms) {
+    return NextResponse.json({
+      keywords,
+      prompt: buildBlogDraftPrompt(locale, keywords, uniquenessHint),
+    })
   }
 
   const prompt = mode === 'prepare'

@@ -53,6 +53,8 @@ type BlogFormState = {
   submittedToBing: boolean
 }
 
+type DraftPrepareMode = 'relatedTerms' | 'keyword'
+
 interface BlogContentPageViewProps {
   locale?: Locale
 }
@@ -90,6 +92,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
   const [selectedStatus, setSelectedStatus] = useState<BlogStatus | 'all'>('all')
   const [query, setQuery] = useState('')
   const [draftLocale, setDraftLocale] = useState<Locale>('en')
+  const [draftPrepareMode, setDraftPrepareMode] = useState<DraftPrepareMode>('relatedTerms')
   const [draftRelatedTerms, setDraftRelatedTerms] = useState('')
   const [draftKeywords, setDraftKeywords] = useState('')
   const [draftPrompt, setDraftPrompt] = useState('')
@@ -205,8 +208,13 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
       return
     }
 
-    if (!draftRelatedTerms.trim()) {
-      setError('Enter related terms before preparing keywords and prompt.')
+    if (draftPrepareMode === 'relatedTerms' && !draftRelatedTerms.trim()) {
+      setError('Enter related terms before preparing a long-tail keyword and prompt.')
+      return
+    }
+
+    if (draftPrepareMode === 'keyword' && !draftKeywords.trim()) {
+      setError('Enter one confirmed keyword before preparing the draft prompt.')
       return
     }
 
@@ -224,7 +232,8 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
         body: JSON.stringify({
           mode: 'prepare',
           locale: draftLocale,
-          relatedTerms: draftRelatedTerms,
+          relatedTerms: draftPrepareMode === 'relatedTerms' ? draftRelatedTerms : undefined,
+          keywords: draftPrepareMode === 'keyword' ? draftKeywords : undefined,
         }),
       })
       const data = await response.json().catch(() => ({}))
@@ -247,7 +256,9 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
       if (hasBlogFormContent()) {
         clearBlogForm(draftLocale)
       }
-      setMessage('Localized keyword and article prompt prepared. Review them, edit if needed, then generate the article.')
+      setMessage(draftPrepareMode === 'relatedTerms'
+        ? 'Long-tail keyword and article prompt prepared. Review them, edit if needed, then generate the article.'
+        : 'Article prompt prepared from the confirmed keyword. Review it, edit if needed, then generate the article.')
     } catch (prepareError) {
       setError(prepareError instanceof Error ? prepareError.message : 'Could not prepare a localized keyword and prompt.')
     } finally {
@@ -405,31 +416,60 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
                 <option key={item} value={item}>{item.toUpperCase()}</option>
               ))}
             </select>
-            <input
-              value={draftRelatedTerms}
-              onChange={(event) => {
-                setDraftRelatedTerms(event.target.value)
-              }}
-              placeholder="Related terms only, e.g. AI headshot, consultant photo, team profile"
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
-            />
-            <Button variant="secondary" onClick={prepareDraftPrompt} isLoading={isGenerating} disabled={isGenerating || !draftRelatedTerms.trim()}>
-              Prepare Keyword
+            <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-1">
+              <button
+                type="button"
+                onClick={() => setDraftPrepareMode('relatedTerms')}
+                className={`flex-1 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${draftPrepareMode === 'relatedTerms' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+              >
+                指定词
+              </button>
+              <button
+                type="button"
+                onClick={() => setDraftPrepareMode('keyword')}
+                className={`flex-1 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${draftPrepareMode === 'keyword' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+              >
+                指定关键词
+              </button>
+            </div>
+            <Button variant="secondary" onClick={prepareDraftPrompt} isLoading={isGenerating} disabled={isGenerating || (draftPrepareMode === 'relatedTerms' ? !draftRelatedTerms.trim() : !draftKeywords.trim())}>
+              {draftPrepareMode === 'relatedTerms' ? 'Prepare Keyword' : 'Prepare Prompt'}
             </Button>
             <Button onClick={generateDraft} isLoading={isGenerating} disabled={isGenerating || !draftKeywords.trim() || !draftPrompt.trim()}>
               Generate Article
             </Button>
           </div>
-          <input
-            value={draftKeywords}
-            onChange={(event) => setDraftKeywords(event.target.value)}
-            placeholder="DeepSeek will return one localized long-tail Google search keyword here."
-            className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
-          />
+          {draftPrepareMode === 'relatedTerms' ? (
+            <input
+              value={draftRelatedTerms}
+              onChange={(event) => {
+                setDraftRelatedTerms(event.target.value)
+              }}
+              placeholder="指定词：AI headshot, consultant photo, team profile"
+              className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+            />
+          ) : (
+            <input
+              value={draftKeywords}
+              onChange={(event) => setDraftKeywords(event.target.value)}
+              placeholder="指定关键词：one localized long-tail keyword"
+              className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+            />
+          )}
+          {draftPrepareMode === 'relatedTerms' && (
+            <input
+              value={draftKeywords}
+              onChange={(event) => setDraftKeywords(event.target.value)}
+              placeholder="Localized long-tail keyword used for draft generation."
+              className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+            />
+          )}
           <textarea
             value={draftPrompt}
             onChange={(event) => setDraftPrompt(event.target.value)}
-            placeholder="Click Prepare Keyword to generate one localized long-tail Google search keyword and the article prompt for review."
+            placeholder={draftPrepareMode === 'relatedTerms'
+              ? 'Click Prepare Keyword to generate one localized long-tail keyword and the article prompt.'
+              : 'Click Prepare Prompt to generate the article prompt from the confirmed keyword.'}
             className={`${monoInputClass} mt-3 min-h-64`}
           />
         </Card>
