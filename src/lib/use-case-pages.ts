@@ -697,7 +697,7 @@ export const useCasePages: Record<UseCasePageSlug, Record<Locale, UseCasePageCon
     },
     de: {
       title: "KI Bewerbungsfoto fuer Lebenslauf und Bewerbungsunterlagen",
-      description: "Wie du ein ruhiges KI Bewerbungsfoto waehlst, das zur Bewerbung passt und nicht kuenstlich wirkt.",
+      description: "Wie du ein ruhiges KI Bewerbungsfoto fuer Lebenslauf, Bewerbung und Profil waehlst, ohne dass es kuenstlich wirkt.",
       keywords: ['KI Bewerbungsfoto', 'Lebenslauf Foto KI', 'Bewerbungsfoto Generator', 'professionelles Bewerbungsfoto KI'],
       eyebrow: 'Bewerbungsfoto und Lebenslauf',
       h1: "KI Bewerbungsfoto ohne ueberproduzierten Eindruck",
@@ -861,7 +861,7 @@ export const useCasePages: Record<UseCasePageSlug, Record<Locale, UseCasePageCon
     },
     fr: {
       title: 'Portrait style studio IA sans séance photo',
-      description: 'Générez des portraits IA style studio avec lumière soignée, fond propre et rendu professionnel.',
+      description: 'Générez des portraits IA style studio avec lumière soignée, fond propre, rendu professionnel et usage LinkedIn ou CV.',
       keywords: ['portrait studio IA', 'headshot studio IA', 'photo professionnelle studio IA', 'portrait IA premium'],
       eyebrow: 'Usage style studio',
       h1: 'Portrait style studio IA sans organiser de séance photo',

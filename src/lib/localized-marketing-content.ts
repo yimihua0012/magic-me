@@ -129,7 +129,7 @@ const sharedQuestions: Record<NonEnglishLocale, LocalizedQuestionsContent['quest
 export const localizedContactContent: Record<NonEnglishLocale, LocalizedContactContent> = {
   es: {
     title: 'Contacta con el soporte de Magic-Headshot',
-    description: '¿Tienes preguntas sobre retratos IA, pagos, reembolsos o tu cuenta? Escríbenos con el detalle del pedido, la generación o el flujo que necesitas revisar, y te responderemos con el contexto adecuado lo antes posible.',
+    description: 'Contacta con Magic Headshot sobre retratos IA, pagos, reembolsos, cuenta, pedidos o problemas de generación.',
     email: 'Email',
     responseTime: 'Respondemos normalmente en 24 horas',
     chat: 'Chat',
@@ -150,7 +150,7 @@ export const localizedContactContent: Record<NonEnglishLocale, LocalizedContactC
   },
   fr: {
     title: 'Contacter le support Magic-Headshot',
-    description: 'Des questions sur les portraits IA, les paiements, les remboursements ou votre compte ? Écrivez-nous avec le détail de votre commande, génération ou problème de parcours, et nous répondrons avec le bon contexte.',
+    description: 'Contactez Magic Headshot pour portraits IA, paiements, remboursements, compte, commande ou problème de génération.',
     email: 'E-mail',
     responseTime: 'Réponse habituelle sous 24 heures',
     chat: 'Chat',
@@ -171,7 +171,7 @@ export const localizedContactContent: Record<NonEnglishLocale, LocalizedContactC
   },
   de: {
     title: 'Magic-Headshot Support kontaktieren',
-    description: 'Fragen zu KI-Headshots, Zahlungen, Erstattungen oder deinem Konto? Schreib uns mit Bestelldetails, Generierungsproblem oder Workflow-Frage, damit wir den Fall im richtigen Kontext beantworten konnen.',
+    description: 'Kontaktiere Magic Headshot zu KI-Headshots, Zahlung, Erstattung, Konto, Bestellung oder Generierungsproblem.',
     email: 'E-Mail',
     responseTime: 'Antwort normalerweise innerhalb von 24 Stunden',
     chat: 'Chat',
@@ -225,7 +225,7 @@ export const localizedQuestionsContent: Record<NonEnglishLocale, LocalizedQuesti
   },
   fr: {
     title: 'Questions sur les portraits IA',
-    description: 'Réponses rapides sur les crédits, selfies, qualité, paiements et usage professionnel. Consultez cette page avant d’acheter ou d’importer vos photos pour mieux préparer votre génération.',
+    description: 'Réponses sur crédits, selfies, qualité, paiements, confidentialité et usage professionnel des portraits IA.',
     commonTitle: 'Questions fréquentes',
     ctaTitle: 'Voir des exemples réels ?',
     ctaText: 'Comparez des photos originales avec des portraits générés avant de choisir un plan.',
@@ -255,7 +255,7 @@ export const localizedQuestionsContent: Record<NonEnglishLocale, LocalizedQuesti
 export const localizedSampleContent: Record<NonEnglishLocale, LocalizedSampleContent> = {
   es: {
     title: 'Muestras de retratos IA antes y después',
-    description: 'Compara fotos originales con retratos profesionales generados para LinkedIn, CV y perfiles de negocio. Usa estos ejemplos para evaluar parecido, fondo, ropa y dirección visual antes de elegir un plan.',
+    description: 'Compara fotos originales y retratos IA para LinkedIn, CV y perfiles de negocio antes de elegir estilo o plan.',
     originalLabel: 'foto original del usuario',
     generatedLabel: 'retrato profesional generado',
     ctaTitle: 'Elige la dirección visual adecuada',
@@ -264,7 +264,7 @@ export const localizedSampleContent: Record<NonEnglishLocale, LocalizedSampleCon
   },
   fr: {
     title: 'Exemples de portraits IA avant/après',
-    description: 'Comparez des photos originales avec des portraits professionnels générés pour LinkedIn, CV et profils business. Utilisez ces exemples pour juger la ressemblance, le fond, la tenue et le style avant de choisir.',
+    description: 'Comparez photos originales et portraits IA pour LinkedIn, CV et profils business avant de choisir un style.',
     originalLabel: 'photo originale fournie',
     generatedLabel: 'portrait professionnel généré',
     ctaTitle: 'Choisissez la bonne direction visuelle',
@@ -273,7 +273,7 @@ export const localizedSampleContent: Record<NonEnglishLocale, LocalizedSampleCon
   },
   de: {
     title: 'KI-Headshot Beispiele vorher und nachher',
-    description: 'Vergleiche Originalfotos mit professionellen Headshots fur LinkedIn, Lebenslauf und Business-Profile. Nutze die Beispiele, um Ahnlichkeit, Hintergrund, Kleidung und Stilrichtung vor der Planauswahl zu bewerten.',
+    description: 'Vergleiche Originalfotos und KI Headshots fuer LinkedIn, Lebenslauf und Business-Profile vor der Stilwahl.',
     originalLabel: 'Originalfoto des Nutzers',
     generatedLabel: 'generierter professioneller Headshot',
     ctaTitle: 'Wahle die passende visuelle Richtung',
@@ -360,7 +360,7 @@ export const localizedLandingContent: Record<NonEnglishLocale, LocalizedLandingC
   },
   ja: {
     title: 'プロ向けAIヘッドショットを数分で作成',
-    description: 'セルフィーからLinkedIn、履歴書、ビジネスプロフィール向けのリアルな写真を生成します。',
+    description: 'セルフィーからLinkedIn、履歴書、ビジネスプロフィール向けの自然な写真を短時間で生成できます。',
     badge: 'LinkedIn・履歴書・チーム向けAIヘッドショット',
     heading: '写真スタジオを予約せずにプロ向けヘッドショットを作成',
     subheading: 'セルフィーをアップロードし、プロ向けスタイルを選んで、LinkedIn、履歴書、会社プロフィール、個人ブランドに使えるリアルな写真を、撮影予約なしで生成できます。',

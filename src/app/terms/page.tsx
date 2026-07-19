@@ -10,7 +10,7 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 export const metadata: Metadata = {
   title: 'Magic-Headshot Terms for AI Headshots, Professional Photos, and LinkedIn Photos',
   description:
-    'Review Magic-Headshot terms for AI headshot generation, uploaded photos, payments, refunds, commercial use rights, account rules, and acceptable use.',
+    'Review Magic-Headshot terms for AI headshot generation, uploads, payments, refunds, commercial use rights, accounts, and acceptable use.',
   keywords: [
     'Magic-Headshot terms',
     'AI headshot terms',
@@ -29,7 +29,7 @@ export default function TermsPage() {
         locale="en"
         path="/terms"
         title="Magic-Headshot Terms for AI Headshots, Professional Photos, and LinkedIn Photos"
-        description="Review Magic-Headshot terms for AI headshot generation, uploaded photos, payments, refunds, commercial use rights, account rules, and acceptable use."
+        description="Review Magic-Headshot terms for AI headshot generation, uploads, payments, refunds, commercial use rights, accounts, and acceptable use."
       />
       <Navbar />
 

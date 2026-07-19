@@ -1,7 +1,7 @@
 // App Configuration
 const normalizeUrl = (url: string) => url.replace(/\/+$/, '')
 const defaultDescription =
-  'Create realistic AI headshots for LinkedIn, resumes, and business profiles in minutes with high-likeness portraits and one-time credit packs'
+  'Create realistic AI headshots for LinkedIn, resumes, and business profiles in minutes with high-likeness portraits and credit packs.'
 const defaultKeywords =
   'Magic-Headshot, AI headshots for LinkedIn, high likeness AI portraits, fast headshot generation'
 const envDescription = process.env.NEXT_PUBLIC_APP_DESCRIPTION?.trim()

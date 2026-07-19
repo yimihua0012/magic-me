@@ -41,7 +41,7 @@ export const photoToolPages: PhotoToolPageContent[] = [
     title: 'Free ID Photo Crop Tool Online for Passport, Resume, Exam Photos',
     h1: 'Free ID Photo Crop Tool Online for Passport, Resume, Exam Photos',
     description:
-      'Crop passport photos, resume photos, exam photos, and student card photos online from a local JPG, PNG, or WebP image, then download a finished ID-style JPG.',
+      'Crop passport, resume, exam, and student card photos online from JPG, PNG, or WebP, then download a finished ID-style JPG.',
     keywords: ['ID photo crop tool', 'crop passport photo online', 'resume photo crop'],
     features: [
       'Crop passport photo online',
@@ -77,8 +77,8 @@ export const photoToolPages: PhotoToolPageContent[] = [
     title: 'Free Image Resize Tool Online: Resize JPG, PNG, Photo Pixels',
     h1: 'Free Image Resize Tool Online to Resize JPG, PNG, and Photo Pixels',
     description:
-      'Resize images online by percentage or exact pixel dimensions, including JPG, PNG, and WebP photos for profile uploads, forms, and job applications.',
-    keywords: ['resize image online', 'resize photo pixels', 'change image dimensions'],
+      'Resize JPG, PNG, and WebP images online by percentage or exact pixels for profile uploads, forms, and job applications.',
+    keywords: ['resize image online', 'resize photo pixels', 'profile uploads'],
     features: [
       'Resize image online by percentage',
       'Resize photo to exact pixel dimensions',
@@ -113,7 +113,7 @@ export const photoToolPages: PhotoToolPageContent[] = [
     title: 'Free Resize Image to KB Tool: Compress Photo, Reduce JPG Size',
     h1: 'Free Resize Image to KB Tool to Compress Photos and Reduce JPG Size',
     description:
-      'Resize image to KB, compress photos to a target file size, reduce JPG size to 200KB or another limit, and export JPG or WebP for online forms.',
+      'Resize image to KB, compress photos to a target file size, reduce JPG size, and export JPG or WebP for online forms.',
     keywords: ['resize image to KB', 'compress photo to KB', 'reduce image file size'],
     features: [
       'Resize image to KB',
@@ -664,6 +664,7 @@ export function getPhotoToolPages(locale: Locale = 'en') {
   if (locale === 'en') {
     return photoToolPages.map((page) => ({
       ...page,
+      description: boundedPhotoToolDescription(page.description, locale),
       keywords: page.keywords.slice(0, 3),
     }))
   }
@@ -677,6 +678,7 @@ export function getPhotoToolPages(locale: Locale = 'en') {
 
     return {
       ...localizedPage,
+      description: boundedPhotoToolDescription(localizedPage.description, locale),
       keywords: localizedPage.keywords.slice(0, 3),
     }
   })
@@ -684,4 +686,10 @@ export function getPhotoToolPages(locale: Locale = 'en') {
 
 export function getPhotoToolPage(id: string, locale: Locale = 'en') {
   return getPhotoToolPages(locale).find((page) => page.id === id)
+}
+
+function boundedPhotoToolDescription(value: string, locale: Locale) {
+  const maxLength = locale === 'ja' ? 90 : 140
+  if (value.length <= maxLength) return value
+  return `${value.slice(0, maxLength - 3).replace(/\s+\S*$/, '')}...`
 }

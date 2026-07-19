@@ -9,7 +9,7 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 export const metadata: Metadata = {
   title: 'Magic-Headshot Refund Policy for AI Headshots and Professional Photos',
   description:
-    'Read Magic-Headshot refund eligibility, unused credit handling, processing times, and support steps for AI headshot purchases and professional portraits.',
+    'Read Magic-Headshot refund eligibility, unused credit handling, processing times, and support steps for AI headshot purchases.',
   keywords: [
     'Magic-Headshot refund',
     'AI headshot refund policy',
@@ -28,7 +28,7 @@ export default function RefundPage() {
         locale="en"
         path="/refund"
         title="Magic-Headshot Refund Policy for AI Headshots and Professional Photos"
-        description="Read Magic-Headshot refund eligibility, unused credit handling, processing times, and support steps for AI headshot purchases and professional portraits."
+        description="Read Magic-Headshot refund eligibility, unused credit handling, processing times, and support steps for AI headshot purchases."
       />
       <Navbar />
 

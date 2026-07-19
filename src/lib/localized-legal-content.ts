@@ -855,7 +855,7 @@ Object.assign(localizedLegalContent, {
       ...localizedLegalContent.ja.refund,
       title: 'Magic Headshot 返金ポリシー',
       description:
-        '返金を確認できるケース、未使用クレジットの扱い、サポートへ送るべき情報について説明します。',
+        '返金を確認できるケース、未使用クレジットの扱い、処理時間、サポートへ送るべき情報について説明します。',
       heading: '返金ポリシー',
       notice:
         '返金は内容を確認したうえで個別に判断します。購入時のアカウントメールと状況を送ると確認がスムーズです。',

@@ -7,8 +7,20 @@ import { LOCALES, type Locale } from '@/lib/i18n'
 export const dynamic = 'force-dynamic'
 
 const DEEPSEEK_TIMEOUT_MS = 60000
-const META_DESCRIPTION_LENGTH_RULE = '- description must be 120-160 Unicode characters for English, Spanish, French, and German. For Japanese, keep it 55-90 Japanese characters. It must match the visible article.'
-const META_DESCRIPTION_HARD_LIMIT_RULE = '- Count the description characters before returning JSON. If Japanese is longer than 90 characters, rewrite it shorter; if another locale is longer than 160 characters, rewrite it shorter. The CMS rejects descriptions over 180 characters.'
+const META_DESCRIPTION_LENGTH_RULE = '- description must be 100-140 Unicode characters for English, Spanish, French, and German. For Japanese, keep it 55-90 Japanese characters. It must match the visible article.'
+const META_DESCRIPTION_HARD_LIMIT_RULE = '- Count the description characters before returning JSON. If Japanese is longer than 90 characters, rewrite it shorter; if another locale is longer than 140 characters, rewrite it shorter. The CMS rejects descriptions over 180 characters.'
+const HUMAN_TONE_RULES = [
+  '- Write like a skilled editor talking to a real person, not like a keyword template or product spec sheet.',
+  '- Keep the wording concrete, warm, and practical. Use one real use case, one audience, and one action or decision whenever possible.',
+  '- Prefer simple verbs, natural sentence rhythm, and a clear point of view over stacked synonyms or buzzword phrases.',
+  '- Do not repeat the brand name in every line. Mention Magic-Headshot only when it helps the reader understand the workflow.',
+  '- Avoid copy that sounds automated, overly polished, or interchangeable with any other article.',
+].join('\n')
+const HUMAN_TONE_CHECKS = [
+  '- At least one section should mention a real-life moment, workflow, or decision the reader might actually face.',
+  '- The intro should sound helpful and specific, not like a generic SEO opener.',
+  '- The description should feel like a search snippet written for humans, not a slogan.',
+].join('\n')
 
 type DraftBody = {
   mode?: unknown
@@ -93,7 +105,13 @@ export async function POST(request: Request) {
         messages: [
           {
             role: 'system',
-            content: 'You are an SEO editor for a multilingual AI headshot SaaS. Return only valid JSON. Never reuse identical meta descriptions across different article drafts. The description field must be concise: 120-160 Unicode characters for English, Spanish, French, and German; 55-90 Japanese characters for Japanese.',
+            content: [
+              'You are an SEO editor for a multilingual AI headshot SaaS.',
+              'Return only valid JSON.',
+              'Never reuse identical meta descriptions across different article drafts.',
+              'The description field must be concise: 100-140 Unicode characters for English, Spanish, French, and German; 55-90 Japanese characters for Japanese.',
+              HUMAN_TONE_RULES,
+            ].join('\n'),
           },
           {
             role: 'user',
@@ -203,8 +221,10 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string, uniqu
     'The prompt must be localized to the market and search behavior of the selected language, not a direct translation from English.',
     'The prompt must include this rule: Do not include discounts, legal claims, medical claims, or guarantees.',
     'The prompt must include a dedicated Meta description rule: the description must be written specifically for the selected keyword, local search intent, article angle, and visible article content; it must not reuse a generic Magic-Headshot boilerplate sentence.',
-    'The prompt must include a dedicated Meta description length rule: count Unicode characters before returning JSON; keep description 120-160 characters for English, Spanish, French, and German; keep Japanese descriptions 55-90 Japanese characters.',
+    'The prompt must include a dedicated Meta description length rule: count Unicode characters before returning JSON; keep description 100-140 characters for English, Spanish, French, and German; keep Japanese descriptions 55-90 Japanese characters.',
     'The prompt must include a dedicated Meta description rule: the description must mention one concrete use case, audience, or workflow from the article, such as LinkedIn, resume/CV, document photo, student exam photo, background color, printable sheet, avatar style, or profile update, depending on the selected keyword.',
+    'The prompt must include human-tone rules: the article should sound warm, specific, and useful to a real reader, not generic, robotic, or overly promotional.',
+    'The prompt must include a human-detail rule: at least one section should mention a practical moment, tradeoff, or decision the reader would actually make.',
     'Critical: the prompt must require DeepSeek to return only one valid JSON object that can be parsed and saved by the blog CMS.',
     'The prompt must preserve these exact required JSON keys: slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
     'The prompt must preserve these field rules:',
@@ -226,6 +246,8 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string, uniqu
     '- relatedSlugs can be an empty array.',
     '- localizedSlugs must include the selected locale mapped to slug.',
     '- no markdown fences and no commentary outside JSON.',
+    HUMAN_TONE_RULES,
+    HUMAN_TONE_CHECKS,
     `- Draft uniqueness hint for the article prompt only, do not include it verbatim in the article: ${uniquenessHint}.`,
     '',
     'Return only valid JSON with exactly these keys:',
@@ -255,6 +277,8 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[], uniquenessHint
     `Confirmed localized search keyword: ${keywords[0]}.`,
     'Product context: Magic-Headshot lets users upload selfies and generate professional headshot images for work-related profiles and online presence.',
     'Write for local search behavior and local reader expectations in the selected language. Do not directly translate English examples.',
+    'Write the article in a human, editorial voice with specific scenarios, concrete decisions, and natural phrasing.',
+    'Use details that help the reader imagine the situation, such as who the photo is for, where it will be used, and what makes one choice better than another.',
     'Return only the final JSON object.',
     'Return one JSON object with exactly these keys:',
     'slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
@@ -277,6 +301,8 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[], uniquenessHint
     '- relatedSlugs can be an empty array.',
     '- localizedSlugs must include the selected locale mapped to slug.',
     '- Do not include discounts, legal claims, medical claims, or guarantees.',
+    HUMAN_TONE_RULES,
+    HUMAN_TONE_CHECKS,
     '- The JSON content must not include markdown code fences.',
   ].join('\n'), uniquenessHint)
 }
@@ -313,6 +339,8 @@ function withCmsJsonRequirements(prompt: string, locale: Locale, uniquenessHint:
     '- relatedSlugs can be an empty array.',
     `- localizedSlugs must include ${locale} mapped to slug.`,
     '- Do not include markdown fences or commentary outside JSON.',
+    HUMAN_TONE_RULES,
+    HUMAN_TONE_CHECKS,
   ].join('\n'), uniquenessHint)
 }
 
@@ -361,7 +389,7 @@ function appendMetaDescriptionRules(prompt: string, uniquenessHint: string) {
     '- It must share the same topic as the title/H1 and every keyword phrase.',
     '- It must not repeat the same wording used for other drafts, and must not use broad boilerplate like "Create professional AI headshots for LinkedIn, resumes, and business profiles" unless that exact phrase is the article topic.',
     '- It must be different from the title and from the first sentence of the intro.',
-    '- Keep it 120-160 Unicode characters for English, Spanish, French, and German, natural in the selected language, and aligned with the visible article body.',
+    '- Keep it 100-140 Unicode characters for English, Spanish, French, and German, natural in the selected language, and aligned with the visible article body.',
     '- For Japanese, keep it 55-90 Japanese characters. Count characters before returning JSON and rewrite shorter if it exceeds 90 Japanese characters.',
     `- Draft uniqueness hint for internal variation only, do not include it verbatim: ${uniquenessHint}.`,
   ].join('\n')
@@ -394,6 +422,10 @@ function validateGeneratedDescription(draft: BlogPostInput) {
     issues.push('Meta description repeats the intro opening. Make it a shorter search snippet.')
   }
 
+  if (looksLikeGenericIntro(draft.intro)) {
+    issues.push('Intro sounds too generic. Add a real use case, audience, or tradeoff so the page feels human.')
+  }
+
   return issues
 }
 
@@ -407,6 +439,19 @@ function looksLikeGenericDescription(value: string) {
     'créez des portraits professionnels ia pour linkedin cv et profils',
     'erstelle professionelle ki headshots für linkedin lebenslauf und profile',
     'linkedin履歴書ビジネスプロフィール向け',
+  ]
+
+  return genericFragments.some((fragment) => normalized.includes(normalizeComparableText(fragment)))
+}
+
+function looksLikeGenericIntro(value: string) {
+  const normalized = normalizeComparableText(value)
+  const genericFragments = [
+    'this page is for people who want',
+    'the best result usually looks',
+    'the key is to choose',
+    'use this page when you need',
+    'a professional photo is the flexible version of a headshot',
   ]
 
   return genericFragments.some((fragment) => normalized.includes(normalizeComparableText(fragment)))

@@ -186,6 +186,7 @@ function hasH1Signal(source) {
     source.includes('SampleGalleryPage') ||
     source.includes('PublicPhotoToolsPageView') ||
     source.includes('StandalonePhotoToolsPageView') ||
+    source.includes('ContactPageClient') ||
     source.includes('LocalizedHomePage') ||
     source.includes('LocalizedLandingPage') ||
     source.includes('LocalizedPricingPage') ||
@@ -231,6 +232,7 @@ function hasFeaturesSignal(source) {
     source.includes('LocalizedLegalPage') ||
     source.includes('PublicPhotoToolsPageView') ||
     source.includes('StandalonePhotoToolsPageView') ||
+    source.includes('ContactPageClient') ||
     source.includes('SampleGalleryPage') ||
     source.includes('BlogJsonLd') ||
     source.includes('BlogPostJsonLd') ||
@@ -402,18 +404,23 @@ function keywordOverlapMinimum(keyword) {
   return tokenizeSeoText(keyword).length >= 3 ? 2 : 1
 }
 
+// Project meta description guideline:
+// Google does not publish a strict meta description character limit. For this project,
+// use snippet-friendly editorial ranges that reduce truncation risk while keeping
+// descriptions specific enough for title/H1/keyword intent checks.
+const META_DESCRIPTION_LENGTH_RANGES = {
+  default: { min: 100, max: 140, label: '100-140 Unicode characters' },
+  ja: { min: 55, max: 90, label: '55-90 Japanese characters' },
+}
+
 function metaDescriptionLengthIssue(locale, description) {
   const length = Array.from(description.trim()).length
+  const range = locale === 'ja'
+    ? META_DESCRIPTION_LENGTH_RANGES.ja
+    : META_DESCRIPTION_LENGTH_RANGES.default
 
-  if (locale === 'ja') {
-    if (length < 55 || length > 90) {
-      return `description length must be 55-90 Japanese characters; got ${length}.`
-    }
-    return null
-  }
-
-  if (length < 120 || length > 160) {
-    return `description length must be 120-160 Unicode characters; got ${length}.`
+  if (length < range.min || length > range.max) {
+    return `description length must be ${range.label}; got ${length}.`
   }
 
   return null

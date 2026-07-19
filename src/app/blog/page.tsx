@@ -22,11 +22,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'AI Image Generation Blog for Headshots, LinkedIn Photos, and Resume Portraits',
     description:
-      'Read Magic-Headshot guides about AI image generation, AI headshots for LinkedIn, resume photo generation, profile photos, and professional portraits.',
+      'Read Magic-Headshot guides about AI headshots, LinkedIn photos, resume portraits, profile images, and practical photo tools.',
     keywords: [
       'Magic-Headshot',
       'AI headshots for LinkedIn',
-      'professional headshots without photographer',
+      'practical photo tools',
     ],
     alternates: {
       canonical: '/blog',

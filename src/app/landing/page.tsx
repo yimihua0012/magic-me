@@ -26,7 +26,7 @@ import { PLANS } from '@backend/config/plans'
 export const metadata: Metadata = {
   title: 'AI LinkedIn Headshots That Look Professional in Minutes',
   description:
-    'A conversion-focused AI headshot landing page for professionals who need realistic LinkedIn, resume, and team portraits without booking a photographer.',
+    'Create realistic AI headshots for LinkedIn, resumes, team pages, and business profiles without booking a photographer.',
   keywords: [
     'AI LinkedIn headshots',
     'realistic AI headshots',

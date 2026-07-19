@@ -28,17 +28,17 @@ const localizedIndexContent: Record<RoutedLocale, {
   },
   fr: {
     title: 'Photo tools en ligne : Remove Background, photo ID, compression et impression',
-    description: 'Utilisez les photo tools pour retirer les fonds, recadrer des photos ID, compresser en KB, changer le fond et préparer une planche d’impression.',
+    description: 'Utilisez les photo tools pour retirer les fonds, recadrer des photos ID, compresser en KB et préparer une planche d’impression.',
     keywords: ['photo tools', 'remove background', 'photo ID en ligne', 'compresser image en KB', 'planche photo'],
   },
   de: {
     title: 'Photo tools online: Remove Background, ID-Foto, KB-Komprimierung und Druckbogen',
-    description: 'Nutze photo tools online, um Hintergruende zu entfernen, ID-Fotos zuzuschneiden, Bilder auf KB zu komprimieren, Hintergrundfarben zu setzen und Druckbögen zu erstellen.',
+    description: 'Nutze photo tools online, um Hintergruende zu entfernen, ID-Fotos zuzuschneiden, Bilder auf KB zu komprimieren und Druckbögen zu erstellen.',
     keywords: ['photo tools', 'remove background', 'ID-Foto online', 'Bild auf KB komprimieren', 'Druckbogen Foto'],
   },
   ja: {
     title: 'Photo tools：Remove Background、ID写真、KB圧縮、印刷レイアウト',
-    description: '背景削除、ID写真トリミング、画像のKB圧縮、背景色変更、印刷レイアウト作成をオンラインで使えます。',
+    description: '背景削除、ID写真トリミング、画像のKB圧縮、背景色変更、印刷レイアウト作成までオンラインでまとめて準備できます。',
     keywords: ['photo tools', 'remove background', 'ID写真 オンライン', '画像 KB 圧縮', '印刷レイアウト'],
   },
 }

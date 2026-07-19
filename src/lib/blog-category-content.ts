@@ -41,15 +41,15 @@ export function getBlogCategorySeoContent(locale: Locale, category: BlogCategory
   }
 }
 
-function boundedDescription(value: string) {
-  if (value.length <= 158) return value
-  return `${value.slice(0, 155).replace(/\s+\S*$/, '')}...`
+function boundedDescription(value: string, maxLength = 140) {
+  if (value.length <= maxLength) return value
+  return `${value.slice(0, maxLength - 3).replace(/\s+\S*$/, '')}...`
 }
 
 const categoryContentByLocale: Record<Locale, (label: string, count: number) => Omit<BlogCategorySeoContent, 'keywords'>> = {
   en: (label, count) => ({
-    title: `${label} Blog Guides | Magic-Headshot`,
-    h1: `${label} Blog Guides`,
+    title: `${label} Guides | Magic-Headshot Blog`,
+    h1: `${label} Guides`,
     description: boundedDescription(`Explore ${label} guides from Magic-Headshot, with ${count} articles on AI headshots, profile photos, document photos, and practical publishing workflows.`),
     intro: `This category collects Magic-Headshot articles about ${label}. Use these guides to compare workflows, prepare better source photos, choose practical image styles, and publish professional profile or document-style photos with more confidence.`,
     faqs: [

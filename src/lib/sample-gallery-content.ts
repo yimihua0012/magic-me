@@ -72,7 +72,7 @@ export const sampleGalleryContent: Record<Locale, SampleGalleryContent> = {
   de: {
     title: 'KI Headshot Beispiele: Realistische Portraits, kreative Styles und Avatar Ideen',
     description:
-      'Entdecke KI Headshot Beispiele mit realistischen Portraits, hoher Aehnlichkeit, schneller Erstellung, Studio Looks, kreativen Avataren und Kunststilen.',
+      'Entdecke KI Headshot Beispiele mit realistischen Portraits, Studio Looks, kreativen Avataren und Business-Profilen.',
     h1: 'KI Headshot Beispiele und Portrait Style Galerie',
     eyebrow: 'Style Beispiele',
     intro:

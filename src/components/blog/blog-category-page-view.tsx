@@ -66,6 +66,33 @@ export default function BlogCategoryPageView({ locale, category, content }: Blog
           </div>
         </section>
 
+        <section className="content-auto py-10 sm:py-12">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8 lg:grid-cols-[1.1fr_0.9fr]">
+              <div>
+                <h2 className="break-words text-2xl font-bold leading-tight text-slate-950">
+                  {content.h1}
+                </h2>
+                <p className="mt-4 text-base leading-7 text-slate-600">
+                  {content.description}
+                </p>
+                <p className="mt-4 text-base leading-7 text-slate-600">
+                  {content.toolsDescription}
+                </p>
+              </div>
+              <div className="rounded-md bg-slate-50 p-5">
+                <p className="text-sm font-bold uppercase tracking-wide text-primary-600">{content.articleCount}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  {content.workflowDescription}
+                </p>
+                <div className="mt-4">
+                  <KeywordStrip keywords={content.keywords} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="content-auto py-12 sm:py-16">
           <div className="mx-auto grid max-w-7xl gap-5 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:px-8">
             {category.posts.map((post, index) => {

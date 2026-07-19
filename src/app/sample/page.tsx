@@ -12,12 +12,12 @@ import { coreSeoKeywords, sampleComparisons } from '@/lib/seo-content'
 export const metadata: Metadata = {
   title: 'AI Headshot Sample Comparisons Before and After for LinkedIn and Resumes',
   description:
-    'See real AI headshot comparison groups with original photos and generated corporate portraits for LinkedIn, resumes, business profiles, and professional photos.',
-  keywords: [
-    'AI headshots for LinkedIn',
-    'AI resume photo generator',
-    'professional headshots without photographer',
-  ],
+    'See AI headshot sample comparisons with original photos and generated portraits for LinkedIn, resumes, business profiles, and teams.',
+    keywords: [
+      'AI headshots for LinkedIn',
+      'AI resume photo generator',
+      'business profile portraits',
+    ],
   alternates: {
     canonical: '/sample',
     languages: languageAlternatesForPath('/sample'),
@@ -31,7 +31,7 @@ export default function SamplePage() {
         locale="en"
         path="/sample"
         title="AI Headshot Sample Comparisons"
-        description="See real AI headshot comparison groups with original photos and generated corporate portraits for LinkedIn, resumes, business profiles, and professional photos."
+        description="See AI headshot sample comparisons with original photos and generated portraits for LinkedIn, resumes, business profiles, and teams."
         image={sampleComparisons[0]?.generated[0]?.src}
         items={sampleComparisons.map((sample) => ({
           name: sample.title,

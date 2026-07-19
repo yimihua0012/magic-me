@@ -94,6 +94,28 @@ export default function UseCasePageView({ locale, slug, content }: UseCasePageVi
           </div>
         </section>
 
+        <section className="content-auto border-b border-slate-200 bg-white py-10 sm:py-14">
+          <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-wide text-primary-600">{content.eyebrow}</p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                {content.h1}
+              </h2>
+              <p className="mt-4 text-base leading-7 text-slate-600">{content.description}</p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <article className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+                <h3 className="text-base font-bold text-slate-950">{content.guidanceTitle}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{content.guidanceText}</p>
+              </article>
+              <article className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+                <h3 className="text-base font-bold text-slate-950">{content.casesTitle}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{content.casesText}</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
         <section className="content-auto py-12 sm:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-3xl text-center">
