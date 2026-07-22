@@ -6,15 +6,17 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import LocalizedFooter from '@/components/layout/localized-footer'
 import LocalizedNavbar from '@/components/layout/localized-navbar'
+import AspectRatioCropTool from '@/components/photo-tools/aspect-ratio-crop-tool'
 import BackgroundColorTool from '@/components/photo-tools/background-color-tool'
 import IdPhotoCropPrintTool from '@/components/photo-tools/id-photo-crop-print-tool'
 import PhotoToolsAiWorkflowCard from '@/components/photo-tools/photo-tools-ai-workflow-card'
 import PrintLayoutBuilderTool from '@/components/photo-tools/print-layout-builder-tool'
 import ResizeImageKbTool from '@/components/photo-tools/resize-image-kb-tool'
 import RemoveBackgroundTool from '@/components/photo-tools/remove-background-tool'
+import ShapeCropTool from '@/components/photo-tools/shape-crop-tool'
 import { getPhotoToolPages, type PhotoToolActiveId, type PhotoToolPageContent } from '@/lib/photo-tool-page-content'
 import { localePath, type Locale } from '@/lib/i18n'
-import { BriefcaseBusiness, FileText, ImagePlus, Layers3, Palette, SlidersHorizontal, UserRoundCheck } from 'lucide-react'
+import { BriefcaseBusiness, FileText, ImagePlus, Layers3, Palette, Shapes, SlidersHorizontal, UserRoundCheck } from 'lucide-react'
 
 type ToolId = PhotoToolActiveId
 
@@ -42,7 +44,7 @@ const pageText: Record<Locale, {
   en: {
     eyebrow: 'Free Photo Tools',
     title: 'Free Online Photo Tools',
-    description: 'Remove backgrounds, crop ID photos, resize images to a target KB, and build printable photo layouts.',
+    description: 'Remove backgrounds, crop ID photos, resize images, crop common ratios, shape crop avatars, and build printable layouts.',
     navLabel: 'Photo tools',
     freeIdTool: 'Free ID photo tool',
     combinedText: 'Need the original combined ID photo crop, background, and print sheet workflow?',
@@ -57,7 +59,7 @@ const pageText: Record<Locale, {
   es: {
     eyebrow: 'Photo Tools',
     title: 'Photo tools online',
-    description: 'Elimina fondos, recorta fotos ID, comprime imágenes a KB y prepara hojas de impresión.',
+    description: 'Elimina fondos, recorta fotos ID, recorta proporciones comunes, crea avatares redondos y prepara impresion.',
     navLabel: 'Photo tools',
     freeIdTool: 'Free ID photo tool',
     combinedText: '¿Necesitas el flujo combinado para recortar foto ID, cambiar fondo y preparar impresión?',
@@ -72,7 +74,7 @@ const pageText: Record<Locale, {
   fr: {
     eyebrow: 'Photo Tools',
     title: 'Photo tools en ligne',
-    description: 'Retirez les fonds, recadrez les photos ID, compressez en KB et préparez des planches d’impression.',
+    description: 'Retirez les fonds, recadrez les photos ID, coupez aux ratios courants, creez des avatars ronds et preparez des planches.',
     navLabel: 'Photo tools',
     freeIdTool: 'Free ID photo tool',
     combinedText: 'Besoin du flux complet pour recadrer une photo ID, changer le fond et préparer l’impression ?',
@@ -87,7 +89,7 @@ const pageText: Record<Locale, {
   de: {
     eyebrow: 'Photo Tools',
     title: 'Photo tools online',
-    description: 'Hintergruende entfernen, ID-Fotos zuschneiden, Bilder auf KB komprimieren und Drucklayouts erstellen.',
+    description: 'Hintergruende entfernen, ID-Fotos zuschneiden, Seitenverhaeltnisse zuschneiden, runde Avatare erstellen und Drucklayouts bauen.',
     navLabel: 'Photo tools',
     freeIdTool: 'Free ID photo tool',
     combinedText: 'Brauchst du den kombinierten Ablauf fuer ID-Foto-Zuschnitt, Hintergrund und Druckbogen?',
@@ -102,7 +104,7 @@ const pageText: Record<Locale, {
   ja: {
     eyebrow: 'Photo Tools',
     title: 'Photo tools',
-    description: '背景削除、ID写真トリミング、KB指定の圧縮、印刷レイアウト作成をまとめて使えます。',
+    description: '背景削除、ID写真の切り抜き、比率切り抜き、円形アバター作成、印刷レイアウト作成をまとめて使えます。',
     navLabel: 'Photo tools',
     freeIdTool: 'Free ID photo tool',
     combinedText: 'ID写真のトリミング、背景変更、印刷シート作成をまとめて使いたい場合はこちら。',
@@ -146,6 +148,10 @@ export default function StandalonePhotoToolsPageView({
         ? <BackgroundColorTool locale={locale} />
       : activeTool === 'print-layout'
         ? <PrintLayoutBuilderTool locale={locale} />
+      : activeTool === 'aspect-ratio-crop'
+        ? <AspectRatioCropTool locale={locale} />
+      : activeTool === 'shape-crop'
+        ? <ShapeCropTool locale={locale} />
         : (
           <IdPhotoCropPrintTool
             locale={locale}
@@ -224,6 +230,20 @@ export default function StandalonePhotoToolsPageView({
                     active={activeTool === 'print-layout'}
                     href={localePath(locale, pages[5].path)}
                     onClick={() => setActiveTool('print-layout')}
+                  />
+                  <ToolNavItem
+                    icon={Shapes}
+                    label={pages[6].label}
+                    active={activeTool === 'aspect-ratio-crop'}
+                    href={localePath(locale, pages[6].path)}
+                    onClick={() => setActiveTool('aspect-ratio-crop')}
+                  />
+                  <ToolNavItem
+                    icon={Shapes}
+                    label={pages[7].label}
+                    active={activeTool === 'shape-crop'}
+                    href={localePath(locale, pages[7].path)}
+                    onClick={() => setActiveTool('shape-crop')}
                   />
                   <ToolNavItem icon={BriefcaseBusiness} label={text.professionalOutfit} badge="TBD" />
                   <ToolNavItem icon={UserRoundCheck} label={text.professionalImage} badge="TBD" />

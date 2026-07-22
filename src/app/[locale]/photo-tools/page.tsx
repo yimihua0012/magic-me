@@ -22,24 +22,24 @@ const localizedIndexContent: Record<RoutedLocale, {
   keywords: string[]
 }> = {
   es: {
-    title: 'Photo tools online: Remove Background, foto ID, compresor y hoja de impresión',
-    description: 'Usa photo tools online para eliminar fondos, recortar fotos ID, comprimir imágenes a KB, cambiar fondo y preparar hojas de impresión.',
-    keywords: ['photo tools', 'remove background', 'foto ID online', 'comprimir imagen a KB', 'hoja de impresión foto'],
+    title: 'Photo tools online: Remove Background, foto ID, proporciones y formas',
+    description: 'Usa photo tools para quitar fondos, recortar fotos ID, recortar proporciones comunes, crear avatares redondos y preparar impresion.',
+    keywords: ['photo tools', 'remove background', 'recortar foto proporcion'],
   },
   fr: {
-    title: 'Photo tools en ligne : Remove Background, photo ID, compression et impression',
-    description: 'Utilisez les photo tools pour retirer les fonds, recadrer des photos ID, compresser en KB et préparer une planche d’impression.',
-    keywords: ['photo tools', 'remove background', 'photo ID en ligne', 'compresser image en KB', 'planche photo'],
+    title: 'Photo tools en ligne : Remove Background, photo ID, ratios et formes',
+    description: 'Utilisez les photo tools pour retirer les fonds, recadrer des photos ID, couper aux ratios courants, creer des avatars et imprimer.',
+    keywords: ['photo tools', 'remove background', 'recadrer photo ratio'],
   },
   de: {
-    title: 'Photo tools online: Remove Background, ID-Foto, KB-Komprimierung und Druckbogen',
-    description: 'Nutze photo tools online, um Hintergruende zu entfernen, ID-Fotos zuzuschneiden, Bilder auf KB zu komprimieren und Druckbögen zu erstellen.',
-    keywords: ['photo tools', 'remove background', 'ID-Foto online', 'Bild auf KB komprimieren', 'Druckbogen Foto'],
+    title: 'Photo tools online: Remove Background, ID-Foto, Seitenverhaeltnis und Formen',
+    description: 'Nutze photo tools, um Hintergruende zu entfernen, ID-Fotos zuzuschneiden, gaengige Seitenverhaeltnisse und runde Avatare zu erstellen.',
+    keywords: ['photo tools', 'remove background', 'Foto Seitenverhaeltnis zuschneiden'],
   },
   ja: {
-    title: 'Photo tools：Remove Background、ID写真、KB圧縮、印刷レイアウト',
-    description: '背景削除、ID写真トリミング、画像のKB圧縮、背景色変更、印刷レイアウト作成までオンラインでまとめて準備できます。',
-    keywords: ['photo tools', 'remove background', 'ID写真 オンライン', '画像 KB 圧縮', '印刷レイアウト'],
+    title: 'Photo tools: Remove Background、ID写真、比率切り抜き、円形切り抜き',
+    description: '背景削除、ID写真の切り抜き、よく使う比率の切り抜き、円形アバター作成、印刷レイアウトをまとめて使えます。',
+    keywords: ['photo tools', 'remove background', '写真 比率 切り抜き'],
   },
 }
 

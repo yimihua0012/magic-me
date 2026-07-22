@@ -41,6 +41,8 @@ https://magic-headshot.com/de/photo-tools/resize-image-to-kb
 https://magic-headshot.com/de/photo-tools/remove-background
 https://magic-headshot.com/de/photo-tools/background-color-tool
 https://magic-headshot.com/de/photo-tools/print-layout-builder
+https://magic-headshot.com/de/photo-tools/aspect-ratio-crop
+https://magic-headshot.com/de/photo-tools/shape-crop
 https://magic-headshot.com/de/landing
 https://magic-headshot.com/de/pricing
 https://magic-headshot.com/de/privacy
@@ -63,6 +65,8 @@ https://magic-headshot.com/es/photo-tools/resize-image-to-kb
 https://magic-headshot.com/es/photo-tools/remove-background
 https://magic-headshot.com/es/photo-tools/background-color-tool
 https://magic-headshot.com/es/photo-tools/print-layout-builder
+https://magic-headshot.com/es/photo-tools/aspect-ratio-crop
+https://magic-headshot.com/es/photo-tools/shape-crop
 https://magic-headshot.com/es/landing
 https://magic-headshot.com/es/pricing
 https://magic-headshot.com/es/privacy
@@ -85,6 +89,8 @@ https://magic-headshot.com/fr/photo-tools/resize-image-to-kb
 https://magic-headshot.com/fr/photo-tools/remove-background
 https://magic-headshot.com/fr/photo-tools/background-color-tool
 https://magic-headshot.com/fr/photo-tools/print-layout-builder
+https://magic-headshot.com/fr/photo-tools/aspect-ratio-crop
+https://magic-headshot.com/fr/photo-tools/shape-crop
 https://magic-headshot.com/fr/landing
 https://magic-headshot.com/fr/pricing
 https://magic-headshot.com/fr/privacy
@@ -100,6 +106,8 @@ https://magic-headshot.com/photo-tools/resize-image-to-kb
 https://magic-headshot.com/photo-tools/remove-background
 https://magic-headshot.com/photo-tools/background-color-tool
 https://magic-headshot.com/photo-tools/print-layout-builder
+https://magic-headshot.com/photo-tools/aspect-ratio-crop
+https://magic-headshot.com/photo-tools/shape-crop
 https://magic-headshot.com/ja
 https://magic-headshot.com/ja/ai-headshot-linkedin
 https://magic-headshot.com/ja/ai-headshot-corporate
@@ -115,6 +123,8 @@ https://magic-headshot.com/ja/photo-tools/resize-image-to-kb
 https://magic-headshot.com/ja/photo-tools/remove-background
 https://magic-headshot.com/ja/photo-tools/background-color-tool
 https://magic-headshot.com/ja/photo-tools/print-layout-builder
+https://magic-headshot.com/ja/photo-tools/aspect-ratio-crop
+https://magic-headshot.com/ja/photo-tools/shape-crop
 https://magic-headshot.com/ja/landing
 https://magic-headshot.com/ja/pricing
 https://magic-headshot.com/ja/privacy

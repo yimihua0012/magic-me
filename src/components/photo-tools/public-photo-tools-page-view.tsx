@@ -8,16 +8,18 @@ import Footer from '@/components/layout/footer'
 import LocalizedNavbar from '@/components/layout/localized-navbar'
 import LocalizedFooter from '@/components/layout/localized-footer'
 import Button from '@/components/ui/button'
-import { BriefcaseBusiness, CheckCircle2, FileText, ImagePlus, Layers3, Palette, Printer, ShieldAlert, SlidersHorizontal, Sparkles, UserRoundCheck } from 'lucide-react'
+import { BriefcaseBusiness, CheckCircle2, FileText, ImagePlus, Layers3, Palette, Printer, Shapes, ShieldAlert, SlidersHorizontal, Sparkles, UserRoundCheck } from 'lucide-react'
 import { localePath, type Locale } from '@/lib/i18n'
 import { localizedLayoutContent } from '@/lib/localized-layout-content'
 import { withSource } from '@/lib/navigation-source'
+import AspectRatioCropTool from '@/components/photo-tools/aspect-ratio-crop-tool'
 import BackgroundColorTool from '@/components/photo-tools/background-color-tool'
 import IdPhotoCropPrintTool from '@/components/photo-tools/id-photo-crop-print-tool'
 import PhotoToolsAiWorkflowCard from '@/components/photo-tools/photo-tools-ai-workflow-card'
 import PrintLayoutBuilderTool from '@/components/photo-tools/print-layout-builder-tool'
 import ResizeImageKbTool from '@/components/photo-tools/resize-image-kb-tool'
 import RemoveBackgroundTool from '@/components/photo-tools/remove-background-tool'
+import ShapeCropTool from '@/components/photo-tools/shape-crop-tool'
 import { getPhotoToolPages, photoToolPages } from '@/lib/photo-tool-page-content'
 
 type SeoContent = {
@@ -257,7 +259,7 @@ interface PublicPhotoToolsPageViewProps {
   locale?: Locale
 }
 
-type EnglishTool = 'original' | 'id-photo-crop' | 'resize-image' | 'resize-image-kb' | 'remove-background' | 'background-color' | 'print-layout'
+type EnglishTool = 'original' | 'id-photo-crop' | 'resize-image' | 'resize-image-kb' | 'remove-background' | 'background-color' | 'print-layout' | 'aspect-ratio-crop' | 'shape-crop'
 
 const PhotoToolsWorkbench = dynamic(() => import('@/components/photo-tools/photo-tools-workbench'), {
   ssr: false,
@@ -363,6 +365,10 @@ export default function PublicPhotoToolsPageView({ locale = 'en' }: PublicPhotoT
             ? <BackgroundColorTool locale={locale} />
             : activeTool === 'print-layout'
               ? <PrintLayoutBuilderTool locale={locale} />
+              : activeTool === 'aspect-ratio-crop'
+                ? <AspectRatioCropTool locale={locale} />
+              : activeTool === 'shape-crop'
+                ? <ShapeCropTool locale={locale} />
               : toolContent
 
   return (
@@ -445,6 +451,20 @@ export default function PublicPhotoToolsPageView({ locale = 'en' }: PublicPhotoT
                       active={activeTool === 'print-layout'}
                       href={photoToolPages[5].path}
                       onClick={() => setActiveTool('print-layout')}
+                    />
+                    <ToolNavItem
+                      icon={Shapes}
+                      label="Aspect ratio crop"
+                      active={activeTool === 'aspect-ratio-crop'}
+                      href={photoToolPages[6].path}
+                      onClick={() => setActiveTool('aspect-ratio-crop')}
+                    />
+                    <ToolNavItem
+                      icon={Shapes}
+                      label="Shape crop"
+                      active={activeTool === 'shape-crop'}
+                      href={photoToolPages[7].path}
+                      onClick={() => setActiveTool('shape-crop')}
                     />
                     <ToolNavItem icon={BriefcaseBusiness} label="Professional outfit photo" badge="TBD" />
                     <ToolNavItem icon={UserRoundCheck} label="Professional image photo" badge="TBD" />

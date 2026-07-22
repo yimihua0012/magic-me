@@ -5,7 +5,7 @@ import AdminPageFrame from '@/components/admin/admin-page-frame'
 import { useAdminAuth } from '@/components/admin/admin-auth'
 import Card from '@/components/ui/card'
 import { localePath, type Locale } from '@/lib/i18n'
-import { Activity, ArrowRight, BookOpenText, CreditCard, Image, ImagePlus, ListPlus, MousePointerClick, PackageCheck, SearchCheck, Sparkles, type LucideIcon } from 'lucide-react'
+import { Activity, ArrowRight, BookOpenText, CreditCard, Image, ImagePlus, ListPlus, MousePointerClick, PackageCheck, Rocket, SearchCheck, Sparkles, type LucideIcon } from 'lucide-react'
 
 interface AdminHomePageViewProps {
   locale?: Locale
@@ -55,6 +55,13 @@ const entries: AdminHomeEntry[] = [
     href: '/dashboard/admin/blog',
     icon: BookOpenText,
     tone: 'text-teal-600 bg-teal-50',
+  },
+  {
+    title: 'Fast Content',
+    description: 'Queue confirmed keywords, generate drafts, and publish through the blog workflow.',
+    href: '/dashboard/admin/fastContent',
+    icon: Rocket,
+    tone: 'text-blue-600 bg-blue-50',
   },
   {
     title: 'Sample Pictures',

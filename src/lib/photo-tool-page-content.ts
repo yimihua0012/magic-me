@@ -7,6 +7,8 @@ export type PhotoToolPageId =
   | 'remove-background'
   | 'background-color-tool'
   | 'print-layout-builder'
+  | 'shape-crop'
+  | 'aspect-ratio-crop'
 
 export type PhotoToolActiveId =
   | 'id-photo-crop'
@@ -15,6 +17,8 @@ export type PhotoToolActiveId =
   | 'remove-background'
   | 'background-color'
   | 'print-layout'
+  | 'shape-crop'
+  | 'aspect-ratio-crop'
 
 export type PhotoToolPageContent = {
   id: PhotoToolPageId
@@ -254,6 +258,79 @@ export const photoToolPages: PhotoToolPageContent[] = [
       {
         question: 'Does this print layout builder crop the photo?',
         answer: 'No. Use the ID photo crop tool first, then upload the finished photo to build the print layout.',
+      },
+    ],
+  },
+  {
+    id: 'aspect-ratio-crop',
+    activeId: 'aspect-ratio-crop',
+    label: 'Aspect ratio crop',
+    path: '/photo-tools/aspect-ratio-crop',
+    title: 'Free Aspect Ratio Crop Tool: Original, 3:2, 2:3, 4:3, 3:4, 9:16',
+    h1: 'Free Aspect Ratio Crop Tool for Original, 3:2, 2:3, 4:3, 3:4, and 9:16 Photos',
+    description:
+      'Crop photos by original ratio or common ratios like 3:2, 2:3, 4:3, 3:4, 9:16, 1:1, 4:5, or 16:9, then export JPG or PNG.',
+    keywords: ['aspect ratio crop tool', 'crop photo 3:2', 'crop image 9:16'],
+    features: [
+      'Crop by original photo ratio',
+      'Crop photos to 3:2, 2:3, 4:3, or 3:4',
+      'Crop vertical images to 9:16',
+      'Drag image position inside the crop frame',
+      'Export finished JPG or PNG',
+    ],
+    faqs: [
+      {
+        question: 'Can I crop a photo to original ratio, 3:2, 2:3, 4:3, 3:4, or 9:16?',
+        answer: 'Yes. Choose the ratio, drag the image inside the preview frame, and export the cropped result.',
+      },
+      {
+        question: 'Can I move the photo inside the crop box?',
+        answer: 'Yes. After uploading, drag the image in the preview to adjust what stays inside the crop frame.',
+      },
+      {
+        question: 'Does this aspect ratio crop tool upload my image?',
+        answer: 'No. The crop is handled locally in your browser, so the selected image stays on your device.',
+      },
+      {
+        question: 'Should I export JPG or PNG?',
+        answer: 'Use JPG for most profile, website, and social photos. Use PNG when you need a lossless output or want to keep transparency from a PNG source.',
+      },
+    ],
+  },
+  {
+    id: 'shape-crop',
+    activeId: 'shape-crop',
+    label: 'Shape crop',
+    path: '/photo-tools/shape-crop',
+    title: 'Free Shape Crop Photo Tool: Circle, Heart, Rounded Avatar, PNG',
+    h1: 'Free Shape Crop Photo Tool for Circle, Heart, and Rounded Images',
+    description:
+      'Crop photos into a circle, heart, square, rounded square, or rounded rectangle online, then download a transparent PNG.',
+    keywords: ['shape crop photo', 'heart crop image', 'circle crop image'],
+    features: [
+      'Circle crop photos for avatars',
+      'Heart crop images for social graphics',
+      'Create rounded square profile images',
+      'Crop images into square or rounded rectangle',
+      'Download transparent PNG output',
+      'Browser-based local image processing',
+    ],
+    faqs: [
+      {
+        question: 'Can I crop a photo into a circle online?',
+        answer: 'Yes. Upload a JPG, PNG, or WebP image, choose Circle, and export the result as a transparent PNG.',
+      },
+      {
+        question: 'Can I make a rounded avatar or app icon?',
+        answer: 'Yes. Choose rounded square or rounded rectangle, then download a PNG with transparent corners.',
+      },
+      {
+        question: 'Does the shape crop tool upload my image?',
+        answer: 'No. The crop runs locally in your browser, so the selected image stays on your device.',
+      },
+      {
+        question: 'Which format should I download?',
+        answer: 'Use PNG when you need transparent corners, a circle avatar, or a heart-shaped crop.',
       },
     ],
   },
@@ -659,6 +736,141 @@ const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPa
     },
   },
 }
+
+Object.assign(localizedPhotoToolPages, {
+  es: {
+    ...localizedPhotoToolPages.es,
+    'shape-crop': {
+      label: 'Recorte por forma',
+      title: 'Recortar foto en circulo, corazon, avatar redondeado y PNG transparente',
+      h1: 'Recorta fotos por forma para avatar, perfil e iconos',
+      description:
+        'Recorta fotos en circulo, corazon, cuadrado o esquinas redondeadas y descarga PNG transparente.',
+      keywords: ['recortar foto en circulo', 'recortar imagen corazon', 'recorte por forma'],
+      features: ['Recorte circular', 'Recorte en corazon', 'Avatar cuadrado redondeado', 'PNG transparente', 'Procesamiento local'],
+      faqs: [
+        { question: 'Puedo recortar una foto en circulo?', answer: 'Si. Sube una imagen, elige Circulo y exporta un PNG transparente.' },
+        { question: 'Sirve para avatar o perfil?', answer: 'Si. Puedes crear imagen circular, cuadrada o con esquinas redondeadas para perfiles, credenciales e iconos.' },
+        { question: 'La imagen se sube al servidor?', answer: 'No. El recorte se procesa localmente en tu navegador.' },
+        { question: 'Que formato conviene descargar?', answer: 'Usa PNG si necesitas transparencia, esquinas limpias o un recorte en corazon.' },
+      ],
+    },
+    'aspect-ratio-crop': {
+      label: 'Recorte por proporcion',
+      title: 'Recortar foto por proporcion: original, 3:2, 2:3, 4:3, 3:4 y 9:16',
+      h1: 'Recorta fotos por proporcion comun para perfil, web y redes',
+      description:
+        'Recorta fotos en proporcion original, 3:2, 2:3, 4:3, 3:4 o 9:16, mueve la imagen en el marco y exporta JPG o PNG.',
+      keywords: ['recortar foto proporcion', 'recortar foto 3:2', 'recortar imagen 9:16'],
+      features: ['Proporcion original', 'Formatos 3:2 y 2:3', 'Formatos 4:3 y 3:4', 'Formato 9:16', 'Arrastrar dentro del marco'],
+      faqs: [
+        { question: 'Puedo recortar una foto a proporcion original o 3:2?', answer: 'Si. Elige la proporcion, mueve la imagen en el marco y exporta el resultado.' },
+        { question: 'Puedo arrastrar la imagen dentro del recorte?', answer: 'Si. La vista previa permite ajustar la posicion antes de descargar.' },
+        { question: 'La imagen se sube al servidor?', answer: 'No. El recorte se procesa localmente en tu navegador.' },
+        { question: 'Que formato conviene descargar?', answer: 'JPG sirve para perfiles y redes. PNG es util si quieres conservar mas calidad o transparencia.' },
+      ],
+    },
+  },
+  fr: {
+    ...localizedPhotoToolPages.fr,
+    'shape-crop': {
+      label: 'Recadrage forme',
+      title: 'Recadrer une photo en cercle, coeur, avatar arrondi et PNG transparent',
+      h1: 'Recadrez une photo par forme pour avatar, profil et icone',
+      description:
+        'Recadrez une photo en cercle, coeur, carre ou coins arrondis, puis telechargez un PNG transparent.',
+      keywords: ['recadrer photo cercle', 'recadrer image coeur', 'recadrage par forme'],
+      features: ['Recadrage circulaire', 'Recadrage coeur', 'Avatar carre arrondi', 'PNG transparent', 'Traitement local'],
+      faqs: [
+        { question: 'Puis-je recadrer une photo en cercle ?', answer: 'Oui. Importez une image, choisissez Cercle et exportez un PNG transparent.' },
+        { question: 'Est-ce utile pour un avatar ?', answer: 'Oui. Vous pouvez creer une image circulaire, carree ou arrondie pour profil, badge ou icone.' },
+        { question: 'L image est-elle envoyee au serveur ?', answer: 'Non. Le recadrage se fait localement dans le navigateur.' },
+        { question: 'Quel format choisir ?', answer: 'Choisissez PNG pour garder la transparence, les coins propres ou un recadrage en coeur.' },
+      ],
+    },
+    'aspect-ratio-crop': {
+      label: 'Recadrage ratio',
+      title: 'Recadrer une photo par ratio : original, 3:2, 2:3, 4:3, 3:4 et 9:16',
+      h1: 'Recadrez une photo par ratio courant pour profil, web et reseaux',
+      description:
+        'Recadrez une photo au ratio original, 3:2, 2:3, 4:3, 3:4 ou 9:16, deplacez l image dans le cadre et exportez en JPG ou PNG.',
+      keywords: ['recadrer photo ratio', 'recadrer photo 3:2', 'recadrer image 9:16'],
+      features: ['Ratio original', 'Formats 3:2 et 2:3', 'Formats 4:3 et 3:4', 'Format 9:16', 'Image deplacable dans le cadre'],
+      faqs: [
+        { question: 'Puis-je recadrer une photo au ratio original ou 3:2 ?', answer: 'Oui. Choisissez le ratio, deplacez l image dans le cadre et exportez le resultat.' },
+        { question: 'Puis-je deplacer l image dans la zone de recadrage ?', answer: 'Oui. La previsualisation permet d ajuster la position avant le telechargement.' },
+        { question: 'L image est-elle envoyee au serveur ?', answer: 'Non. Le recadrage se fait localement dans le navigateur.' },
+        { question: 'Quel format choisir ?', answer: 'JPG convient aux profils et reseaux. PNG est utile pour une sortie plus nette ou avec transparence.' },
+      ],
+    },
+  },
+  de: {
+    ...localizedPhotoToolPages.de,
+    'shape-crop': {
+      label: 'Form-Zuschnitt',
+      title: 'Foto als Kreis, Herz, runder Avatar und transparentes PNG zuschneiden',
+      h1: 'Foto in Form fuer Avatar, Profilbild und Icon zuschneiden',
+      description:
+        'Schneide Fotos als Kreis, Herz, Quadrat oder mit runden Ecken zu und lade ein transparentes PNG herunter.',
+      keywords: ['Foto Kreis zuschneiden', 'Herz Bild zuschneiden', 'Form Zuschnitt'],
+      features: ['Kreis-Zuschnitt', 'Herz-Zuschnitt', 'Abgerundeter Avatar', 'Transparentes PNG', 'Lokale Verarbeitung'],
+      faqs: [
+        { question: 'Kann ich ein Foto als Kreis zuschneiden?', answer: 'Ja. Lade ein Bild hoch, waehle Kreis und exportiere ein transparentes PNG.' },
+        { question: 'Eignet es sich fuer Avatare?', answer: 'Ja. Du kannst runde, quadratische oder abgerundete Bilder fuer Profile, Badges und Icons erstellen.' },
+        { question: 'Wird das Bild hochgeladen?', answer: 'Nein. Der Zuschnitt laeuft lokal im Browser.' },
+        { question: 'Welches Format soll ich waehlen?', answer: 'Nutze PNG fuer transparente Ecken, runde Avatare oder einen Herz-Zuschnitt.' },
+      ],
+    },
+    'aspect-ratio-crop': {
+      label: 'Seitenverhaeltnis-Zuschnitt',
+      title: 'Foto nach Seitenverhaeltnis zuschneiden: Original, 3:2, 2:3, 4:3, 3:4 und 9:16',
+      h1: 'Foto nach gaengigem Seitenverhaeltnis fuer Profil, Web und Social zuschneiden',
+      description:
+        'Schneide Fotos im Originalverhaeltnis, 3:2, 2:3, 4:3, 3:4 oder 9:16 zu, verschiebe das Bild im Rahmen und exportiere JPG oder PNG.',
+      keywords: ['Foto Seitenverhaeltnis zuschneiden', 'Foto 3:2 zuschneiden', 'Bild 9:16 zuschneiden'],
+      features: ['Originalverhaeltnis', '3:2 und 2:3 Formate', '4:3 und 3:4 Formate', '9:16 Format', 'Bild im Rahmen verschieben'],
+      faqs: [
+        { question: 'Kann ich ein Foto im Originalverhaeltnis oder 3:2 zuschneiden?', answer: 'Ja. Waehle das Seitenverhaeltnis, verschiebe das Bild im Rahmen und exportiere das Ergebnis.' },
+        { question: 'Kann ich das Bild im Zuschnitt verschieben?', answer: 'Ja. Die Vorschau erlaubt die Positionsanpassung vor dem Download.' },
+        { question: 'Wird das Bild hochgeladen?', answer: 'Nein. Der Zuschnitt laeuft lokal im Browser.' },
+        { question: 'Welches Format soll ich exportieren?', answer: 'JPG passt fuer Profile und Social Media. PNG ist gut fuer hohe Qualitaet oder Transparenz.' },
+      ],
+    },
+  },
+  ja: {
+    ...localizedPhotoToolPages.ja,
+    'shape-crop': {
+      label: '形状切り抜き',
+      title: '写真を円形、角丸アバター、透過PNGに切り抜き',
+      h1: 'プロフィール画像やアイコン用に写真を形で切り抜き',
+      description:
+        '写真を円形、正方形、楕円、角丸に切り抜き、透過PNGまたは白背景JPGとして保存できます。',
+      keywords: ['写真 円形 切り抜き', '角丸アバター', '形状切り抜き'],
+      features: ['円形切り抜き', '角丸アバター', '楕円と角丸長方形', '透過PNG保存', 'ブラウザ内処理'],
+      faqs: [
+        { question: '写真を円形に切り抜けますか？', answer: 'はい。画像をアップロードし、円形を選んで透過PNGとして保存できます。' },
+        { question: 'プロフィール画像に使えますか？', answer: 'はい。円形、正方形、角丸の画像をプロフィール、バッジ、アイコン用に作成できます。' },
+        { question: '画像はサーバーに送信されますか？', answer: 'いいえ。切り抜き処理はブラウザ内で行われます。' },
+        { question: 'どの形式で保存すればよいですか？', answer: '透明部分が必要ならPNG、白背景でよい場合はJPGを選んでください。' },
+      ],
+    },
+    'aspect-ratio-crop': {
+      label: '比率切り抜き',
+      title: '写真を原比例、3:2、2:3、4:3、3:4、9:16で切り抜き',
+      h1: 'プロフィール、Web、SNS用に写真をよく使う比率で切り抜き',
+      description:
+        '写真を原比例、3:2、2:3、4:3、3:4、9:16に切り抜き、枠内で位置を調整してJPGまたはPNGで保存できます。',
+      keywords: ['写真 比率 切り抜き', '写真 3:2 切り抜き', '画像 9:16 切り抜き'],
+      features: ['原比例に対応', '3:2と2:3に対応', '4:3と3:4に対応', '9:16に対応', '枠内で位置調整'],
+      faqs: [
+        { question: '写真を原比例や3:2に切り抜けますか？', answer: 'はい。比率を選び、枠内で画像を動かしてから保存できます。' },
+        { question: '切り抜き枠の中で画像を動かせますか？', answer: 'はい。プレビュー上でドラッグして位置を調整できます。' },
+        { question: '画像はサーバーに送信されますか？', answer: 'いいえ。切り抜き処理はブラウザ内で行われます。' },
+        { question: 'どの形式で保存すればよいですか？', answer: 'プロフィールやSNSにはJPG、画質や透明部分を重視する場合はPNGを選んでください。' },
+      ],
+    },
+  },
+} satisfies Partial<Record<Locale, Partial<Record<PhotoToolPageId, PhotoToolPageTranslation>>>>)
 
 export function getPhotoToolPages(locale: Locale = 'en') {
   if (locale === 'en') {

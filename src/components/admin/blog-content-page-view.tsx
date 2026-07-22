@@ -55,6 +55,24 @@ type BlogFormState = {
 
 type DraftPrepareMode = 'relatedTerms' | 'keyword'
 
+type PreparedDraftPrompt = {
+  keywords: string[]
+  prompt: string
+}
+
+type GeneratedDraftResult = {
+  form: BlogFormState
+  warnings: string
+}
+
+type BatchDraftLog = {
+  id: number
+  keyword: string
+  status: 'pending' | 'running' | 'saved' | 'failed'
+  message: string
+  slug?: string
+}
+
 interface BlogContentPageViewProps {
   locale?: Locale
 }
@@ -96,9 +114,12 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
   const [draftRelatedTerms, setDraftRelatedTerms] = useState('')
   const [draftKeywords, setDraftKeywords] = useState('')
   const [draftPrompt, setDraftPrompt] = useState('')
+  const [batchKeywords, setBatchKeywords] = useState('')
+  const [batchLogs, setBatchLogs] = useState<BatchDraftLog[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -202,6 +223,155 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     setShowPreview(false)
   }
 
+  const requestPreparedDraftPrompt = async (params: {
+    locale: Locale
+    prepareMode: DraftPrepareMode
+    relatedTerms?: string
+    keywords?: string
+  }): Promise<PreparedDraftPrompt> => {
+    if (!accessToken) throw new Error('Authentication required')
+
+    const response = await fetch('/api/admin/blog-post-draft', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        mode: 'prepare',
+        locale: params.locale,
+        relatedTerms: params.prepareMode === 'relatedTerms' ? params.relatedTerms : undefined,
+        keywords: params.prepareMode === 'keyword' ? params.keywords : undefined,
+      }),
+    })
+    const data = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(typeof data.error === 'string' ? data.error : 'Could not prepare a localized keyword and prompt.')
+    }
+
+    const preparedKeywords = Array.isArray(data.keywords)
+      ? data.keywords.filter((item: unknown): item is string => typeof item === 'string').slice(0, 1)
+      : []
+    const preparedPrompt = typeof data.prompt === 'string' ? data.prompt : ''
+
+    if (preparedKeywords.length !== 1 || !preparedPrompt) {
+      throw new Error('DeepSeek did not return one keyword and a prompt.')
+    }
+
+    return {
+      keywords: preparedKeywords,
+      prompt: preparedPrompt,
+    }
+  }
+
+  const draftToFormState = (
+    draft: Partial<BlogPostAdminItem> & { coverImageUrl?: string; coverImageAlt?: string },
+    formLocale: Locale,
+    fallbackKeywords: string,
+  ): BlogFormState => ({
+    ...defaultForm,
+    locale: formLocale,
+    slug: draft.slug || '',
+    title: draft.title || '',
+    description: draft.description || '',
+    keywords: Array.isArray(draft.keywords) ? draft.keywords.join(', ') : fallbackKeywords,
+    category: draft.category || '',
+    coverImageUrl: draft.coverImageUrl || draft.coverImage?.url || '',
+    coverImageAlt: draft.coverImageAlt || draft.coverImage?.alt || '',
+    intro: draft.intro || '',
+    sectionsJson: JSON.stringify(draft.sections || emptySections, null, 2),
+    enhancementJson: JSON.stringify(draft.enhancement || {}, null, 2),
+    localizedSlugsJson: JSON.stringify(draft.localizedSlugs || { [formLocale]: draft.slug || '' }, null, 2),
+  })
+
+  const requestGeneratedDraft = async (params: {
+    locale: Locale
+    keywords: string
+    prompt: string
+  }): Promise<GeneratedDraftResult> => {
+    if (!accessToken) throw new Error('Authentication required')
+
+    const response = await fetch('/api/admin/blog-post-draft', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        mode: 'article',
+        locale: params.locale,
+        keywords: params.keywords,
+        prompt: params.prompt,
+      }),
+    })
+    const data = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(typeof data.error === 'string' ? data.error : 'Could not generate blog draft.')
+    }
+
+    const draft = data.draft as Partial<BlogPostAdminItem> & {
+      coverImageUrl?: string
+      coverImageAlt?: string
+    }
+    const warnings = Array.isArray(data.validationErrors) && data.validationErrors.length > 0
+      ? ` Review before saving: ${data.validationErrors.join(' ')}`
+      : ''
+
+    return {
+      form: draftToFormState(draft, params.locale, params.keywords),
+      warnings,
+    }
+  }
+
+  const buildBlogPostPayload = (formState: BlogFormState, nextStatus?: BlogStatus) => {
+    const sections = parseJson(formState.sectionsJson, 'sections')
+    const enhancement = parseJson(formState.enhancementJson, 'SEO enhancement')
+    const localizedSlugs = parseJson(formState.localizedSlugsJson, 'localized slugs')
+
+    return {
+      id: formState.id,
+      locale: formState.locale,
+      translationGroupId: formState.translationGroupId || undefined,
+      sourcePostId: formState.sourcePostId || null,
+      slug: formState.slug,
+      status: nextStatus || formState.status,
+      title: formState.title,
+      description: formState.description,
+      keywords: formState.keywords,
+      category: formState.category,
+      coverImageUrl: formState.coverImageUrl,
+      coverImageAlt: formState.coverImageAlt,
+      intro: formState.intro,
+      sections,
+      enhancement,
+      localizedSlugs,
+      submittedToBing: formState.submittedToBing,
+    }
+  }
+
+  const requestSavePost = async (formState: BlogFormState, nextStatus?: BlogStatus) => {
+    if (!accessToken) throw new Error('Authentication required')
+
+    const response = await fetch('/api/admin/blog-posts', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(buildBlogPostPayload(formState, nextStatus)),
+    })
+    const data = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      const errors = Array.isArray(data.errors) ? data.errors.join(' ') : data.error
+      throw new Error(errors || 'Could not save blog post.')
+    }
+
+    return data.post as BlogPostAdminItem | undefined
+  }
+
   const prepareDraftPrompt = async () => {
     if (!accessToken) {
       window.location.href = dashboardHref
@@ -223,36 +393,15 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     setMessage('')
 
     try {
-      const response = await fetch('/api/admin/blog-post-draft', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          mode: 'prepare',
-          locale: draftLocale,
-          relatedTerms: draftPrepareMode === 'relatedTerms' ? draftRelatedTerms : undefined,
-          keywords: draftPrepareMode === 'keyword' ? draftKeywords : undefined,
-        }),
+      const prepared = await requestPreparedDraftPrompt({
+        locale: draftLocale,
+        prepareMode: draftPrepareMode,
+        relatedTerms: draftRelatedTerms,
+        keywords: draftKeywords,
       })
-      const data = await response.json().catch(() => ({}))
 
-      if (!response.ok) {
-        throw new Error(typeof data.error === 'string' ? data.error : 'Could not prepare a localized keyword and prompt.')
-      }
-
-      const preparedKeywords = Array.isArray(data.keywords)
-        ? data.keywords.filter((item: unknown): item is string => typeof item === 'string').slice(0, 1)
-        : []
-      const preparedPrompt = typeof data.prompt === 'string' ? data.prompt : ''
-
-      if (preparedKeywords.length !== 1 || !preparedPrompt) {
-        throw new Error('DeepSeek did not return one keyword and a prompt.')
-      }
-
-      setDraftKeywords(preparedKeywords.join(', '))
-      setDraftPrompt(preparedPrompt)
+      setDraftKeywords(prepared.keywords.join(', '))
+      setDraftPrompt(prepared.prompt)
       if (hasBlogFormContent()) {
         clearBlogForm(draftLocale)
       }
@@ -277,50 +426,13 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     setMessage('')
 
     try {
-      const response = await fetch('/api/admin/blog-post-draft', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          mode: 'article',
-          locale: draftLocale,
-          keywords: draftKeywords,
-          prompt: draftPrompt,
-        }),
-      })
-      const data = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        throw new Error(typeof data.error === 'string' ? data.error : 'Could not generate blog draft.')
-      }
-
-      const draft = data.draft as Partial<BlogPostAdminItem> & {
-        coverImageUrl?: string
-        coverImageAlt?: string
-      }
-
-      setForm({
-        ...defaultForm,
+      const generated = await requestGeneratedDraft({
         locale: draftLocale,
-        slug: draft.slug || '',
-        title: draft.title || '',
-        description: draft.description || '',
-        keywords: Array.isArray(draft.keywords) ? draft.keywords.join(', ') : draftKeywords,
-        category: draft.category || '',
-        coverImageUrl: draft.coverImageUrl || draft.coverImage?.url || '',
-        coverImageAlt: draft.coverImageAlt || draft.coverImage?.alt || '',
-        intro: draft.intro || '',
-        sectionsJson: JSON.stringify(draft.sections || emptySections, null, 2),
-        enhancementJson: JSON.stringify(draft.enhancement || {}, null, 2),
-        localizedSlugsJson: JSON.stringify(draft.localizedSlugs || { [draftLocale]: draft.slug || '' }, null, 2),
+        keywords: draftKeywords,
+        prompt: draftPrompt,
       })
-
-      const warnings = Array.isArray(data.validationErrors) && data.validationErrors.length > 0
-        ? ` Review before saving: ${data.validationErrors.join(' ')}`
-        : ''
-      setMessage(`Draft generated and filled into New Post.${warnings}`)
+      setForm(generated.form)
+      setMessage(`Draft generated and filled into New Post.${generated.warnings}`)
     } catch (generateError) {
       setError(generateError instanceof Error ? generateError.message : 'Could not generate blog draft.')
     } finally {
@@ -339,45 +451,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     setMessage('')
 
     try {
-      const sections = parseJson(form.sectionsJson, 'sections')
-      const enhancement = parseJson(form.enhancementJson, 'SEO enhancement')
-      const localizedSlugs = parseJson(form.localizedSlugsJson, 'localized slugs')
-      const payload = {
-        id: form.id,
-        locale: form.locale,
-        translationGroupId: form.translationGroupId || undefined,
-        sourcePostId: form.sourcePostId || null,
-        slug: form.slug,
-        status: nextStatus || form.status,
-        title: form.title,
-        description: form.description,
-        keywords: form.keywords,
-        category: form.category,
-        coverImageUrl: form.coverImageUrl,
-        coverImageAlt: form.coverImageAlt,
-        intro: form.intro,
-        sections,
-        enhancement,
-        localizedSlugs,
-        submittedToBing: form.submittedToBing,
-      }
-
-      const response = await fetch('/api/admin/blog-posts', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-      const data = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        const errors = Array.isArray(data.errors) ? data.errors.join(' ') : data.error
-        throw new Error(errors || 'Could not save blog post.')
-      }
-
-      const savedPost = data.post as BlogPostAdminItem | undefined
+      const savedPost = await requestSavePost(form, nextStatus)
       setMessage(savedPost?.status === 'published' ? 'Saved, published, and public URL revalidated.' : 'Saved as draft. The editor form was cleared.')
       if (savedPost?.status === 'draft') {
         clearBlogForm(savedPost.locale)
@@ -390,6 +464,95 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const updateBatchLog = (id: number, update: Partial<BatchDraftLog>) => {
+    setBatchLogs((current) => current.map((item) => item.id === id ? { ...item, ...update } : item))
+  }
+
+  const runBatchDrafts = async () => {
+    if (!accessToken) {
+      window.location.href = dashboardHref
+      return
+    }
+
+    const keywords = batchKeywords
+      .split(/\r?\n/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+
+    if (keywords.length === 0) {
+      setError('Enter one keyword per line before starting batch processing.')
+      return
+    }
+
+    const initialLogs = keywords.map((keyword, index) => ({
+      id: index,
+      keyword,
+      status: 'pending' as const,
+      message: 'Waiting',
+    }))
+
+    setBatchLogs(initialLogs)
+    setIsBatchProcessing(true)
+    setIsGenerating(true)
+    setIsSaving(true)
+    setError('')
+    setMessage(`Batch started: ${keywords.length} keywords.`)
+
+    let savedCount = 0
+    let failedCount = 0
+
+    for (const [index, keyword] of keywords.entries()) {
+      updateBatchLog(index, { status: 'running', message: 'Preparing prompt...' })
+      setDraftPrepareMode('keyword')
+      setDraftKeywords(keyword)
+      setDraftPrompt('')
+
+      try {
+        const prepared = await requestPreparedDraftPrompt({
+          locale: draftLocale,
+          prepareMode: 'keyword',
+          keywords: keyword,
+        })
+        const preparedKeyword = prepared.keywords.join(', ')
+        setDraftKeywords(preparedKeyword)
+        setDraftPrompt(prepared.prompt)
+        updateBatchLog(index, { message: 'Generating article...' })
+
+        const generated = await requestGeneratedDraft({
+          locale: draftLocale,
+          keywords: preparedKeyword,
+          prompt: prepared.prompt,
+        })
+        setForm(generated.form)
+        updateBatchLog(index, {
+          message: generated.warnings ? `Saving draft...${generated.warnings}` : 'Saving draft...',
+          slug: generated.form.slug,
+        })
+
+        const savedPost = await requestSavePost(generated.form, 'draft')
+        savedCount += 1
+        updateBatchLog(index, {
+          status: 'saved',
+          message: savedPost?.slug ? `Saved draft: ${savedPost.slug}` : 'Saved draft.',
+          slug: savedPost?.slug || generated.form.slug,
+        })
+        clearBlogForm(draftLocale)
+      } catch (batchError) {
+        failedCount += 1
+        updateBatchLog(index, {
+          status: 'failed',
+          message: batchError instanceof Error ? batchError.message : 'Batch item failed.',
+        })
+      }
+    }
+
+    setIsBatchProcessing(false)
+    setIsGenerating(false)
+    setIsSaving(false)
+    setMessage(`Batch finished. Saved ${savedCount}, failed ${failedCount}.`)
+    await loadPosts()
   }
 
   return (
@@ -432,10 +595,10 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
                 指定关键词
               </button>
             </div>
-            <Button variant="secondary" onClick={prepareDraftPrompt} isLoading={isGenerating} disabled={isGenerating || (draftPrepareMode === 'relatedTerms' ? !draftRelatedTerms.trim() : !draftKeywords.trim())}>
+            <Button variant="secondary" onClick={prepareDraftPrompt} isLoading={isGenerating && !isBatchProcessing} disabled={isGenerating || isBatchProcessing || (draftPrepareMode === 'relatedTerms' ? !draftRelatedTerms.trim() : !draftKeywords.trim())}>
               {draftPrepareMode === 'relatedTerms' ? 'Prepare Keyword' : 'Prepare Prompt'}
             </Button>
-            <Button onClick={generateDraft} isLoading={isGenerating} disabled={isGenerating || !draftKeywords.trim() || !draftPrompt.trim()}>
+            <Button onClick={generateDraft} isLoading={isGenerating && !isBatchProcessing} disabled={isGenerating || isBatchProcessing || !draftKeywords.trim() || !draftPrompt.trim()}>
               Generate Article
             </Button>
           </div>
@@ -472,6 +635,64 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
               : 'Click Prepare Prompt to generate the article prompt from the confirmed keyword.'}
             className={`${monoInputClass} mt-3 min-h-64`}
           />
+
+          <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Batch keyword drafts</h3>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Enter one confirmed keyword per line. The batch uses the current locale, prepares a prompt, generates the article, saves it as draft, then continues to the next line.
+                </p>
+              </div>
+              <Button
+                onClick={runBatchDrafts}
+                isLoading={isBatchProcessing}
+                disabled={isBatchProcessing || isGenerating || isSaving || !batchKeywords.trim()}
+              >
+                批量处理
+              </Button>
+            </div>
+            <textarea
+              value={batchKeywords}
+              onChange={(event) => setBatchKeywords(event.target.value)}
+              disabled={isBatchProcessing}
+              placeholder={'one localized long-tail keyword\nanother localized long-tail keyword'}
+              className={`${monoInputClass} mt-3 min-h-36`}
+            />
+            {batchLogs.length > 0 && (
+              <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 border-b border-slate-100 px-3 py-2 text-xs font-bold uppercase tracking-wide text-slate-500 sm:grid-cols-[110px_minmax(0,1fr)_minmax(0,1fr)]">
+                  <div>Status</div>
+                  <div>Keyword</div>
+                  <div className="hidden sm:block">Result</div>
+                </div>
+                <div className="max-h-72 overflow-y-auto">
+                  {batchLogs.map((log) => (
+                    <div key={log.id} className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 border-b border-slate-100 px-3 py-2 text-sm last:border-b-0 sm:grid-cols-[110px_minmax(0,1fr)_minmax(0,1fr)]">
+                      <div>
+                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-bold ${
+                          log.status === 'saved'
+                            ? 'bg-green-100 text-green-700'
+                            : log.status === 'failed'
+                              ? 'bg-red-100 text-red-700'
+                              : log.status === 'running'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {log.status}
+                        </span>
+                      </div>
+                      <div className="break-words font-semibold text-slate-800">{log.keyword}</div>
+                      <div className="break-words text-slate-600 sm:block">
+                        {log.message}
+                        {log.slug && <span className="ml-1 text-slate-400">({log.slug})</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </Card>
 
         <Card className="p-5 sm:p-6">
