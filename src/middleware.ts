@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { ROUTED_LOCALES, type Locale, type RoutedLocale } from '@/lib/i18n'
 
+const primarySiteHost = 'magic-headshot.com'
+const apiOnlyHosts = new Set(['kuaiwen8.com', 'www.kuaiwen8.com'])
+
 const rootPageRoutes = new Set([
   '',
   'auth',
@@ -105,6 +108,14 @@ export function middleware(request: NextRequest) {
     return nextWithLocale(request)
   }
 
+  const hostname = request.nextUrl.hostname.toLowerCase()
+  if (apiOnlyHosts.has(hostname)) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.protocol = 'https:'
+    redirectUrl.hostname = primarySiteHost
+    return NextResponse.redirect(redirectUrl, 301)
+  }
+
   const pathname = request.nextUrl.pathname
   const segments = pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean)
   const firstSegment = segments[0] ?? ''
@@ -135,5 +146,11 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.*\\.xml|.*\\..*).*)'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.*\\.xml|.*\\..*).*)',
+    '/robots.txt',
+    '/sitemap.xml',
+    '/sitemap-:locale.xml',
+    '/sitemap-urls.txt',
+  ],
 }
