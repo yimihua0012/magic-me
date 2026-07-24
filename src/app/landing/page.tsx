@@ -24,9 +24,9 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {
-  title: 'AI LinkedIn Headshots That Look Professional in Minutes',
+  title: 'AI LinkedIn Headshots from Selfies in Minutes',
   description:
-    'Create realistic AI headshots for LinkedIn, resumes, team pages, and business profiles without booking a photographer.',
+    'Upload selfies and create realistic AI LinkedIn headshots for resumes, team pages, business profiles, and personal branding.',
   keywords: [
     'AI LinkedIn headshots',
     'realistic AI headshots',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     languages: languageAlternatesForPath('/landing'),
   },
   openGraph: {
-    title: 'AI LinkedIn Headshots That Look Professional in Minutes',
+    title: 'AI LinkedIn Headshots from Selfies in Minutes',
     description:
       'Upload selfies, choose professional styles, and get polished AI headshots for LinkedIn, resumes, and business profiles.',
     url: '/landing',

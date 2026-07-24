@@ -708,7 +708,7 @@ Object.assign(localizedContactContent, {
     ...localizedContactContent.es,
     title: 'Contacta con Magic Headshot',
     description:
-      'Escribenos si necesitas ayuda con creditos, pagos, resultados de retratos IA, estilos para perfil profesional o uso en equipo. Cuanto mas contexto incluyas, mas rapido podremos revisar tu caso.',
+      'Contacta con soporte por creditos, pagos, resultados de fotos IA, estilos profesionales, pedidos o uso de equipo.',
     responseTime: 'Normalmente respondemos por email en horario laboral.',
     chatHours: 'Para temas de cuenta, compra o generacion, el email suele ser la via mas clara.',
     location: 'Servicio online para usuarios internacionales',
@@ -724,7 +724,7 @@ Object.assign(localizedContactContent, {
     ...localizedContactContent.de,
     title: 'Magic Headshot kontaktieren',
     description:
-      'Schreib uns bei Fragen zu Credits, Zahlungen, KI-Portrats, beruflichen Styles oder Teamnutzung. Mit konkreten Angaben koennen wir dein Anliegen schneller pruefen.',
+      'Kontaktiere den Support zu Credits, Zahlung, KI Fotos, beruflichen Styles, Bestellungen oder Teamnutzung.',
     responseTime: 'Wir antworten in der Regel per E-Mail waehrend der Geschaeftszeiten.',
     chatHours: 'Fuer Konto-, Zahlungs- und Generierungsfragen ist E-Mail meist der klarste Weg.',
     location: 'Online-Service fuer internationale Nutzerinnen und Nutzer',
@@ -781,12 +781,16 @@ Object.assign(localizedQuestionsContent, {
 Object.assign(localizedSampleContent, {
   es: {
     ...localizedSampleContent.es,
+    description:
+      'Compara selfies y fotos profesionales con IA para LinkedIn, CV y perfiles antes de elegir estilo o comprar creditos.',
     badge: 'Ejemplos antes y despues',
     heading: 'Compara resultados antes de elegir tu estilo',
     subheading: 'Mira como cambian luz, fondo, encuadre y ropa para decidir que tipo de retrato encaja con tu perfil, tu sector y el canal donde lo usaras.',
   },
   de: {
     ...localizedSampleContent.de,
+    description:
+      'Vergleiche Selfies und professionelle KI Fotos fuer LinkedIn, Lebenslauf und Profile, bevor du einen Stil waehlst.',
     badge: 'Vorher-Nachher Beispiele',
     heading: 'Vergleiche Ergebnisse, bevor du einen Stil waehlst',
     subheading: 'Sieh dir an, wie Licht, Hintergrund, Ausschnitt und Kleidung wirken, damit das Portrait zu Rolle, Branche und Einsatzort passt.',

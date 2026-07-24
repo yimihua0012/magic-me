@@ -42,10 +42,10 @@ export const photoToolPages: PhotoToolPageContent[] = [
     activeId: 'id-photo-crop',
     label: 'ID photo crop',
     path: '/photo-tools/id-photo-crop',
-    title: 'Free ID Photo Crop Tool Online for Passport, Resume, Exam Photos',
+    title: 'Free ID Photo Crop Tool Online for Passport and Forms',
     h1: 'Free ID Photo Crop Tool Online for Passport, Resume, Exam Photos',
     description:
-      'Crop passport, resume, exam, and student card photos online from JPG, PNG, or WebP, then download a finished ID-style JPG.',
+      'Crop an ID photo online for passport-style images, resumes, exams, badges, and forms, then download a finished JPG.',
     keywords: ['ID photo crop tool', 'crop passport photo online', 'resume photo crop'],
     features: [
       'Crop passport photo online',
@@ -78,10 +78,10 @@ export const photoToolPages: PhotoToolPageContent[] = [
     activeId: 'resize-image',
     label: 'Resize image',
     path: '/photo-tools/resize-image',
-    title: 'Free Image Resize Tool Online: Resize JPG, PNG, Photo Pixels',
+    title: 'Free Image Resize Tool Online for JPG, PNG, and Pixels',
     h1: 'Free Image Resize Tool Online to Resize JPG, PNG, and Photo Pixels',
     description:
-      'Resize JPG, PNG, and WebP images online by percentage or exact pixels for profile uploads, forms, and job applications.',
+      'Resize JPG, PNG, or WebP images online by percentage or exact pixels for CV photos, profile uploads, forms, and applications.',
     keywords: ['resize image online', 'resize photo pixels', 'profile uploads'],
     features: [
       'Resize image online by percentage',
@@ -114,10 +114,10 @@ export const photoToolPages: PhotoToolPageContent[] = [
     activeId: 'resize-kb',
     label: 'Resize image to KB',
     path: '/photo-tools/resize-image-to-kb',
-    title: 'Free Resize Image to KB Tool: Compress Photo, Reduce JPG Size',
+    title: 'Resize Image to KB Online: Compress Photos for Forms',
     h1: 'Free Resize Image to KB Tool to Compress Photos and Reduce JPG Size',
     description:
-      'Resize image to KB, compress photos to a target file size, reduce JPG size, and export JPG or WebP for online forms.',
+      'Resize an image to KB online, compress photos to a target file size, reduce JPG size, and export files for forms.',
     keywords: ['resize image to KB', 'compress photo to KB', 'reduce image file size'],
     features: [
       'Resize image to KB',
@@ -154,10 +154,10 @@ export const photoToolPages: PhotoToolPageContent[] = [
     activeId: 'remove-background',
     label: 'Remove background',
     path: '/photo-tools/remove-background',
-    title: 'Remove Background Online: Create Transparent PNG for People and Products',
+    title: 'Remove Background Online and Download Transparent PNG',
     h1: 'Remove Background Online for People, Products, and Objects',
     description:
-      'Remove background online from people, products, objects, or document-style images, then download a transparent PNG after processing.',
+      'Remove background online from people, products, objects, or document photos, then download a transparent PNG after processing.',
     keywords: ['remove background online', 'transparent PNG maker', 'product photo background remover'],
     features: [
       'Remove background from people and portraits',
@@ -357,11 +357,11 @@ const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPa
     },
     'resize-image': {
       label: 'Redimensionar imagen',
-      title: 'Redimensionar imagen online gratis: JPG, PNG y WebP',
+      title: 'Redimensionar imagen online gratis para CV y formularios',
       h1: 'Redimensiona imágenes JPG, PNG y WebP online',
       description:
-        'Cambia el tamaño de una imagen por porcentaje o por píxeles exactos para perfiles, formularios, portales escolares, solicitudes de empleo y fotos de documento.',
-      keywords: ['redimensionar imagen online', 'cambiar tamaño imagen', 'redimensionar JPG', 'redimensionar PNG'],
+        'Redimensiona una imagen online por porcentaje o pixeles exactos para CV, perfiles, formularios, portales y fotos de documento.',
+      keywords: ['redimensionar imagen online', 'cambiar tamano imagen', 'redimensionar JPG'],
       features: ['Redimensiona por porcentaje', 'Define píxeles exactos', 'Compatible con JPG, PNG y WebP', 'Útil para formularios y perfiles', 'Procesamiento local'],
       faqs: [
         { question: '¿Puedo redimensionar por porcentaje?', answer: 'Sí. Usa el modo proporcional y ajusta el porcentaje.' },
@@ -391,11 +391,11 @@ const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPa
     },
     'remove-background': {
       label: 'Remove background',
-      title: 'Remove Background online: PNG transparente para personas y productos',
+      title: 'Quitar fondo online y descargar PNG transparente',
       h1: 'Remove Background para personas, productos y objetos',
       description:
-        'Sube una imagen de persona, producto u objeto, elimina el fondo online y descarga un PNG transparente. Cada usuario registrado tiene 1 uso gratis; después se usa 1 crédito por resultado.',
-      keywords: ['remove background online', 'PNG transparente', 'quitar fondo producto', 'quitar fondo persona'],
+        'Quita el fondo de una foto online para personas, productos u objetos y descarga un PNG transparente listo para usar.',
+      keywords: ['quitar fondo online', 'PNG transparente', 'remove background'],
       features: ['Personas y retratos', 'Productos y objetos', 'Descarga PNG transparente', '1 uso gratis con cuenta', 'Uso con créditos después'],
       toolTitle: 'Remove Background',
       toolDescription: 'Sube una imagen de persona, producto u objeto. La herramienta elimina el fondo y entrega un PNG transparente.',

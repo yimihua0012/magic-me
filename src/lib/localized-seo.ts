@@ -241,8 +241,8 @@ export function getLocalizedSeo(locale: RoutedLocale, page: LocalizedSeoPage) {
 Object.assign(localizedSeoContent.es, {
   home: {
     ...localizedSeoContent.es.home,
-    title: 'Fotos profesionales con IA para perfiles y equipos | Magic-Headshot',
-    description: 'Crea retratos profesionales con IA para LinkedIn, CV, webs, bios y equipos, con resultados naturales y reconocibles desde tus propias fotos.',
+    title: 'Fotos profesionales con IA para CV, LinkedIn y perfiles | Magic-Headshot',
+    description: 'Crea fotos profesionales con IA desde selfies para CV, LinkedIn, webs, perfiles de empresa y equipos con resultados naturales.',
   },
   landing: {
     ...localizedSeoContent.es.landing,

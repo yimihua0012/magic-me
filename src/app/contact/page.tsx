@@ -3,9 +3,9 @@ import ContactPageClient from '@/components/contact/contact-page-client'
 import { languageAlternatesForPath } from '@/lib/i18n'
 
 export const metadata: Metadata = {
-  title: 'Contact Magic-Headshot AI Headshot Support',
+  title: 'Contact Magic-Headshot Support for AI Headshots',
   description:
-    'Contact Magic-Headshot support about AI headshots, LinkedIn photos, billing, refunds, account access, uploads, and photo generation.',
+    'Contact Magic-Headshot support for AI headshot quality, uploads, credits, billing, refunds, account access, or photo generation help.',
   keywords: [
     'Magic-Headshot support',
     'AI headshot support',

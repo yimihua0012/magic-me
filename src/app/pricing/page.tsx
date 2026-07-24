@@ -10,9 +10,9 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { PLANS, type PlanType } from '@backend/config/plans'
 
 export const metadata: Metadata = {
-  title: 'AI Headshot Generator Pricing for LinkedIn and Resume Photos',
+  title: 'AI Headshot Pricing: One-Time Credits for Profile Photos',
   description:
-    'One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages.',
+    'Compare one-time credit packs for AI headshots, LinkedIn photos, resume portraits, business profiles, and team pages.',
   keywords: [
     'AI headshot pricing',
     'LinkedIn headshot pricing',
@@ -23,17 +23,17 @@ export const metadata: Metadata = {
     languages: languageAlternatesForPath('/pricing'),
   },
   openGraph: {
-    title: 'AI Headshot Generator Pricing for LinkedIn and Resume Photos',
+    title: 'AI Headshot Pricing: One-Time Credits for Profile Photos',
     description:
-      'One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages.',
+      'Compare one-time credit packs for AI headshots, LinkedIn photos, resume portraits, business profiles, and team pages.',
     url: '/pricing',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Headshot Generator Pricing for LinkedIn and Resume Photos',
+    title: 'AI Headshot Pricing: One-Time Credits for Profile Photos',
     description:
-      'One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages.',
+      'Compare one-time credit packs for AI headshots, LinkedIn photos, resume portraits, business profiles, and team pages.',
   },
 }
 

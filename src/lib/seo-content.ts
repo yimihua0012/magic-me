@@ -592,10 +592,10 @@ export const blogPosts = [
   },
   {
     slug: 'remote-teams',
-    title: 'Remote Team Headshots Without Coordinating a Photo Day',
+    title: 'Remote Team Headshots Online Without a Photo Day',
     description:
-      'How remote teams can get consistent headshots without trying to coordinate a single impossible photo day.',
-    keywords: ['team photos online', 'business portrait AI generator', 'professional headshots without photographer'],
+      'Create remote team headshots online with consistent style, clean backgrounds, and less scheduling work than a company photo day.',
+    keywords: ['remote team headshots online', 'team photos online', 'business portrait AI generator'],
     intro:
       'Remote teams almost never get the easy version of team photos. Different cities, different schedules, different cameras, different levels of enthusiasm. When the company page refresh is due before the next hiring push, an AI workflow can feel like a relief.',
     sections: [

@@ -257,7 +257,7 @@ Object.assign(localizedPricingContent, {
     ...localizedPricingContent.es,
     title: 'Precios claros para crear retratos IA profesionales',
     description:
-      'Elige un paquete segun la cantidad de fotos que necesitas para LinkedIn, CV, web personal o perfiles creativos. Cada compra incluye creditos definidos, descargas en alta resolucion y uso comercial sencillo.',
+      'Compara paquetes de creditos para fotos profesionales con IA: LinkedIn, CV, web personal, perfiles creativos y equipos.',
     validityRule: 'Los creditos se mantienen activos durante el periodo indicado en cada paquete para que puedas probar estilos, revisar resultados y descargar las mejores versiones.',
     highlights: {
       ...localizedPricingContent.es.highlights,
@@ -286,7 +286,7 @@ Object.assign(localizedPricingContent, {
     ...localizedPricingContent.de,
     title: 'Preise fur professionelle KI-Portrats ohne Abo-Druck',
     description:
-      'Wahle ein Paket passend zu deinem Bedarf: LinkedIn, Bewerbung, Teamseite, Portfolio oder kreative Profilbilder. Du siehst vor dem Kauf, wie viele Credits enthalten sind und wie lange sie nutzbar bleiben.',
+      'Vergleiche Credit-Pakete fuer professionelle KI Fotos: LinkedIn, Bewerbung, Teamseite, Portfolio und kreative Profile.',
     validityRule: 'Credits bleiben im angegebenen Zeitraum aktiv, damit du Styles testen, Ergebnisse vergleichen und die besten Bilder in Ruhe herunterladen kannst.',
     highlights: {
       ...localizedPricingContent.de.highlights,

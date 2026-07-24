@@ -7,9 +7,9 @@ import { WebPageJsonLd } from '@/components/seo/page-json-ld'
 import { languageAlternatesForPath } from '@/lib/i18n'
 
 export const metadata: Metadata = {
-  title: 'Magic-Headshot Refund Policy for AI Headshots and Professional Photos',
+  title: 'Magic-Headshot Refund Policy for AI Headshot Credits',
   description:
-    'Read Magic-Headshot refund eligibility, unused credit handling, processing times, and support steps for AI headshot purchases.',
+    'Read Magic-Headshot refund eligibility, unused credit handling, request steps, timing, and support details for AI headshot purchases.',
   keywords: [
     'Magic-Headshot refund',
     'AI headshot refund policy',
@@ -27,8 +27,8 @@ export default function RefundPage() {
       <WebPageJsonLd
         locale="en"
         path="/refund"
-        title="Magic-Headshot Refund Policy for AI Headshots and Professional Photos"
-        description="Read Magic-Headshot refund eligibility, unused credit handling, processing times, and support steps for AI headshot purchases."
+        title="Magic-Headshot Refund Policy for AI Headshot Credits"
+        description="Read Magic-Headshot refund eligibility, unused credit handling, request steps, timing, and support details for AI headshot purchases."
       />
       <Navbar />
 

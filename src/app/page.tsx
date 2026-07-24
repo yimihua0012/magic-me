@@ -27,7 +27,7 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {
-  title: 'Realistic AI Headshot Generator for LinkedIn, Resume, and Profile Photos',
+  title: 'AI Headshot Generator for LinkedIn, Resumes, and Profiles',
   description: appConfig.description,
   keywords: [
     'AI headshot generator',
@@ -39,14 +39,14 @@ export const metadata: Metadata = {
     languages: languageAlternatesForPath(),
   },
   openGraph: {
-    title: appConfig.title,
+    title: 'AI Headshot Generator for LinkedIn, Resumes, and Profiles',
     description: appConfig.description,
     url: '/',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: appConfig.title,
+    title: 'AI Headshot Generator for LinkedIn, Resumes, and Profiles',
     description: appConfig.description,
   },
 }

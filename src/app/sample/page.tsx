@@ -10,9 +10,9 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { coreSeoKeywords, sampleComparisons } from '@/lib/seo-content'
 
 export const metadata: Metadata = {
-  title: 'AI Headshot Sample Comparisons Before and After for LinkedIn and Resumes',
+  title: 'AI Headshot Samples: Before and After Comparisons',
   description:
-    'See AI headshot sample comparisons with original photos and generated portraits for LinkedIn, resumes, business profiles, and teams.',
+    'Compare AI headshot samples before and after, including original selfies and generated portraits for LinkedIn, resumes, profiles, and teams.',
     keywords: [
       'AI headshots for LinkedIn',
       'AI resume photo generator',

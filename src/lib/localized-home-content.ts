@@ -251,8 +251,8 @@ export const localizedHomeContent: Record<Exclude<Locale, 'en'>, LocalizedHomeCo
 Object.assign(localizedHomeContent, {
   es: {
     ...localizedHomeContent.es,
-    title: 'Fotos profesionales con IA para perfiles, equipos y marca personal',
-    description: 'Crea retratos profesionales desde tus propias fotos para LinkedIn, CV, webs, equipos remotos y perfiles publicos, con un resultado natural y reconocible.',
+    title: 'Fotos profesionales con IA para CV, LinkedIn y perfiles',
+    description: 'Crea fotos profesionales con IA desde selfies para CV, LinkedIn, webs, perfiles de empresa y equipos con resultados naturales.',
     heading: 'Fotos profesionales con IA que siguen pareciendo tuyas',
     subheading: 'Sube selfies claras, elige estilos utiles y genera retratos para trabajo, redes profesionales, bios, propuestas y paginas de equipo sin organizar una sesion de fotos.',
     highlights: ['Resultados reconocibles', 'Estilos para trabajo real', 'Listo para perfiles y webs'],

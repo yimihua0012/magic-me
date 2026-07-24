@@ -22,19 +22,19 @@ const localizedIndexContent: Record<RoutedLocale, {
   keywords: string[]
 }> = {
   es: {
-    title: 'Photo tools online: Remove Background, foto ID, proporciones y formas',
-    description: 'Usa photo tools para quitar fondos, recortar fotos ID, recortar proporciones comunes, crear avatares redondos y preparar impresion.',
-    keywords: ['photo tools', 'remove background', 'recortar foto proporcion'],
+    title: 'Photo tools online para fondo, foto ID, tamano y recorte',
+    description: 'Usa photo tools para quitar fondo, recortar foto ID, cambiar tamano, comprimir imagen a KB y preparar hojas de impresion.',
+    keywords: ['photo tools', 'quitar fondo online', 'recortar foto ID'],
   },
   fr: {
-    title: 'Photo tools en ligne : Remove Background, photo ID, ratios et formes',
-    description: 'Utilisez les photo tools pour retirer les fonds, recadrer des photos ID, couper aux ratios courants, creer des avatars et imprimer.',
-    keywords: ['photo tools', 'remove background', 'recadrer photo ratio'],
+    title: 'Photo tools en ligne pour fond, photo ID, taille et recadrage',
+    description: 'Utilisez les photo tools pour retirer un fond, recadrer une photo ID, redimensionner, compresser en KB et preparer l impression.',
+    keywords: ['photo tools', 'remove background', 'photo ID'],
   },
   de: {
-    title: 'Photo tools online: Remove Background, ID-Foto, Seitenverhaeltnis und Formen',
-    description: 'Nutze photo tools, um Hintergruende zu entfernen, ID-Fotos zuzuschneiden, gaengige Seitenverhaeltnisse und runde Avatare zu erstellen.',
-    keywords: ['photo tools', 'remove background', 'Foto Seitenverhaeltnis zuschneiden'],
+    title: 'Photo tools online fuer Hintergrund, ID-Foto, Groesse und Zuschnitt',
+    description: 'Nutze photo tools, um Hintergruende zu entfernen, ID-Fotos zuzuschneiden, Bilder zu skalieren, KB zu reduzieren und Druckbogen zu bauen.',
+    keywords: ['photo tools', 'remove background', 'ID-Foto zuschneiden'],
   },
   ja: {
     title: 'Photo tools: Remove Background、ID写真、比率切り抜き、円形切り抜き',

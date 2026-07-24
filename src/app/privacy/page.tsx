@@ -7,9 +7,9 @@ import { WebPageJsonLd } from '@/components/seo/page-json-ld'
 import { languageAlternatesForPath } from '@/lib/i18n'
 
 export const metadata: Metadata = {
-  title: 'Magic-Headshot Privacy Policy for AI Headshots, Professional Photos, and AI Portraits',
+  title: 'Magic-Headshot Privacy Policy for AI Headshots',
   description:
-    'Read the Magic-Headshot privacy policy for uploaded photos, AI headshots, generated portraits, account data, payments, and support.',
+    'Read how Magic-Headshot handles uploaded photos, AI headshots, generated portraits, account data, payments, cookies, and support requests.',
   keywords: [
     'Magic-Headshot privacy',
     'AI headshot privacy policy',
@@ -27,8 +27,8 @@ export default function PrivacyPage() {
       <WebPageJsonLd
         locale="en"
         path="/privacy"
-        title="Magic-Headshot Privacy Policy for AI Headshots, Professional Photos, and AI Portraits"
-        description="Read the Magic-Headshot privacy policy for uploaded photos, AI headshots, generated portraits, account data, payments, and support."
+        title="Magic-Headshot Privacy Policy for AI Headshots"
+        description="Read how Magic-Headshot handles uploaded photos, AI headshots, generated portraits, account data, payments, cookies, and support requests."
       />
       <Navbar />
 

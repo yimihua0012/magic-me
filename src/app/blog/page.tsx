@@ -20,9 +20,9 @@ import {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'AI Image Generation Blog for Headshots, LinkedIn Photos, and Resume Portraits',
+    title: 'AI Headshot and Photo Tool Blog for Profiles and ID Photos',
     description:
-      'Read Magic-Headshot guides about AI headshots, LinkedIn photos, resume portraits, profile images, and practical photo tools.',
+      'Read practical guides for AI headshots, LinkedIn photos, resume portraits, ID photo tools, background changes, resizing, and print layouts.',
     keywords: [
       'Magic-Headshot',
       'AI headshots for LinkedIn',
