@@ -95,6 +95,7 @@ export default function PricingJsonLd({
     name: appConfig.name,
   }
   const seller = {
+    '@type': 'Organization',
     '@id': `${siteUrl}/#organization`,
   }
   const category = 'AI headshot generation software'
@@ -164,6 +165,7 @@ export default function PricingJsonLd({
     aggregateRating,
     review: reviews,
     hasVariant: planProducts.map((plan) => ({
+      '@type': 'Product',
       '@id': plan['@id'],
     })),
     offers: {

@@ -41,6 +41,7 @@ export default function BlogPostJsonLd({ post, index, imagePath, locale = 'en' }
       url: siteUrl,
     },
     publisher: {
+      '@type': 'Organization',
       '@id': `${siteUrl}/#organization`,
     },
     mainEntityOfPage: {

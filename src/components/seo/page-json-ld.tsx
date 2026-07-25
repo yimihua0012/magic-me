@@ -154,6 +154,7 @@ export function WebPageJsonLd({
     url,
     inLanguage: locale,
     isPartOf: {
+      '@type': 'WebSite',
       '@id': `${appConfig.url.replace(/\/$/, '')}/#website`,
     },
     primaryImageOfPage: imageObject(image),

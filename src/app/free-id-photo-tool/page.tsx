@@ -77,9 +77,11 @@ export default function FreeIdPhotoToolPage() {
       ...digitalMerchantPolicy('USD'),
     },
     provider: {
+      '@type': 'Organization',
       '@id': `${siteUrl}/#organization`,
     },
     isPartOf: {
+      '@type': 'WebSite',
       '@id': `${siteUrl}/#website`,
     },
   }

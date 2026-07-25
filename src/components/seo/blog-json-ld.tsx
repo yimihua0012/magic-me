@@ -38,6 +38,7 @@ export default function BlogJsonLd({
     url: pageUrl,
     inLanguage: locale,
     publisher: {
+      '@type': 'Organization',
       '@id': `${siteUrl}/#organization`,
     },
     blogPost: posts.map((post) => ({

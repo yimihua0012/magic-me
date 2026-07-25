@@ -110,7 +110,7 @@ export default async function RootLayout({
             '@type': 'ContactPoint',
             contactType: 'customer support',
             email: 'support@mail.magic-headshot.com',
-            availableLanguage: ['English', 'Spanish', 'French', 'German', 'Japanese'],
+            availableLanguage: ['English', 'Spanish', 'French', 'German', 'Japanese', 'Simplified Chinese'],
           },
         ],
       },
@@ -121,6 +121,7 @@ export default async function RootLayout({
         url: siteUrl,
         description: siteDescription,
         publisher: {
+          '@type': 'Organization',
           '@id': `${siteUrl}/#organization`,
         },
         inLanguage: locale,

@@ -98,9 +98,11 @@ export default async function PhotoToolPage({ params }: PhotoToolPageProps) {
       ...digitalMerchantPolicy('USD'),
     },
     provider: {
+      '@type': 'Organization',
       '@id': `${siteUrl}/#organization`,
     },
     isPartOf: {
+      '@type': 'WebSite',
       '@id': `${siteUrl}/#website`,
     },
   }

@@ -204,9 +204,11 @@ export default async function LocalizedFreeIdPhotoToolPage({ params }: PageProps
       ...digitalMerchantPolicy('USD'),
     },
     provider: {
+      '@type': 'Organization',
       '@id': `${siteUrl}/#organization`,
     },
     isPartOf: {
+      '@type': 'WebSite',
       '@id': `${siteUrl}/#website`,
     },
     inLanguage: routedLocale,

@@ -3,6 +3,7 @@ import { getDefaultCurrencyForLocale } from '@/lib/currency'
 import { localePath, type Locale } from '@/lib/i18n'
 import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
 import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
+import { PLANS } from '@backend/config/plans'
 
 interface HomeJsonLdProps {
   locale: Locale
@@ -17,6 +18,7 @@ export default function HomeJsonLd({ locale, title, description, keywords }: Hom
   const pageUrl = `${siteUrl}${pagePath === '/' ? '' : pagePath}`
   const imageUrl = `${siteUrl}/home-pages/${encodeURIComponent('Ai headshot-linkedin-professional.jpg')}`
   const currency = getDefaultCurrencyForLocale(locale)
+  const planPrices = Object.values(PLANS).map((plan) => plan.prices[currency].amount)
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -36,7 +38,8 @@ export default function HomeJsonLd({ locale, title, description, keywords }: Hom
         offers: {
           '@type': 'AggregateOffer',
           priceCurrency: currency,
-          lowPrice: currency === 'JPY' ? '2900' : currency === 'EUR' ? '16.60' : '19',
+          lowPrice: String(Math.min(...planPrices)),
+          highPrice: String(Math.max(...planPrices)),
           offerCount: '3',
           ...digitalMerchantPolicy(currency),
         },
