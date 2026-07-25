@@ -339,6 +339,112 @@ export const photoToolPages: PhotoToolPageContent[] = [
 type PhotoToolPageTranslation = Omit<PhotoToolPageContent, 'id' | 'activeId' | 'path'>
 
 const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPageId, PhotoToolPageTranslation>>>> = {
+  zh: {
+    'id-photo-crop': {
+      label: '证件照裁剪',
+      title: '免费证件照裁剪工具：护照、简历、考试照片',
+      h1: '在线裁剪证件照、简历照和考试照片',
+      description:
+        '上传 JPG、PNG 或 WebP 图片，选择常用证件照尺寸，调整头像位置，并下载适合简历、考试、工牌和日常资料照的 JPG。',
+      keywords: ['证件照裁剪', '护照照片裁剪', '简历照片'],
+      features: ['支持常用证件照尺寸', '手动调整头像位置', '导出 JPG', '适合简历、考试和工牌照片'],
+      faqs: [
+        { question: '可以裁剪一寸或二寸照片吗？', answer: '可以。选择对应尺寸后调整头像位置，再下载裁剪后的图片。' },
+        { question: '可以用于官方护照提交吗？', answer: '不建议直接用于官方提交。护照、签证或身份证照片请遵循对应机构最新要求。' },
+      ],
+    },
+    'resize-image': {
+      label: '调整图片尺寸',
+      title: '免费在线调整图片尺寸工具：像素、比例和格式',
+      h1: '在线调整图片尺寸',
+      description:
+        '按比例缩放或指定像素尺寸调整 JPG、PNG、WebP 图片，适合头像上传、报名表、求职资料和日常图片处理。',
+      keywords: ['调整图片尺寸', '图片改尺寸', '照片尺寸工具'],
+      features: ['按比例缩放', '指定宽高像素', '导出 JPG 或 PNG', '浏览器本地处理'],
+      faqs: [
+        { question: '会上传到服务器吗？', answer: '基础调整在浏览器本地完成，适合快速处理普通图片。' },
+        { question: '可以保持原比例吗？', answer: '可以。开启保持比例后，修改宽度或高度会自动计算另一边。' },
+      ],
+    },
+    'resize-image-to-kb': {
+      label: '压缩到 KB',
+      title: '免费图片压缩到指定 KB 工具',
+      h1: '把图片压缩到指定 KB',
+      description:
+        '把 JPG、PNG 或 WebP 图片压缩到目标文件大小，适合考试报名、学校系统、求职表单和头像上传限制。',
+      keywords: ['图片压缩到KB', '照片压缩', '报名照片压缩'],
+      features: ['设置目标 KB', '调整质量和尺寸', '支持 JPG、PNG、WebP', '本地浏览器处理'],
+      faqs: [
+        { question: '可以压缩到 100KB 以下吗？', answer: '可以尝试设置目标大小。最终效果取决于原图尺寸、格式和细节复杂度。' },
+        { question: '压缩会影响清晰度吗？', answer: '会有一定影响。建议在满足上传限制的同时保留足够清晰度。' },
+      ],
+    },
+    'remove-background': {
+      label: 'Remove Background',
+      title: '在线移除图片背景并下载透明 PNG',
+      h1: '移除背景并生成透明 PNG',
+      description:
+        '上传人物、产品或物品图片，自动移除背景并下载透明 PNG。复杂发丝、阴影或低清晰度图片可能需要 AI 进一步处理。',
+      keywords: ['去除背景', '透明PNG', '抠图工具'],
+      features: ['人物和物品抠图', '导出透明 PNG', '注册用户一次免费', '可继续进入 AI 处理流程'],
+      faqs: [
+        { question: '每个用户有免费机会吗？', answer: '注册用户有 1 次免费 Remove Background 机会，之后每次成功导出使用 1 个点数。' },
+        { question: '复杂背景一定能处理好吗？', answer: '不一定。复杂发丝、阴影、透明物体或低清晰度图片可能需要更精细的 AI 处理。' },
+      ],
+    },
+    'background-color-tool': {
+      label: '背景颜色工具',
+      title: '证件照背景颜色工具：白底、蓝底、红底',
+      h1: '更换证件照背景颜色',
+      description:
+        '上传透明 PNG 人像，选择照片尺寸，把证件照背景更换为白底、蓝底、红底或浅灰底并下载 JPG。',
+      keywords: ['证件照换底', '白底证件照', '蓝底证件照'],
+      features: ['白底、蓝底、红底', '选择照片尺寸', '调整头像位置', '下载 JPG'],
+      faqs: [
+        { question: '为什么建议上传透明 PNG？', answer: '透明 PNG 已经完成抠图，更换背景色时边缘更稳定。' },
+        { question: '可以生成红底和蓝底吗？', answer: '可以。工具支持白底、蓝底、红底和浅灰底。' },
+      ],
+    },
+    'print-layout-builder': {
+      label: '打印排版',
+      title: '证件照打印排版工具：6寸、A4 和多尺寸照片',
+      h1: '生成证件照打印排版',
+      description:
+        '上传完成后的证件照，选择照片尺寸和纸张尺寸，生成 6寸、A4 等打印排版 JPG，方便家用打印或照相馆打印。',
+      keywords: ['证件照排版', '6寸照片排版', '照片打印排版'],
+      features: ['6寸相纸排版', 'A4 和常用纸张', '重复照片布局', '下载 JPG'],
+      faqs: [
+        { question: '排版前需要先裁剪吗？', answer: '建议先裁剪好头像位置，再生成排版，这样打印尺寸和头部位置更稳定。' },
+        { question: '支持 6 寸相纸吗？', answer: '支持常见 4 x 6 英寸相纸，也支持 A4 等纸张预设。' },
+      ],
+    },
+    'aspect-ratio-crop': {
+      label: '比例裁剪',
+      title: '按常用比例裁剪照片：3:2、2:3、4:3、3:4、9:16',
+      h1: '按常用比例裁剪照片',
+      description:
+        '按原比例或 3:2、2:3、4:3、3:4、9:16 等比例裁剪照片，拖动图片调整位置并导出 JPG 或 PNG。',
+      keywords: ['比例裁剪', '照片裁剪', '9:16裁剪'],
+      features: ['原比例裁剪', '常用横竖比例', '拖动预览位置', '导出 JPG 或 PNG'],
+      faqs: [
+        { question: '支持哪些比例？', answer: '支持原比例、3:2、2:3、4:3、3:4、9:16、1:1、4:5 和 16:9 等常见比例。' },
+        { question: '可以拖动图片位置吗？', answer: '可以。上传后可在裁剪框内拖动图片并调整缩放。' },
+      ],
+    },
+    'shape-crop': {
+      label: '形状裁剪',
+      title: '按形状裁剪照片：圆形、心形、圆角头像和 PNG',
+      h1: '把照片裁剪成圆形、心形或圆角图片',
+      description:
+        '在线把照片裁剪成圆形、心形、方形、圆角方形或圆角矩形，适合头像、图标、徽章和社交图片，导出透明 PNG。',
+      keywords: ['形状裁剪', '圆形头像', '心形裁剪'],
+      features: ['圆形和心形裁剪', '圆角头像', '透明 PNG 导出', '可拖动和缩放图片'],
+      faqs: [
+        { question: '可以生成透明 PNG 吗？', answer: '可以。形状外侧会保持透明，适合头像和图标使用。' },
+        { question: '可以裁剪心形吗？', answer: '可以。工具支持心形、圆形、方形和圆角形状。' },
+      ],
+    },
+  },
   es: {
     'id-photo-crop': {
       label: 'Recortar foto ID',

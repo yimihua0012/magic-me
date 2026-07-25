@@ -37,6 +37,7 @@ const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
     es: 'Foto ID profesional(fondo blanco)',
     fr: 'Photo ID professionnelle(fond blanc)',
     de: 'Professionelles ID-Foto(weisser Hintergrund)',
+    zh: '专业证件照（白底）',
     ja: 'プロ向け証明写真(白)',
   },
   print_professional_blue_png: {
@@ -44,6 +45,7 @@ const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
     es: 'Foto ID profesional(fondo azul)',
     fr: 'Photo ID professionnelle(fond bleu)',
     de: 'Professionelles ID-Foto(blauer Hintergrund)',
+    zh: '专业证件照（蓝底）',
     ja: 'プロ向け証明写真(青)',
   },
   print_professional_red_png: {
@@ -51,6 +53,7 @@ const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
     es: 'Foto ID profesional(fondo rojo)',
     fr: 'Photo ID professionnelle(fond rouge)',
     de: 'Professionelles ID-Foto(roter Hintergrund)',
+    zh: '专业证件照（红底）',
     ja: 'プロ向け証明写真(赤)',
   },
   print_child_id_transparent: {
@@ -58,6 +61,7 @@ const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
     es: 'Foto ID infantil(fondo blanco)',
     fr: 'Photo ID enfant(fond blanc)',
     de: 'Kinder-ID-Foto(weisser Hintergrund)',
+    zh: '儿童证件照（白底）',
     ja: '子ども証明写真(白)',
   },
   print_child_id_blue_png: {
@@ -65,6 +69,7 @@ const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
     es: 'Foto ID infantil(fondo azul)',
     fr: 'Photo ID enfant(fond bleu)',
     de: 'Kinder-ID-Foto(blauer Hintergrund)',
+    zh: '儿童证件照（蓝底）',
     ja: '子ども証明写真(青)',
   },
   print_child_id_red_png: {
@@ -72,6 +77,7 @@ const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
     es: 'Foto ID infantil(fondo rojo)',
     fr: 'Photo ID enfant(fond rouge)',
     de: 'Kinder-ID-Foto(roter Hintergrund)',
+    zh: '儿童证件照（红底）',
     ja: '子ども証明写真(赤)',
   },
   print_student_id_transparent: {
@@ -79,6 +85,7 @@ const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
     es: 'Foto ID estudiante(fondo blanco)',
     fr: 'Photo ID etudiant(fond blanc)',
     de: 'Studenten-ID-Foto(weisser Hintergrund)',
+    zh: '学生证件照（白底）',
     ja: '学生証明写真(白)',
   },
   print_student_id_blue_png: {
@@ -86,6 +93,7 @@ const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
     es: 'Foto ID estudiante(fondo azul)',
     fr: 'Photo ID etudiant(fond bleu)',
     de: 'Studenten-ID-Foto(blauer Hintergrund)',
+    zh: '学生证件照（蓝底）',
     ja: '学生証明写真(青)',
   },
   print_student_id_red_png: {
@@ -93,6 +101,7 @@ const photoToolStyleLabels: Record<string, Record<Locale, string>> = {
     es: 'Foto ID estudiante(fondo rojo)',
     fr: 'Photo ID etudiant(fond rouge)',
     de: 'Studenten-ID-Foto(roter Hintergrund)',
+    zh: '学生证件照（红底）',
     ja: '学生証明写真(赤)',
   },
 }
@@ -151,6 +160,17 @@ const panelText: Record<Locale, {
     generatePhotoTools: 'Photo-Tools-Bild erstellen',
     png: 'PNG',
     legacy: 'Alt',
+  },
+  zh: {
+    sourceDescription: '选择已生成的证件照、透明 PNG，或上传本地图片，再导出常用证件照尺寸。',
+    uploadLabel: '上传本地图片',
+    generate: '生成证件照和 PNG',
+    loading: '正在加载已生成照片...',
+    emptyPrefix: '还没有 Photo Tools 可用照片，请先生成这些样式：',
+    emptySuffix: '。',
+    generatePhotoTools: '生成 Photo Tools 照片',
+    png: 'PNG',
+    legacy: '旧版',
   },
   ja: {
     sourceDescription: '生成済みの証明写真、透明PNG、またはローカル画像を選び、証明写真サイズで書き出せます。',

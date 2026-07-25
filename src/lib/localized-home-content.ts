@@ -38,6 +38,58 @@ export type LocalizedHomeContent = {
 
 
 export const localizedHomeContent: Record<Exclude<Locale, 'en'>, LocalizedHomeContent> = {
+  zh: {
+    title: 'AI职业形象照生成器：LinkedIn、简历和个人资料',
+    description:
+      '上传自拍，生成自然可信的 AI 职业形象照，适合 LinkedIn、简历、团队页面、个人网站和商务头像。',
+    badge: 'AI职业形象照生成器',
+    heading: '几分钟生成自然可信的职业形象照',
+    subheading:
+      '上传清晰自拍，选择适合用途的职业风格，生成可用于 LinkedIn、简历、团队介绍、个人网站和商务资料的头像。',
+    primaryCta: '查看价格',
+    secondaryCta: '上传照片',
+    highlights: ['一次性购买点数，无订阅', '按选择的风格消耗点数', '高清图片可下载'],
+    howItWorksTitle: '如何使用',
+    howItWorksSubtitle: '三个步骤生成自然、可信、可直接使用的职业形象照',
+    steps: [
+      { title: '上传清晰自拍', text: '选择 1-3 张近期照片，保证光线清楚、脸部无遮挡。' },
+      { title: '选择职业风格', text: '根据 LinkedIn、简历、团队页面或个人品牌选择合适风格。' },
+      { title: '下载并使用', text: '生成后下载高清头像，用于个人资料、简历和商务展示。' },
+    ],
+    featuresTitle: '为什么选择 Magic-Headshot',
+    featuresSubtitle: '面向真实职业场景，兼顾相似度、质感和可复用性',
+    features: [
+      { title: '更重视本人相似度', text: '生成结果尽量保留脸型、五官和自然气质，避免过度美化。' },
+      { title: '职业场景风格', text: '适合 LinkedIn、简历、企业简介、团队页面和个人网站。' },
+      { title: '隐私优先', text: '上传照片仅用于你请求的生成任务。' },
+      { title: '高清下载', text: '输出图片适合常见头像、资料页和职业展示使用。' },
+      { title: '快速更新资料', text: '无需预约摄影棚，也能快速准备可用的职业头像。' },
+      { title: '适合个人和团队', text: '帮助远程团队、创业者和职场人士获得更统一的视觉形象。' },
+    ],
+    examplesTitle: '多种 AI 职业头像风格',
+    examplesSubtitle: '比较商务、自然、创意、影棚和生活方式等不同方向。',
+    styleNames: ['商务办公室', '高管肖像', '复古胶片', '商务休闲', '影棚质感', '咖啡馆'],
+    examplesCta: '查看 Basic 方案',
+    testimonialsTitle: '适合需要更新职业资料的人',
+    testimonialsSubtitle: '用于 LinkedIn、简历、团队页面和个人品牌展示',
+    testimonials: [
+      { name: 'Sarah Chen', role: 'Product Manager', quote: '照片看起来自然又专业，我当天就更新了 LinkedIn 头像。', avatar: 'SC' },
+      { name: 'Marcus Johnson', role: 'Founder', quote: '远程团队不用统一约拍，也能获得比较一致的职业形象。', avatar: 'MJ' },
+      { name: 'Emily Rodriguez', role: 'Marketing Director', quote: '不同风格让我更容易选出适合个人品牌的头像。', avatar: 'ER' },
+    ],
+    pricingTitle: '购买点数，按需要生成风格',
+    pricingSubtitle: '一次性付款，点数加入账户，按选择的生成风格使用。',
+    mostPopular: '最受欢迎',
+    perPurchase: '一次性购买',
+    headshots: '张头像',
+    days: '天',
+    planCtaTemplate: '选择 {planName}',
+    viewAllPlans: '查看全部方案',
+    bottomTitle: '准备更新你的职业形象了吗？',
+    bottomText: '用清晰自拍生成适合 LinkedIn、简历和商务资料的真实职业头像。',
+    bottomPrimaryCta: '立即生成',
+    bottomSecondaryCta: '查看价格',
+  },
   es: {
     title: 'Generador de retratos profesionales con IA para LinkedIn y CV',
     description:

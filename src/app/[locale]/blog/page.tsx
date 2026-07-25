@@ -110,6 +110,27 @@ const localizedBlogIndexContent: Record<
     pricingDescription: 'Vergleiche Einmal-Credits, bevor du finale Bilder fuer Profil, Bewerbung, Teamseite oder dokumentaehnliche Fotos produzierst.',
     pricingLink: 'Preise ansehen',
   },
+  zh: {
+    title: 'AI职业形象照和 Photo Tools 指南 | Magic-Headshot',
+    description:
+      '阅读 AI 职业形象照、LinkedIn 头像、简历照片、证件照工具、图片压缩、背景处理和打印排版相关指南。',
+    heading: 'AI职业形象照指南',
+    intro:
+      '这里会整理职业形象照、简历照片、LinkedIn 头像和 Photo Tools 使用指南。中文 CMS blog 第一阶段暂不正式发布内容。',
+    keywords: ['AI职业形象照', '证件照工具', 'LinkedIn头像'],
+    readArticle: '阅读文章',
+    categoriesHeading: '分类',
+    categoriesDescription: '按主题查看职业形象照、证件照工具和图片处理指南。',
+    toolsHeading: 'Try the photo tools',
+    toolsDescription: '阅读指南后，可以使用 Photo Tools 裁剪证件照、压缩图片、处理背景或准备打印排版。',
+    toolsLink: '打开 Photo Tools',
+    workflowHeading: 'Try the workflow in Magic-Headshot',
+    workflowDescription: '需要更自然的职业头像时，可以上传自拍并生成适合 LinkedIn、简历和个人资料的 AI 形象照。',
+    workflowLink: '生成职业形象照',
+    pricingHeading: '选择合适的点数包',
+    pricingDescription: '比较一次性点数包，再决定生成多少职业风格照片。',
+    pricingLink: '查看价格',
+  },
   ja: {
     title: 'AIヘッドショットとプロフィール写真のブログ | Magic-Headshot',
     description:

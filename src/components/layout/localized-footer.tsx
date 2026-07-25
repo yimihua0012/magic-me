@@ -39,6 +39,11 @@ export default function Footer({ locale = 'en' }: FooterProps) {
                 </Link>
               </li>
               <li>
+                <Link href={withSource(localePath(locale, '/photo-tools'), `footer_photo_tools_${locale}`)} className="text-sm text-slate-400 transition-colors hover:text-white">
+                  {content.photoTools}
+                </Link>
+              </li>
+              <li>
                 <Link href={withSource(pricingHref, `footer_pricing_${locale}`)} className="text-sm text-slate-400 transition-colors hover:text-white">
                   {content.pricing}
                 </Link>
@@ -47,11 +52,6 @@ export default function Footer({ locale = 'en' }: FooterProps) {
                 <FooterGenerateLink locale={locale} className="text-left text-sm text-slate-400 transition-colors hover:text-white disabled:cursor-wait disabled:opacity-70">
                   {content.generate}
                 </FooterGenerateLink>
-              </li>
-              <li>
-                <Link href={withSource(localePath(locale, '/photo-tools'), `footer_photo_tools_${locale}`)} className="text-sm text-slate-400 transition-colors hover:text-white">
-                  {content.photoTools}
-                </Link>
               </li>
             </ul>
           </div>

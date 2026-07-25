@@ -88,6 +88,7 @@ function homeName(locale: Locale) {
     fr: 'Accueil',
     de: 'Startseite',
     ja: 'ホーム',
+    zh: '首页',
   }
 
   return labels[locale]

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = process.cwd()
-const locales = ['es', 'fr', 'de', 'ja']
+const locales = ['es', 'fr', 'de', 'ja', 'zh']
 const currencies = ['USD', 'EUR', 'JPY']
 const useCaseRoutes = [
   '/ai-headshot-linkedin',
@@ -36,7 +36,7 @@ function includesAll(file, values, label) {
 }
 
 const i18n = read('src/lib/i18n.ts')
-includesAll(i18n, ["'en'", "'es'", "'fr'", "'de'", "'ja'"], 'i18n locales')
+includesAll(i18n, ["'en'", "'es'", "'fr'", "'de'", "'ja'", "'zh'"], 'i18n locales')
 assert(!i18n.includes("'/en'"), 'English must not use /en')
 
 const currency = read('src/lib/currency.ts')
@@ -45,6 +45,7 @@ assert(currency.includes("ja: 'JPY'"), 'Japanese default currency must be JPY')
 assert(currency.includes("fr: 'EUR'"), 'French default currency must be EUR')
 assert(currency.includes("de: 'EUR'"), 'German default currency must be EUR')
 assert(currency.includes("es: 'USD'"), 'Spanish default currency must be USD')
+assert(currency.includes("zh: 'USD'"), 'Simplified Chinese default currency must be USD')
 assert(currency.includes('CURRENCY_FORMAT_LOCALE'), 'currency config must pin display formatting by currency')
 assert(currency.includes('return `JPY ${formattedAmount}`'), 'JPY display must use the JPY code without mojibake')
 assert(currency.includes('minimumFractionDigits: 2'), 'USD and EUR display must fix two fraction digits')
@@ -290,7 +291,11 @@ for (const route of useCaseRoutes) {
   assert(read(`src/app/[locale]/${slug}/page.tsx`).includes('buildUseCasePageMetadata'), `${slug} localized page must expose metadata`)
 }
 for (const locale of ['en', ...locales]) {
-  assert(useCasePages.includes(`${locale}: {`), `use-case content missing ${locale}`)
+  if (locale === 'zh') {
+    assert(useCasePages.includes('zhUseCasePages'), 'use-case content missing zh')
+  } else {
+    assert(useCasePages.includes(`${locale}: {`), `use-case content missing ${locale}`)
+  }
 }
 assert(useCasePages.includes('relatedLinks'), 'use-case pages must define internal related links')
 assert(useCasePages.includes('cases:'), 'use-case pages must define local use cases')

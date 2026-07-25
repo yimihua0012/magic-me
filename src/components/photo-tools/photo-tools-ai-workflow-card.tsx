@@ -17,6 +17,11 @@ const aiWorkflowContent: Record<Locale, {
     description: 'Local photo tools are useful for quick edits. If the crop, background, or final style still needs a more polished result, continue with the AI photo workflow.',
     action: 'Open AI photo workflow',
   },
+  zh: {
+    title: '需要更强的 AI 处理效果？',
+    description: '本地 Photo Tools 适合快速编辑。如果裁剪、背景或最终风格仍需要更精细的 AI 处理，可以继续使用 AI 照片生成流程。',
+    action: '打开 AI 照片流程',
+  },
   es: {
     title: 'Necesitas un resultado con IA?',
     description: 'Las herramientas locales sirven para ajustes rapidos. Si el recorte, el fondo o el estilo final necesitan un acabado mas cuidado, continua con el flujo de foto con IA.',

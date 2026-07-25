@@ -36,6 +36,11 @@ const localizedIndexContent: Record<RoutedLocale, {
     description: 'Nutze photo tools, um Hintergruende zu entfernen, ID-Fotos zuzuschneiden, Bilder zu skalieren, KB zu reduzieren und Druckbogen zu bauen.',
     keywords: ['photo tools', 'remove background', 'ID-Foto zuschneiden'],
   },
+  zh: {
+    title: '免费 Photo Tools：证件照、抠图、压缩、裁剪和排版',
+    description: '使用免费 Photo Tools 处理证件照裁剪、图片压缩、去除背景、换白底蓝底红底、常用比例裁剪和6寸排版。',
+    keywords: ['photo tools', '证件照工具', '图片裁剪工具'],
+  },
   ja: {
     title: 'Photo tools: Remove Background、ID写真、比率切り抜き、円形切り抜き',
     description: '背景削除、ID写真の切り抜き、よく使う比率の切り抜き、円形アバター作成、印刷レイアウトをまとめて使えます。',

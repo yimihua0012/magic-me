@@ -67,6 +67,18 @@ const blogArticleLabels: Record<
     pricingLink: 'Preise ansehen',
     relatedTitle: 'Verwandte Guides',
   },
+  zh: {
+    fallbackTitle: 'AI职业形象照指南',
+    backToBlog: '返回 Blog',
+    toolsDescription: '阅读这篇指南后，可以使用 Photo Tools 裁剪证件照、压缩图片、处理背景或准备打印排版。',
+    toolsLink: '打开 Photo Tools',
+    workflowDescription: '需要更自然的职业头像时，可以上传自拍并生成适合 LinkedIn、简历和个人资料的 AI 形象照。',
+    workflowLink: '生成职业形象照',
+    pricingHeading: '选择合适的点数包',
+    pricingDescription: '比较一次性点数包，再决定生成多少职业风格照片。',
+    pricingLink: '查看价格',
+    relatedTitle: '相关阅读',
+  },
   ja: {
     fallbackTitle: 'AIヘッドショットの記事',
     backToBlog: 'ブログへ戻る',

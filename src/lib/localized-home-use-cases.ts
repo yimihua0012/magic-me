@@ -14,6 +14,31 @@ export type LocalizedHomeUseCaseContent = {
 }
 
 export const localizedHomeUseCases: Record<RoutedLocale, LocalizedHomeUseCaseContent> = {
+  zh: {
+    title: '适合 LinkedIn、简历和职业资料的 AI 头像',
+    subtitle:
+      '根据你的目标选择路径：更新 LinkedIn、准备简历照片，或在没有摄影师的情况下制作职业形象照。',
+    items: [
+      {
+        title: 'LinkedIn 职业头像',
+        text: '生成清晰、自然、可信的 LinkedIn 头像，让资料页更适合招聘和商务沟通。',
+        cta: '查看价格',
+        href: '/pricing',
+      },
+      {
+        title: '简历和求职照片',
+        text: '准备更干净稳重的职业照片，用于简历、申请表和公开资料。',
+        cta: '查看示例',
+        href: '/sample',
+      },
+      {
+        title: '无需摄影棚',
+        text: '把清晰自拍转换成职业形象照，减少预约、拍摄和修图成本。',
+        cta: '查看问题',
+        href: '/questions',
+      },
+    ],
+  },
   es: {
     title: 'Retratos IA para LinkedIn, CV y perfiles profesionales',
     subtitle:

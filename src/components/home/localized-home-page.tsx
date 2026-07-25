@@ -75,6 +75,11 @@ const galleryLabels: Record<RoutedLocale, { badge: string; previewTitle: string;
     previewTitle: 'ヘッドショットのプレビュー',
     viewLabel: '大きく表示',
   },
+  zh: {
+    badge: '尝试多种 AI 职业头像风格',
+    previewTitle: '头像预览',
+    viewLabel: '查看大图',
+  },
 }
 
 function fillTemplate(template: string, values: Record<string, string | number>) {

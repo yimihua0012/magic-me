@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LoginPageView from '@/components/auth/login-page-view'
-import { isRoutedLocale, localePath, type RoutedLocale } from '@/lib/i18n'
+import { ROUTED_LOCALES, isRoutedLocale, localePath, type RoutedLocale } from '@/lib/i18n'
 import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedAuthContent } from '@/lib/localized-auth-content'
 
@@ -12,7 +12,7 @@ type PageProps = {
 }
 
 export function generateStaticParams() {
-  return [{ locale: 'es' }, { locale: 'fr' }, { locale: 'de' }, { locale: 'ja' }]
+  return ROUTED_LOCALES.map((locale) => ({ locale }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

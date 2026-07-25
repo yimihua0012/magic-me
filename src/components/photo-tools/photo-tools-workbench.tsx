@@ -40,6 +40,7 @@ type LocalizedText = {
   fr?: string
   de?: string
   ja?: string
+  zh?: string
 }
 
 type BackgroundPreset = {
@@ -139,6 +140,29 @@ const workbenchText: Record<Locale, {
     doesNotFit: 'This photo size does not fit the selected paper with print margins.',
     downloadSingle: 'Download Single JPG',
     downloadSheet: 'Download Print Sheet JPG',
+  },
+  zh: {
+    warningTitle: '适合简历、学校或求职申请、考试、员工证、学生证和个人打印排版。',
+    warningText: '不建议直接用于护照、签证、身份证、移民或其他官方照片提交。官方证件请遵循对应机构最新要求，或使用专业证件照服务。',
+    sourcePhoto: '原始照片',
+    refresh: '刷新',
+    localUpload: '本地上传',
+    empty: '上传或选择人像后开始处理。',
+    preview: '预览',
+    noPreview: '选择或上传人像后预览导出效果。',
+    exportSettings: '导出设置',
+    photoSize: '照片尺寸',
+    background: '背景',
+    backgroundPngOnly: '只有带透明通道的 PNG 图片可以更换背景颜色。',
+    zoom: '缩放',
+    horizontalPosition: '水平位置',
+    verticalPosition: '垂直位置',
+    printLayout: '打印排版',
+    paper: '纸张',
+    fits: (copies, columns, rows) => `每张纸可排 ${copies} 张（${columns} x ${rows}），居中并保留 5 mm 边距和 3 mm 间隔。`,
+    doesNotFit: '当前照片尺寸在所选纸张和边距下放不下。',
+    downloadSingle: '下载单张 JPG',
+    downloadSheet: '下载打印排版 JPG',
   },
   es: {
     warningTitle: 'Ideal para CV, solicitudes escolares o laborales, examenes, credenciales de empleado, tarjetas de estudiante e impresiones personales.',

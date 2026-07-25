@@ -1,10 +1,10 @@
 export const DEFAULT_LOCALE = 'en'
 
-export const LOCALES = ['en', 'es', 'fr', 'de', 'ja'] as const
+export const LOCALES = ['en', 'es', 'fr', 'de', 'ja', 'zh'] as const
 
 export type Locale = (typeof LOCALES)[number]
 
-export const ROUTED_LOCALES = ['es', 'fr', 'de', 'ja'] as const
+export const ROUTED_LOCALES = ['es', 'fr', 'de', 'ja', 'zh'] as const
 
 export type RoutedLocale = (typeof ROUTED_LOCALES)[number]
 
@@ -14,6 +14,7 @@ export const LOCALE_LABELS: Record<Locale, string> = {
   fr: 'Français',
   de: 'Deutsch',
   ja: '日本語',
+  zh: '简体中文',
 }
 
 export const OPEN_GRAPH_LOCALES: Record<Locale, string> = {
@@ -22,6 +23,7 @@ export const OPEN_GRAPH_LOCALES: Record<Locale, string> = {
   fr: 'fr_FR',
   de: 'de_DE',
   ja: 'ja_JP',
+  zh: 'zh_CN',
 }
 
 export function isLocale(value: string): value is Locale {
@@ -48,6 +50,7 @@ export function languageAlternatesForPath(path = '') {
     fr: localePath('fr', path),
     de: localePath('de', path),
     ja: localePath('ja', path),
+    zh: localePath('zh', path),
     'x-default': localePath(DEFAULT_LOCALE, path),
   }
 }

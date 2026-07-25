@@ -2,10 +2,9 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@backend/config/supabase'
 import { isAdminEmail } from '@/lib/admin'
 import { getCurrentUser } from '@/lib/auth/server'
+import { generateAiText, isAiTextGenerationConfigured } from '@/lib/ai/text-generation'
 
 export const dynamic = 'force-dynamic'
-
-const DEEPSEEK_TIMEOUT_MS = 60000
 
 type StyleUpdates = {
   name?: unknown
@@ -32,11 +31,6 @@ type StyleCreateInput = {
   style_order?: unknown
   localized_names?: unknown
   localized_category_labels?: unknown
-}
-
-type DeepSeekResponse = {
-  choices?: { message?: { content?: string | null } }[]
-  error?: { message?: string }
 }
 
 export async function POST(request: Request) {
@@ -255,9 +249,8 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 async function generateStyleDraft(body: StyleCreateInput) {
-  const apiKey = (process.env.DEEPSEEK_KEY || process.env.DEEPSEEK_API_KEY || '').trim()
-  if (!apiKey) {
-    return NextResponse.json({ error: 'Missing DEEPSEEK_KEY on the server.' }, { status: 500 })
+  if (!isAiTextGenerationConfigured()) {
+    return NextResponse.json({ error: 'Missing AI text provider key. Configure DEEPSEEK_KEY or QIANWEN_KEY on the server.' }, { status: 500 })
   }
 
   const direction = typeof body.direction === 'string' ? body.direction.trim() : ''
@@ -267,55 +260,24 @@ async function generateStyleDraft(body: StyleCreateInput) {
     return NextResponse.json({ error: 'Enter a style direction first.' }, { status: 400 })
   }
 
-  const endpoint = resolveDeepSeekEndpoint()
-  const model = process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-chat'
-
-  let response: Response
+  let content: string
   try {
-    response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.6,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: 'You create safe image-generation style presets. Return only valid JSON.',
-          },
-          {
-            role: 'user',
-            content: buildStyleDraftPrompt(direction, category),
-          },
-        ],
-      }),
-      signal: AbortSignal.timeout(DEEPSEEK_TIMEOUT_MS),
-      cache: 'no-store',
+    const result = await generateAiText({
+      system: 'You create safe image-generation style presets. Return only valid JSON.',
+      user: buildStyleDraftPrompt(direction, category),
+      temperature: 0.6,
     })
+    content = result.content
   } catch (error) {
     return NextResponse.json(
-      { error: 'Could not connect to DeepSeek.', details: errorMessage(error) },
+      { error: 'Could not generate the AI style draft.', details: errorMessage(error) },
       { status: 502 },
     )
   }
 
-  const raw = await response.text()
-  const parsedResponse = parseJson<DeepSeekResponse>(raw)
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: parsedResponse?.error?.message || 'DeepSeek style generation failed.', status: response.status },
-      { status: 502 },
-    )
-  }
-
-  const content = parsedResponse?.choices?.[0]?.message?.content || raw
   const parsedDraft = parseJson<Record<string, unknown>>(stripJsonFence(content))
   if (!parsedDraft) {
-    return NextResponse.json({ error: 'DeepSeek did not return valid JSON.' }, { status: 502 })
+    return NextResponse.json({ error: 'The AI provider did not return valid JSON.' }, { status: 502 })
   }
 
   const name = readString(parsedDraft.name)
@@ -324,7 +286,7 @@ async function generateStyleDraft(body: StyleCreateInput) {
   const resolvedCategory = readString(parsedDraft.category) || category
 
   if (!name || !resolvedCategory || !prompt || !negative) {
-    return NextResponse.json({ error: 'DeepSeek did not return complete style data.' }, { status: 502 })
+    return NextResponse.json({ error: 'The AI provider did not return complete style data.' }, { status: 502 })
   }
 
   return NextResponse.json({
@@ -367,12 +329,6 @@ function buildStyleDraftPrompt(direction: string, category: string) {
     '- category_order and style_order should be integers; use 0 if unsure.',
     '- No markdown fences. No commentary outside JSON.',
   ].join('\n')
-}
-
-function resolveDeepSeekEndpoint() {
-  const baseUrl = process.env.DEEPSEEK_BASE_URL?.trim() || 'https://api.deepseek.com'
-  if (baseUrl.endsWith('/chat/completions')) return baseUrl
-  return `${baseUrl.replace(/\/$/, '')}/chat/completions`
 }
 
 function parseJson<T>(value: string): T | null {

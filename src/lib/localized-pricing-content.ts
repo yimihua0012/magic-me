@@ -23,6 +23,41 @@ export type LocalizedPricingContent = {
 }
 
 export const localizedPricingContent: Record<Exclude<Locale, 'en'>, LocalizedPricingContent> = {
+  zh: {
+    title: 'AI职业形象照价格和点数包',
+    description:
+      '比较一次性点数包，按需要生成 AI 职业形象照，用于 LinkedIn、简历、团队页面、个人网站和商务资料。',
+    mostPopular: '最受欢迎',
+    perPurchase: '一次性购买',
+    headshots: '张头像',
+    validityTemplate: '有效期 {days} 天',
+    choosePlanTemplate: '选择 {planName}',
+    checkoutUnavailable: '当前币种暂不可支付',
+    validityRule: '有效期从第一次生成开始计算，不是从购买当天开始。',
+    highlights: {
+      resolution: '1024x1024 分辨率',
+      downloads: '不限次数下载',
+      commercial: '可用于职业和商业资料',
+      priority: '优先处理',
+      emailSupport: '邮件支持',
+      dedicatedSupport: '专属支持',
+    },
+    faqTitle: '价格常见问题',
+    faq: [
+      {
+        question: '这是订阅吗？',
+        answer: '不是。你一次性购买点数包，点数会加入账户。',
+      },
+      {
+        question: '点数什么时候开始有效？',
+        answer: '有效期从第一次生成开始计算，不是从购买日期开始。',
+      },
+      {
+        question: '中文站支持人民币吗？',
+        answer: '第一阶段中文站默认使用 USD 点数包，不新增 CNY 价格矩阵。',
+      },
+    ],
+  },
   es: {
     title: 'Precios del generador de retratos IA',
     description:
@@ -250,7 +285,7 @@ Object.assign(localizedPricingContent, {
       { question: '有効期間はいつ始まりますか？', answer: '購入日ではなく、最初の生成を開始した時点から有効期間が始まります。' },
     ],
   },
-} satisfies Record<Exclude<Locale, 'en'>, LocalizedPricingContent>)
+} satisfies Partial<Record<Exclude<Locale, 'en'>, LocalizedPricingContent>>)
 
 Object.assign(localizedPricingContent, {
   es: {

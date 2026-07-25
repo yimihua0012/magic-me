@@ -10,20 +10,15 @@ import {
 import { revalidateBlogPaths } from '@/lib/blog-revalidate'
 import { LOCALES, type Locale } from '@/lib/i18n'
 import { supabaseAdmin } from '@backend/config/supabase'
+import { generateAiText, isAiTextGenerationConfigured } from '@/lib/ai/text-generation'
 
 export const dynamic = 'force-dynamic'
 
-const DEEPSEEK_TIMEOUT_MS = 60000
 const MAX_ATTEMPTS_PER_RUN = 3
 const PICK_LIMIT = 200
 
 const META_DESCRIPTION_RULE =
   '- description must be 100-140 Unicode characters for English, Spanish, French, and German. For Japanese, keep it 55-90 Japanese characters.'
-
-type DeepSeekResponse = {
-  choices?: { message?: { content?: string | null } }[]
-  error?: { message?: string }
-}
 
 type FastContentCronRow = {
   id: string
@@ -55,9 +50,8 @@ async function runFastContentCron(request: Request) {
   const authResult = verifyCronAuth(request)
   if (authResult) return authResult
 
-  const apiKey = (process.env.DEEPSEEK_KEY || process.env.DEEPSEEK_API_KEY || '').trim()
-  if (!apiKey) {
-    return NextResponse.json({ error: 'Missing DEEPSEEK_KEY on the server.' }, { status: 500 })
+  if (!isAiTextGenerationConfigured()) {
+    return NextResponse.json({ error: 'Missing AI text provider key. Configure DEEPSEEK_KEY or QIANWEN_KEY on the server.' }, { status: 500 })
   }
 
   const { searchParams } = new URL(request.url)
@@ -98,7 +92,7 @@ async function runFastContentCron(request: Request) {
     try {
       const { prompt, keywords } = preparePrompt(picked.locale, picked.keyword)
       lastPrompt = prompt
-      const draft = await generateArticle(apiKey, picked.locale, keywords, prompt)
+      const draft = await generateArticle(picked.locale, keywords, prompt)
       const publishInput: BlogPostInput = {
         ...draft,
         status: 'published',
@@ -253,49 +247,22 @@ function preparePrompt(locale: Locale, keyword: string) {
   }
 }
 
-async function generateArticle(apiKey: string, locale: Locale, keywords: string[], prompt: string): Promise<BlogPostInput> {
-  const response = await fetch(resolveDeepSeekEndpoint(), {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-chat',
-      temperature: 0.7,
-      response_format: { type: 'json_object' },
-      messages: [
-        {
-          role: 'system',
-          content: [
-            'You are an SEO editor for a multilingual AI headshot SaaS.',
-            'Return only valid JSON.',
-            'Never reuse identical meta descriptions across different article drafts.',
-            'Write specific, warm, practical articles for real readers. Avoid generic automated wording.',
-            'The description field must be concise: 100-140 Unicode characters for English, Spanish, French, and German; 55-90 Japanese characters for Japanese.',
-          ].join('\n'),
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-    }),
-    signal: AbortSignal.timeout(DEEPSEEK_TIMEOUT_MS),
-    cache: 'no-store',
+async function generateArticle(locale: Locale, keywords: string[], prompt: string): Promise<BlogPostInput> {
+  const result = await generateAiText({
+    system: [
+      'You are an SEO editor for a multilingual AI headshot SaaS.',
+      'Return only valid JSON.',
+      'Never reuse identical meta descriptions across different article drafts.',
+      'Write specific, warm, practical articles for real readers. Avoid generic automated wording.',
+      'The description field must be concise: 100-140 Unicode characters for English, Spanish, French, and German; 55-90 Japanese characters for Japanese.',
+    ].join('\n'),
+    user: prompt,
+    temperature: 0.7,
   })
 
-  const raw = await response.text()
-  const parsedResponse = parseJson<DeepSeekResponse>(raw)
-  if (!response.ok) {
-    const providerMessage = parsedResponse?.error?.message || 'DeepSeek draft generation failed.'
-    throw new Error(readableDeepSeekError(providerMessage, response.status))
-  }
-
-  const content = parsedResponse?.choices?.[0]?.message?.content || raw
-  const parsedDraft = parseJson<Record<string, unknown>>(stripJsonFence(content))
+  const parsedDraft = parseJson<Record<string, unknown>>(stripJsonFence(result.content))
   if (!parsedDraft) {
-    throw new Error('DeepSeek did not return valid JSON.')
+    throw new Error('The AI provider did not return valid JSON.')
   }
 
   return normalizeGeneratedDraft(parsedDraft, locale, keywords)
@@ -308,6 +275,7 @@ function buildBlogDraftPrompt(locale: Locale, keyword: string, uniquenessHint: s
     fr: 'French',
     de: 'German',
     ja: 'Japanese',
+    zh: 'Simplified Chinese',
   }
   const language = languageNames[locale]
 
@@ -388,11 +356,6 @@ function parseLocale(value: string | null): Locale | undefined {
   return value && (LOCALES as readonly string[]).includes(value) ? value as Locale : undefined
 }
 
-function resolveDeepSeekEndpoint() {
-  const baseUrl = process.env.DEEPSEEK_BASE_URL?.trim() || 'https://api.deepseek.com'
-  return `${baseUrl.replace(/\/$/, '')}/chat/completions`
-}
-
 function readString(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
@@ -444,12 +407,4 @@ function parseJson<T>(value: string) {
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message
   return typeof error === 'string' ? error : 'Unknown error'
-}
-
-function readableDeepSeekError(message: string, status: number) {
-  if (status === 402 || /insufficient\s+balance/i.test(message)) {
-    return 'DeepSeek account balance is insufficient. Recharge the DeepSeek account or switch to another API key.'
-  }
-
-  return message
 }

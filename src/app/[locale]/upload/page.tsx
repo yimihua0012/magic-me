@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { UploadPageView } from '@/components/upload/upload-page-view'
-import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
+import { ROUTED_LOCALES, isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
 import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { getLocalizedSeo } from '@/lib/localized-seo'
 
@@ -12,7 +12,7 @@ type PageProps = {
 }
 
 export function generateStaticParams() {
-  return [{ locale: 'es' }, { locale: 'fr' }, { locale: 'de' }, { locale: 'ja' }]
+  return ROUTED_LOCALES.map((locale) => ({ locale }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

@@ -10,6 +10,7 @@ export const DEFAULT_CURRENCY_BY_LOCALE: Record<Locale, Currency> = {
   fr: 'EUR',
   de: 'EUR',
   ja: 'JPY',
+  zh: 'USD',
 }
 
 export function isCurrency(value: string): value is Currency {

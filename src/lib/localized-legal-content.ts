@@ -24,6 +24,104 @@ type LocalizedLegalContent = Record<Exclude<Locale, 'en'>, Record<LegalPageKey, 
 const supportEmail = 'support@mail.magic-headshot.com'
 
 export const localizedLegalContent: LocalizedLegalContent = {
+  zh: {
+    terms: {
+      title: 'Magic-Headshot 服务条款',
+      description:
+        '查看 Magic-Headshot 关于 AI 职业形象照生成、上传照片、点数、付款、退款、商业使用权和账户规则的服务条款。',
+      keywords: ['Magic-Headshot服务条款', 'AI职业形象照条款', '头像商业使用'],
+      heading: 'Magic-Headshot 服务条款',
+      notice:
+        '本中文版本用于帮助理解。如与英文版本存在差异，以英文版本为准。',
+      lastUpdated: '2026年6月27日',
+      sections: [
+        {
+          title: '1. 接受条款',
+          body: ['访问或使用 Magic-Headshot 即表示你同意这些服务条款。如果你不同意，请不要使用本服务。'],
+        },
+        {
+          title: '2. 服务说明',
+          body: ['Magic-Headshot 提供 AI 职业形象照生成服务。你可以上传自拍，并根据选择的风格生成职业头像或资料照片。'],
+        },
+        {
+          title: '3. 账户和使用',
+          body: ['你需要提供准确账户信息，并保护账户安全。请不要上传未经授权的他人照片，不要用于违法、冒充、欺诈或伤害他人的用途。'],
+        },
+        {
+          title: '4. 点数和付款',
+          body: ['中文站第一阶段默认使用 USD 一次性点数包。点数按选择的生成风格使用，具体价格和有效期以价格页显示为准。'],
+        },
+        {
+          title: '5. 生成结果',
+          body: ['AI 生成结果可能因原图质量、光线、角度和风格选择不同而变化。我们会努力提供自然可信的结果，但不保证每张照片都完全满足所有用途。'],
+        },
+        {
+          title: '6. 联系方式',
+          body: [`如对服务条款有疑问，请联系 ${supportEmail}。`],
+        },
+      ],
+    },
+    privacy: {
+      title: 'Magic-Headshot 隐私政策',
+      description:
+        '了解 Magic-Headshot 如何处理上传照片、账户信息、付款记录、生成图片和支持请求。',
+      keywords: ['Magic-Headshot隐私政策', 'AI头像隐私', '照片数据处理'],
+      heading: '隐私政策',
+      notice:
+        '本中文版本用于帮助理解。如与英文版本存在差异，以英文版本为准。',
+      lastUpdated: '2026年6月27日',
+      sections: [
+        {
+          title: '1. 我们收集的信息',
+          body: ['我们可能处理你的账户信息、上传照片、生成结果、付款相关状态、设备日志和你主动发送的支持请求。'],
+        },
+        {
+          title: '2. 信息用途',
+          body: ['这些信息用于提供生成服务、管理点数、处理付款和支持请求、维护安全性并改进产品体验。'],
+        },
+        {
+          title: '3. 照片和生成结果',
+          body: ['上传照片仅用于你请求的生成或图片处理流程。请不要上传你无权使用的他人照片。'],
+        },
+        {
+          title: '4. 第三方服务',
+          body: ['我们可能使用支付、存储、身份验证、分析或 AI 服务提供商来完成必要功能。'],
+        },
+        {
+          title: '5. 联系方式',
+          body: [`如有隐私相关问题，请联系 ${supportEmail}。`],
+        },
+      ],
+    },
+    refund: {
+      title: 'Magic-Headshot 退款政策',
+      description:
+        '了解 Magic-Headshot 点数包、AI 职业形象照生成、未使用点数和支持请求相关的退款规则。',
+      keywords: ['Magic-Headshot退款', 'AI头像退款政策', '点数包退款'],
+      heading: '退款政策',
+      notice:
+        '本中文版本用于帮助理解。如与英文版本存在差异，以英文版本为准。',
+      lastUpdated: '2026年6月27日',
+      sections: [
+        {
+          title: '1. 基本原则',
+          body: ['如果付款、点数同步或服务访问出现问题，请先联系我们，我们会根据账户和使用情况协助处理。'],
+        },
+        {
+          title: '2. 已使用点数',
+          body: ['AI 生成任务会消耗计算资源。已经用于生成的点数通常不适合直接退款，除非存在明确的服务错误。'],
+        },
+        {
+          title: '3. 未使用点数',
+          body: ['未使用点数的退款请求会结合购买时间、账户状态和支付渠道规则审核。'],
+        },
+        {
+          title: '4. 如何申请',
+          ordered: ['准备账户邮箱和付款信息。', `发送邮件到 ${supportEmail}。`, '说明问题、订单或点数情况。'],
+        },
+      ],
+    },
+  },
   es: {
     terms: {
       title: 'Condiciones de Magic-Headshot para retratos profesionales con IA',

@@ -45,6 +45,11 @@ const coreKeywords: Record<RoutedLocale, string[]> = {
     'LinkedInプロフィール写真',
     'プロフィール写真 AI',
   ],
+  zh: [
+    'AI职业形象照',
+    'LinkedIn头像',
+    '简历照片',
+  ],
 }
 
 type UseCaseSeoPage = Extract<
@@ -123,6 +128,23 @@ const useCaseSeoContent: Record<RoutedLocale, Record<UseCaseSeoPage, LocalizedSe
     },
     aiHeadshotProfessionalPhoto: {
       keywords: [...coreKeywords.ja, '仕事用 写真 AI', 'プロフィール写真 AI'],
+    },
+  },
+  zh: {
+    aiHeadshotLinkedIn: {
+      keywords: [...coreKeywords.zh, 'LinkedIn头像生成'],
+    },
+    aiHeadshotCorporate: {
+      keywords: [...coreKeywords.zh, '企业形象照'],
+    },
+    aiHeadshotResume: {
+      keywords: [...coreKeywords.zh, '简历照片生成'],
+    },
+    aiHeadshotStudioStyle: {
+      keywords: [...coreKeywords.zh, '影棚风职业照'],
+    },
+    aiHeadshotProfessionalPhoto: {
+      keywords: [...coreKeywords.zh, '职业头像生成'],
     },
   },
 }
@@ -226,6 +248,44 @@ export const localizedSeoContent: Record<RoutedLocale, Record<LocalizedSeoPage, 
       description:
         '鮮明なセルフィーをアップロードして、LinkedIn、履歴書、ビジネスプロフィール向けのリアルなAIヘッドショットを作成します。',
       keywords: [...coreKeywords.ja, 'AI証明写真 アップロード'],
+    },
+  },
+  zh: {
+    ...useCaseSeoContent.zh,
+    home: {
+      title: 'AI职业形象照生成器：LinkedIn、简历和个人资料 | Magic Headshot',
+      description: '上传自拍生成自然可信的 AI 职业形象照，适合 LinkedIn、简历、团队页面、个人网站和商务头像。',
+      keywords: coreKeywords.zh,
+    },
+    landing: {
+      title: '几分钟生成 AI 职业形象照 | Magic Headshot',
+      description: '上传清晰自拍，几分钟生成自然可信的 AI 职业形象照，适合 LinkedIn、简历、公司简介和个人品牌展示。',
+      keywords: [...coreKeywords.zh, 'AI头像生成'],
+    },
+    pricing: {
+      title: 'AI职业形象照价格和点数包 | Magic Headshot',
+      description: '比较一次性点数包，按需要生成 AI 职业形象照，用于 LinkedIn、简历、团队页面和商务资料更新。',
+      keywords: [...coreKeywords.zh, '职业照价格'],
+    },
+    contact: {
+      title: '联系 Magic Headshot 支持 | Magic Headshot',
+      description: '如需帮助处理点数、付款、照片生成、风格选择、账号或团队使用问题，请联系 Magic Headshot 支持。',
+      keywords: [...coreKeywords.zh, 'Magic Headshot支持'],
+    },
+    questions: {
+      title: 'AI职业形象照常见问题 | Magic Headshot',
+      description: '了解照片上传、本人相似度、风格选择、点数、隐私和职业用途，生成 AI 职业形象照前先确认关键问题和限制。',
+      keywords: [...coreKeywords.zh, 'AI职业照问题'],
+    },
+    sample: {
+      title: 'AI职业形象照前后对比示例 | Magic Headshot',
+      description: '查看自拍原图和 AI 职业形象照前后对比，比较本人相似度、光线、背景、服装和不同职业场景效果差异表现。',
+      keywords: [...coreKeywords.zh, 'AI职业照示例'],
+    },
+    upload: {
+      title: '上传照片生成 AI 职业形象照 | Magic Headshot',
+      description: '上传清晰自拍，选择职业风格，生成适合 LinkedIn、简历、公司资料和个人品牌展示的 AI 头像。',
+      keywords: [...coreKeywords.zh, '上传照片生成头像'],
     },
   },
 }

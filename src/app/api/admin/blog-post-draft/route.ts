@@ -3,10 +3,10 @@ import { isAdminEmail } from '@/lib/admin'
 import { getCurrentUser } from '@/lib/auth/server'
 import { validateBlogPostInput, type BlogPostInput } from '@/lib/blog-store'
 import { LOCALES, type Locale } from '@/lib/i18n'
+import { generateAiText, isAiTextGenerationConfigured } from '@/lib/ai/text-generation'
 
 export const dynamic = 'force-dynamic'
 
-const DEEPSEEK_TIMEOUT_MS = 60000
 const META_DESCRIPTION_LENGTH_RULE = '- description must be 100-140 Unicode characters for English, Spanish, French, and German. For Japanese, keep it 55-90 Japanese characters. It must match the visible article.'
 const META_DESCRIPTION_HARD_LIMIT_RULE = '- Count the description characters before returning JSON. If Japanese is longer than 90 characters, rewrite it shorter; if another locale is longer than 140 characters, rewrite it shorter. The CMS rejects descriptions over 180 characters.'
 const HUMAN_TONE_RULES = [
@@ -30,17 +30,6 @@ type DraftBody = {
   prompt?: unknown
 }
 
-type DeepSeekMessage = {
-  content?: string | null
-}
-
-type DeepSeekResponse = {
-  choices?: { message?: DeepSeekMessage }[]
-  error?: {
-    message?: string
-  }
-}
-
 export async function POST(request: Request) {
   const user = await getCurrentUser(request)
   if (!user) {
@@ -51,10 +40,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const apiKey = (process.env.DEEPSEEK_KEY || process.env.DEEPSEEK_API_KEY || '').trim()
-  if (!apiKey) {
+  if (!isAiTextGenerationConfigured()) {
     return NextResponse.json(
-      { error: 'Missing DEEPSEEK_KEY on the server.' },
+      { error: 'Missing AI text provider key. Configure DEEPSEEK_KEY or QIANWEN_KEY on the server.' },
       { status: 500 },
     )
   }
@@ -87,65 +75,30 @@ export async function POST(request: Request) {
   const prompt = mode === 'prepare'
     ? buildKeywordAndPromptPrompt(locale, relatedTerms, uniquenessHint)
     : withCmsJsonRequirements(reviewedPrompt || buildBlogDraftPrompt(locale, keywords, uniquenessHint), locale, uniquenessHint)
-  const endpoint = resolveDeepSeekEndpoint()
-  const model = process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-chat'
-
-  let response: Response
+  let content: string
   try {
-    response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.7,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: [
-              'You are an SEO editor for a multilingual AI headshot SaaS.',
-              'Return only valid JSON.',
-              'Never reuse identical meta descriptions across different article drafts.',
-              'The description field must be concise: 100-140 Unicode characters for English, Spanish, French, and German; 55-90 Japanese characters for Japanese.',
-              HUMAN_TONE_RULES,
-            ].join('\n'),
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      }),
-      signal: AbortSignal.timeout(DEEPSEEK_TIMEOUT_MS),
-      cache: 'no-store',
+    const result = await generateAiText({
+      system: [
+        'You are an SEO editor for a multilingual AI headshot SaaS.',
+        'Return only valid JSON.',
+        'Never reuse identical meta descriptions across different article drafts.',
+        'The description field must be concise: 100-140 Unicode characters for English, Spanish, French, and German; 55-90 Japanese characters for Japanese.',
+        HUMAN_TONE_RULES,
+      ].join('\n'),
+      user: prompt,
+      temperature: 0.7,
     })
+    content = result.content
   } catch (error) {
     return NextResponse.json(
-      { error: 'Could not connect to DeepSeek.', details: errorMessage(error) },
+      { error: 'Could not generate the AI draft.', details: errorMessage(error) },
       { status: 502 },
     )
   }
 
-  const raw = await response.text()
-  const parsedResponse = parseJson<DeepSeekResponse>(raw)
-  if (!response.ok) {
-    const providerMessage = parsedResponse?.error?.message || 'DeepSeek draft generation failed.'
-    return NextResponse.json(
-      {
-        error: readableDeepSeekError(providerMessage, response.status),
-        status: response.status,
-      },
-      { status: 502 },
-    )
-  }
-
-  const content = parsedResponse?.choices?.[0]?.message?.content || raw
   const parsedDraft = parseJson<Record<string, unknown>>(stripJsonFence(content))
   if (!parsedDraft) {
-    return NextResponse.json({ error: 'DeepSeek did not return valid JSON.' }, { status: 502 })
+    return NextResponse.json({ error: 'The AI provider did not return valid JSON.' }, { status: 502 })
   }
 
   if (mode === 'prepare') {
@@ -153,7 +106,7 @@ export async function POST(request: Request) {
     const preparedPrompt = readString(parsedDraft.prompt)
 
     if (preparedKeywords.length !== 1 || !preparedPrompt) {
-      return NextResponse.json({ error: 'DeepSeek did not return one keyword and a prompt.' }, { status: 502 })
+      return NextResponse.json({ error: 'The AI provider did not return one keyword and a prompt.' }, { status: 502 })
     }
 
     return NextResponse.json({
@@ -178,9 +131,10 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string, uniqu
   const languageNames: Record<Locale, string> = {
     en: 'English',
     es: 'Spanish',
-    fr: 'French',
-    de: 'German',
-    ja: 'Japanese',
+      fr: 'French',
+      de: 'German',
+      ja: 'Japanese',
+      zh: 'Simplified Chinese',
   }
   const language = languageNames[locale]
   const directions = [
@@ -265,9 +219,10 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[], uniquenessHint
   const languageNames: Record<Locale, string> = {
     en: 'English',
     es: 'Spanish',
-    fr: 'French',
-    de: 'German',
-    ja: 'Japanese',
+      fr: 'French',
+      de: 'German',
+      ja: 'Japanese',
+      zh: 'Simplified Chinese',
   }
   const language = languageNames[locale]
 
@@ -464,11 +419,6 @@ function normalizeComparableText(value: string) {
     .replace(/[\s,.;:!?'"“”‘’\-–—|/\\()[\]{}]+/g, '')
 }
 
-function resolveDeepSeekEndpoint() {
-  const baseUrl = process.env.DEEPSEEK_BASE_URL?.trim() || 'https://api.deepseek.com'
-  return `${baseUrl.replace(/\/$/, '')}/chat/completions`
-}
-
 function normalizeKeywords(value: unknown) {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
@@ -532,12 +482,4 @@ function parseJson<T>(value: string) {
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message
   return typeof error === 'string' ? error : 'Unknown error'
-}
-
-function readableDeepSeekError(message: string, status: number) {
-  if (status === 402 || /insufficient\s+balance/i.test(message)) {
-    return 'DeepSeek account balance is insufficient. Recharge the DeepSeek account or switch to another API key.'
-  }
-
-  return message
 }

@@ -55,6 +55,16 @@ const pageContent: Record<Locale, {
     empty: 'Upload a local image to start cropping and printing.',
     loading: 'Loading photo tools...',
   },
+  zh: {
+    eyebrow: 'Free ID Photo Tool',
+    title: '免费证件照生成、裁剪和打印排版',
+    description: '上传本地人像，生成常用证件照尺寸，裁剪证件照风格图片，更换背景色，并下载适合简历、考试、工牌、学生证和日常资料照的打印排版。',
+    generate: '生成证件照和 PNG',
+    sourceDescription: '上传本地 PNG、JPG 或 WebP 人像。透明 PNG 最适合更换白底、蓝底、红底或浅灰底。',
+    upload: '上传本地图片',
+    empty: '上传本地图片后开始裁剪和排版。',
+    loading: '正在加载 Photo Tools...',
+  },
   es: {
     eyebrow: "Foto tipo carnet gratis",
     title: "Recortar y preparar fotos tipo carnet para imprimir",
@@ -126,6 +136,37 @@ const seoContent: Record<Locale, SeoContent> = {
       {
         question: 'Can I change the background color?',
         answer: 'Yes. Background replacement works best with a transparent PNG portrait. Regular JPG photos can still be cropped and printed.',
+      },
+    ],
+  },
+  zh: {
+    useTitle: '适合日常证件照和资料照片',
+    useItems: [
+      '可用于简历、求职申请、学校登记、考试报名、员工证、学生证和打印店准备。',
+      '支持本地上传、裁剪、背景预览和打印排版下载，无需登录即可使用基础工具。',
+      '需要白底、蓝底、红底或浅灰底时，透明 PNG 人像效果更稳定。',
+    ],
+    sizeTitle: '包含常用照片尺寸',
+    sizeItems: [
+      '包含美国 2 x 2 英寸、中国一寸和二寸、日本 3 x 4 cm、欧盟 35 x 45 mm、印度 2 x 2 英寸等常见尺寸。',
+      '纸张预设包含 4 x 6 英寸、5 x 7 英寸、A4 和常见公制打印纸。',
+    ],
+    printTitle: '适合小尺寸照片打印',
+    printItems: [
+      '可以导出单张完成图，也可以生成一页多张的打印排版。',
+      '排版会尽量保持物理尺寸、边距和裁剪比例稳定，方便家庭打印或照相馆打印。',
+    ],
+    warningTitle: '不建议直接用于官方护照或签证提交',
+    warningText: '这个工具适合简历、学校、考试、工牌和日常打印。护照、签证、身份证或政府提交，请以对应机构最新照片规则为准。',
+    faqTitle: 'Free ID Photo Tool 常见问题',
+    faqs: [
+      {
+        question: '可以制作二寸或 2 x 2 英寸照片吗？',
+        answer: '可以。选择对应照片尺寸，调整裁剪位置后，下载单张图片或打印排版。',
+      },
+      {
+        question: '可以更换背景颜色吗？',
+        answer: '可以。背景更换最适合透明 PNG 人像。普通 JPG 照片仍然可以裁剪和打印。',
       },
     ],
   },

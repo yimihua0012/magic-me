@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import LocalizedHomePage from '@/components/home/localized-home-page'
 import HomeJsonLd from '@/components/seo/home-json-ld'
 import { appConfig } from '@/lib/config'
-import { OPEN_GRAPH_LOCALES, isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
+import { OPEN_GRAPH_LOCALES, ROUTED_LOCALES, isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
 import { localizedHomeContent } from '@/lib/localized-home-content'
 import { getLocalizedSeo } from '@/lib/localized-seo'
 
@@ -14,7 +14,7 @@ type PageProps = {
 }
 
 export function generateStaticParams() {
-  return [{ locale: 'es' }, { locale: 'fr' }, { locale: 'de' }, { locale: 'ja' }]
+  return ROUTED_LOCALES.map((locale) => ({ locale }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

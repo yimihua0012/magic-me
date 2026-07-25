@@ -70,7 +70,7 @@ const englishRelated: Record<UseCasePageSlug, UseCasePageContent['relatedLinks']
   ],
 }
 
-const localizedRelated: Record<Exclude<Locale, 'en'>, Record<UseCasePageSlug, UseCasePageContent['relatedLinks']>> = {
+const localizedRelated: Record<Exclude<Locale, 'en' | 'zh'>, Record<UseCasePageSlug, UseCasePageContent['relatedLinks']>> = {
   es: {
     'ai-headshot-linkedin': [
       { href: '/ai-headshot-corporate', label: 'Retratos corporativos', description: 'Mantén una imagen coherente para equipos, webs y perfiles de empresa.' },
@@ -201,7 +201,7 @@ const localizedRelated: Record<Exclude<Locale, 'en'>, Record<UseCasePageSlug, Us
   },
 }
 
-export const useCasePages: Record<UseCasePageSlug, Record<Locale, UseCasePageContent>> = {
+export const useCasePages: Record<UseCasePageSlug, Record<Exclude<Locale, 'zh'>, UseCasePageContent>> = {
   'ai-headshot-linkedin': {
     en: {
       title: 'AI Headshot for LinkedIn Profiles | Magic-Headshot',
@@ -1174,8 +1174,172 @@ export const useCasePages: Record<UseCasePageSlug, Record<Locale, UseCasePageCon
   },
 }
 
+const zhRelated: Record<UseCasePageSlug, UseCasePageContent['relatedLinks']> = {
+  'ai-headshot-linkedin': [
+    { href: '/ai-headshot-resume', label: '简历照片指南', description: '为求职材料准备更稳重的职业头像。' },
+    { href: '/sample', label: '查看生成示例', description: '比较自拍原图和生成后的职业形象照。' },
+    { href: '/pricing', label: '查看点数包', description: '按需要选择一次性点数包。' },
+  ],
+  'ai-headshot-corporate': [
+    { href: '/ai-headshot-linkedin', label: 'LinkedIn 头像', description: '让个人资料和公司页面的头像更一致。' },
+    { href: '/ai-headshot-studio-style', label: '影棚风头像', description: '选择更干净、正式的职业照片质感。' },
+    { href: '/sample', label: '团队示例', description: '查看不同风格的生成效果。' },
+  ],
+  'ai-headshot-resume': [
+    { href: '/ai-headshot-linkedin', label: 'LinkedIn 头像', description: '为招聘搜索和商务社交准备资料照片。' },
+    { href: '/ai-headshot-professional-photo', label: '职业照片', description: '了解更通用的职业头像使用方式。' },
+    { href: '/questions', label: '常见问题', description: '生成前确认照片、点数和隐私问题。' },
+  ],
+  'ai-headshot-studio-style': [
+    { href: '/ai-headshot-corporate', label: '企业形象照', description: '为团队页面和公司简介保持统一风格。' },
+    { href: '/ai-headshot-professional-photo', label: '职业照片', description: '比较正式和自然的头像方向。' },
+    { href: '/sample', label: '影棚风示例', description: '先看光线、背景和服装效果。' },
+  ],
+  'ai-headshot-professional-photo': [
+    { href: '/ai-headshot-linkedin', label: 'LinkedIn 头像', description: '用于资料页、招聘搜索和商务关系。' },
+    { href: '/ai-headshot-resume', label: '简历照片', description: '用于简历、求职申请和个人介绍。' },
+    { href: '/pricing', label: '查看价格', description: '选择合适的点数包开始生成。' },
+  ],
+}
+
+const commonZhUseCase = {
+  primaryCta: '开始生成',
+  secondaryCta: '查看示例',
+  casesTitle: '适合这些场景',
+  guidanceTitle: '生成建议',
+  checklist: [
+    '上传近期清晰自拍，脸部完整可见。',
+    '避免多人合照、墨镜、口罩和过暗照片。',
+    '根据用途选择正式、自然或更商务的风格。',
+  ],
+  faqTitle: '常见问题',
+}
+
+const zhUseCasePages: Record<UseCasePageSlug, UseCasePageContent> = {
+  'ai-headshot-linkedin': {
+    title: 'AI LinkedIn 职业头像生成器 | Magic-Headshot',
+    description: '上传自拍生成自然可信的 LinkedIn 职业头像，适合招聘搜索、商务社交、创始人简介和个人品牌展示。',
+    keywords: ['LinkedIn头像', 'AI职业形象照', '职业头像生成'],
+    eyebrow: 'LinkedIn 头像',
+    h1: '为 LinkedIn 生成自然可信的职业头像',
+    intro: '一张清晰、自然、专业的头像能让 LinkedIn 资料更容易被信任。Magic-Headshot 帮你从自拍生成适合招聘、商务沟通和个人品牌的职业头像。',
+    ...commonZhUseCase,
+    casesText: '适合更新 LinkedIn、公开资料、招聘平台和商务社交头像。',
+    cases: [
+      { title: '求职和招聘搜索', text: '让资料页头像更清楚、稳重，减少随手自拍带来的不专业感。' },
+      { title: '创始人和顾问简介', text: '用于 LinkedIn、个人网站、提案材料和公司介绍。' },
+      { title: '商务社交', text: '在公开平台展示更一致、更可信的第一印象。' },
+    ],
+    guidanceText: '建议选择光线明亮、面部正向、无遮挡的自拍，让 AI 更好保留本人特征。',
+    linksTitle: '继续完善职业资料',
+    linksText: '这些页面可以帮助你把头像扩展到简历、示例和价格选择。',
+    relatedLinks: zhRelated['ai-headshot-linkedin'],
+    faqText: '关于 LinkedIn 头像生成和使用的常见问题。',
+    faqs: [
+      { question: '可以同时用于 LinkedIn 和公司简介吗？', answer: '可以。如果风格不过度夸张，同一张照片通常也适合公司简介、个人网站和商务资料。' },
+      { question: '应该选择正式还是自然风格？', answer: '求职和商务沟通建议优先选择自然、清晰、不过度修饰的风格。' },
+    ],
+  },
+  'ai-headshot-corporate': {
+    title: 'AI 企业形象照生成器 | Magic-Headshot',
+    description: '为团队页面、公司简介、员工资料和远程团队生成统一风格的 AI 企业形象照，让公开资料更专业一致可信。',
+    keywords: ['企业形象照', '团队头像', 'AI职业形象照'],
+    eyebrow: '企业形象照',
+    h1: '为团队和公司页面生成统一职业形象照',
+    intro: '远程团队很难统一拍摄时间和场地。Magic-Headshot 可以帮助成员从自拍生成更统一、更适合公司页面的职业头像。',
+    ...commonZhUseCase,
+    casesText: '适合团队页面、员工资料、销售资料和公司介绍。',
+    cases: [
+      { title: '团队页面', text: '让不同地点成员的头像保持相近的清晰度、背景和职业感。' },
+      { title: '员工资料', text: '用于公司内部系统、公开介绍或商务资料。' },
+      { title: '创始团队', text: '快速准备适合官网、投资资料和媒体简介的照片。' },
+    ],
+    guidanceText: '建议先确定统一风格和背景，再让成员上传清晰自拍生成。',
+    linksTitle: '继续规划团队头像',
+    linksText: '查看 LinkedIn、影棚风和示例页面，比较适合团队的方向。',
+    relatedLinks: zhRelated['ai-headshot-corporate'],
+    faqText: '关于企业和团队使用 AI 头像的常见问题。',
+    faqs: [
+      { question: '不同成员上传的自拍不一样，会影响统一感吗？', answer: '会有影响。建议统一要求光线、角度和脸部清晰度，再选择同一类风格。' },
+      { question: '适合远程团队吗？', answer: '适合，尤其是无法集中拍摄但需要快速更新公司页面的团队。' },
+    ],
+  },
+  'ai-headshot-resume': {
+    title: 'AI 简历照片生成器 | Magic-Headshot',
+    description: '为简历、求职申请、个人介绍和职业资料生成自然稳重的 AI 简历照片，适合需要头像的求职场景使用展示。',
+    keywords: ['简历照片', '求职照片', 'AI职业形象照'],
+    eyebrow: '简历照片',
+    h1: '为简历和求职资料生成职业照片',
+    intro: '在需要头像的简历或求职平台上，照片应该清晰、稳重、不过度修饰。Magic-Headshot 帮你从自拍生成更适合求职场景的职业照片。',
+    ...commonZhUseCase,
+    casesText: '适合简历、申请表、求职网站和个人介绍页。',
+    cases: [
+      { title: '简历头像', text: '准备更简洁、可信、不会分散注意力的职业照片。' },
+      { title: '求职申请', text: '用于招聘平台、申请表和候选人资料。' },
+      { title: '个人简介', text: '统一简历、LinkedIn 和个人网站的形象。' },
+    ],
+    guidanceText: '简历照片建议选择简洁背景、自然表情和适度正式的服装。',
+    linksTitle: '扩展到其他资料',
+    linksText: '同一组照片也可以用于 LinkedIn、职业资料和常见问题检查。',
+    relatedLinks: zhRelated['ai-headshot-resume'],
+    faqText: '关于简历照片生成和选择的常见问题。',
+    faqs: [
+      { question: '所有简历都需要照片吗？', answer: '不一定。是否使用照片取决于地区、行业和平台要求。需要时请选择自然、专业的头像。' },
+      { question: '可以用过于精修的照片吗？', answer: '不建议。求职照片更适合真实、清楚、不过度美化的效果。' },
+    ],
+  },
+  'ai-headshot-studio-style': {
+    title: 'AI 影棚风职业头像生成器 | Magic-Headshot',
+    description: '从自拍生成带有干净光线、简洁背景和专业质感的 AI 影棚风职业头像，适合正式资料和商务展示使用场景。',
+    keywords: ['影棚风头像', 'AI职业头像', '职业形象照'],
+    eyebrow: '影棚风头像',
+    h1: '生成干净自然的影棚风职业头像',
+    intro: '影棚风头像适合需要更正式、更统一视觉质感的职业场景。Magic-Headshot 帮你从自拍生成更像专业拍摄的头像。',
+    ...commonZhUseCase,
+    casesText: '适合公司简介、个人网站、演讲者资料和商务头像。',
+    cases: [
+      { title: '公司和团队页面', text: '干净背景和稳定光线更适合统一展示。' },
+      { title: '个人品牌', text: '用于网站、社交资料、提案和公开介绍。' },
+      { title: '正式资料照', text: '比生活照更稳重，但不必显得僵硬。' },
+    ],
+    guidanceText: '选择脸部清晰、角度正、背景不复杂的自拍，影棚风效果会更稳定。',
+    linksTitle: '比较其他职业风格',
+    linksText: '查看企业形象照、职业照片和示例图库，选择合适正式程度。',
+    relatedLinks: zhRelated['ai-headshot-studio-style'],
+    faqText: '关于影棚风 AI 头像的常见问题。',
+    faqs: [
+      { question: '影棚风和普通职业照有什么区别？', answer: '影棚风更强调光线、背景和正式质感；普通职业照可以更自然、生活化一些。' },
+      { question: '会不会太像证件照？', answer: '可以通过风格选择避免过于僵硬，保留自然表情和职业气质。' },
+    ],
+  },
+  'ai-headshot-professional-photo': {
+    title: 'AI 职业照片生成器 | Magic-Headshot',
+    description: '上传自拍生成可用于 LinkedIn、简历、公司资料、个人网站和商务资料的 AI 职业照片，适合长期资料更新。',
+    keywords: ['AI职业照片', '职业头像生成', '商务头像'],
+    eyebrow: '职业照片',
+    h1: '把自拍生成适合工作场景的职业照片',
+    intro: '职业照片不只用于 LinkedIn，也常出现在简历、公司资料、个人网站、提案和团队页面。Magic-Headshot 帮你生成更统一、更可信的头像。',
+    ...commonZhUseCase,
+    casesText: '适合职业资料、个人品牌、商务沟通和公开介绍。',
+    cases: [
+      { title: '个人资料页', text: '更新头像，让资料更清楚、更可信。' },
+      { title: '商务材料', text: '用于提案、简历、公司简介和签名档。' },
+      { title: '内容和社交平台', text: '保持职业感，同时保留自然表情和本人特征。' },
+    ],
+    guidanceText: '建议根据用途选择正式程度，不同平台可以保留 2-3 个候选结果。',
+    linksTitle: '按用途继续选择',
+    linksText: '查看 LinkedIn、简历和价格页面，决定最适合你的生成方向。',
+    relatedLinks: zhRelated['ai-headshot-professional-photo'],
+    faqText: '关于 AI 职业照片的常见问题。',
+    faqs: [
+      { question: '可以一张照片用于多个平台吗？', answer: '可以。只要风格自然、清晰且符合场景，同一张照片可以用于 LinkedIn、简历和个人网站。' },
+      { question: '什么样的原图更适合？', answer: '脸部清楚、光线均匀、无遮挡、近期拍摄的自拍更适合生成职业照片。' },
+    ],
+  },
+}
+
 export function getUseCasePageContent(slug: UseCasePageSlug, locale: Locale) {
-  const content = useCasePages[slug][locale]
+  const content = locale === 'zh' ? zhUseCasePages[slug] : useCasePages[slug][locale]
   return {
     ...content,
     keywords: content.keywords.slice(0, 3),

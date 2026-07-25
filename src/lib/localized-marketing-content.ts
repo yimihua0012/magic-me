@@ -68,6 +68,20 @@ export type LocalizedLandingContent = {
 }
 
 const sharedQuestions: Record<NonEnglishLocale, LocalizedQuestionsContent['questions']> = {
+  zh: [
+    {
+      question: '需要订阅吗？',
+      answer: '不需要。你购买一次性点数包，之后按选择的风格使用点数生成照片。',
+    },
+    {
+      question: '应该上传什么样的照片？',
+      answer: '建议上传近期、光线清楚、脸部无遮挡的自拍。尽量避免墨镜、口罩、多人合照和脸部太小的照片。',
+    },
+    {
+      question: '生成的照片可以用于工作场景吗？',
+      answer: '可以。生成结果适合 LinkedIn、简历、公司资料、个人网站、团队页面和常见职业展示。',
+    },
+  ],
   es: [
     {
       question: '¿Necesito una suscripción?',
@@ -127,6 +141,27 @@ const sharedQuestions: Record<NonEnglishLocale, LocalizedQuestionsContent['quest
 }
 
 export const localizedContactContent: Record<NonEnglishLocale, LocalizedContactContent> = {
+  zh: {
+    title: '联系 Magic-Headshot 支持',
+    description: '如需处理点数、付款、照片生成、风格选择、账号或团队使用问题，可以联系 Magic Headshot 支持。',
+    email: '邮箱',
+    responseTime: '通常会在 24 小时内回复',
+    chat: '在线消息',
+    chatHours: '工作日处理',
+    location: '服务范围',
+    formTitle: '发送消息',
+    name: '姓名',
+    emailAddress: '邮箱地址',
+    topic: '问题类型',
+    topicPlaceholder: '请选择问题类型',
+    topics: ['一般咨询', '技术支持', '账单和付款', '退款', '反馈建议'],
+    message: '消息内容',
+    submit: '发送消息',
+    sending: '发送中...',
+    sentTitle: '消息已发送',
+    sentText: '感谢联系，我们会尽快回复。',
+    sendAnother: '再发送一条',
+  },
   es: {
     title: 'Contacta con el soporte de Magic-Headshot',
     description: 'Contacta con Magic Headshot sobre retratos IA, pagos, reembolsos, cuenta, pedidos o problemas de generación.',
@@ -214,6 +249,15 @@ export const localizedContactContent: Record<NonEnglishLocale, LocalizedContactC
 }
 
 export const localizedQuestionsContent: Record<NonEnglishLocale, LocalizedQuestionsContent> = {
+  zh: {
+    title: 'AI职业形象照常见问题',
+    description: '了解照片上传、本人相似度、风格选择、点数、隐私和职业用途，生成 AI 职业形象照前先确认关键问题和限制。',
+    commonTitle: '常见问题',
+    ctaTitle: '想先看生成效果？',
+    ctaText: '查看自拍原图和 AI 职业形象照对比，再选择适合自己的风格。',
+    cta: '查看示例',
+    questions: sharedQuestions.zh,
+  },
   es: {
     title: 'Preguntas sobre retratos IA',
     description: 'Respuestas rápidas sobre créditos, selfies, calidad, pagos y uso profesional. Revisa esta página antes de comprar o subir fotos para entender cómo elegir imágenes, usar créditos y publicar los resultados.',
@@ -253,6 +297,15 @@ export const localizedQuestionsContent: Record<NonEnglishLocale, LocalizedQuesti
 }
 
 export const localizedSampleContent: Record<NonEnglishLocale, LocalizedSampleContent> = {
+  zh: {
+    title: 'AI职业形象照前后对比示例',
+    description: '查看自拍原图和 AI 职业形象照前后对比，比较本人相似度、光线、背景、服装和不同职业场景效果差异表现。',
+    originalLabel: '用户上传原图',
+    generatedLabel: '生成的职业形象照',
+    ctaTitle: '先确认适合你的视觉方向',
+    ctaText: '通过示例比较不同风格，再决定用于 LinkedIn、简历或团队页面的头像。',
+    cta: '查看价格',
+  },
   es: {
     title: 'Muestras de retratos IA antes y después',
     description: 'Compara fotos originales y retratos IA para LinkedIn, CV y perfiles de negocio antes de elegir estilo o plan.',
@@ -292,6 +345,36 @@ export const localizedSampleContent: Record<NonEnglishLocale, LocalizedSampleCon
 }
 
 export const localizedLandingContent: Record<NonEnglishLocale, LocalizedLandingContent> = {
+  zh: {
+    title: '几分钟生成 AI 职业形象照',
+    description: '上传清晰自拍，几分钟生成自然可信的 AI 职业形象照，适合 LinkedIn、简历、公司简介和个人品牌展示。',
+    badge: '适合 LinkedIn、简历和团队页面',
+    heading: '无需预约摄影棚，也能准备职业头像',
+    subheading: '上传清晰自拍，选择职业风格，生成可用于 LinkedIn、简历、公司简介、个人网站和商务资料的自然头像。',
+    primaryCta: '查看价格',
+    secondaryCta: '上传照片',
+    outcomes: ['LinkedIn', '简历', '公司简介', '团队页面'],
+    proof: [{ value: '3-5 分钟', label: '常见生成时间' }, { value: '1024px', label: '可下载图片' }, { value: '无订阅', label: '一次性点数包' }],
+    benefitsTitle: '让职业资料更可信',
+    benefitsText: '一张清晰自然的头像，能帮助招聘方、客户和同事更快理解你的专业形象。',
+    benefits: [
+      { title: '保留本人特征', text: '尽量保持脸型、五官、肤色和年龄感，让照片像你本人。' },
+      { title: '适配职业用途', text: '选择更适合求职、商务沟通、团队展示或个人品牌的视觉风格。' },
+      { title: '减少拍摄成本', text: '无需预约摄影棚，也不用等待复杂修图流程。' },
+    ],
+    stepsTitle: '简单三步',
+    stepsText: '从自拍到可用头像，只需要上传、选择和下载。',
+    steps: [
+      { title: '上传自拍', text: '使用光线清楚、脸部完整、近期拍摄的照片。' },
+      { title: '选择风格', text: '根据用途选择商务、自然、影棚或团队风格。' },
+      { title: '下载结果', text: '把生成照片用于 LinkedIn、简历、个人资料或团队页面。' },
+    ],
+    faqTitle: '生成前常见问题',
+    faqText: '先确认照片要求、点数和使用场景，能减少返工。',
+    faqs: sharedQuestions.zh,
+    bottomTitle: '准备更新职业头像了吗？',
+    bottomText: '上传清晰自拍，生成更适合职业资料的 AI 形象照。',
+  },
   es: {
     title: 'Retratos IA profesionales en minutos',
     description: 'Convierte selfies en retratos realistas para LinkedIn, CV y perfiles de negocio.',
@@ -471,7 +554,7 @@ Object.assign(localizedContactContent, {
     sentText: 'お問い合わせありがとうございます。できるだけ早く返信します。',
     sendAnother: '別のメッセージを送る',
   },
-} satisfies Record<NonEnglishLocale, LocalizedContactContent>)
+} satisfies Partial<Record<NonEnglishLocale, LocalizedContactContent>>)
 
 Object.assign(localizedQuestionsContent, {
   es: {
@@ -530,7 +613,7 @@ Object.assign(localizedQuestionsContent, {
       { question: '商用利用できますか？', answer: 'はい。LinkedIn、履歴書、会社プロフィール、Webサイト、業務用プロフィールに利用できます。' },
     ],
   },
-} satisfies Record<NonEnglishLocale, LocalizedQuestionsContent>)
+} satisfies Partial<Record<NonEnglishLocale, LocalizedQuestionsContent>>)
 
 Object.assign(localizedSampleContent, {
   es: {
@@ -573,7 +656,7 @@ Object.assign(localizedSampleContent, {
     ctaText: 'サンプルを見ながら、プロフィールに合うスタイルを決められます。',
     cta: '料金を見る',
   },
-} satisfies Record<NonEnglishLocale, LocalizedSampleContent>)
+} satisfies Partial<Record<NonEnglishLocale, LocalizedSampleContent>>)
 
 Object.assign(localizedLandingContent, {
   es: {
@@ -668,7 +751,7 @@ Object.assign(localizedLandingContent, {
     bottomTitle: 'プロフィール写真を整えますか？',
     bottomText: 'クレジットを一度購入し、必要なときに仕事用写真を生成できます。',
   },
-} satisfies Record<NonEnglishLocale, LocalizedLandingContent>)
+} satisfies Partial<Record<NonEnglishLocale, LocalizedLandingContent>>)
 
 Object.assign(localizedLandingContent, {
   es: {

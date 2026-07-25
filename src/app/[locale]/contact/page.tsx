@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import LocalizedContactPage from '@/components/contact/localized-contact-page'
 import { WebPageJsonLd } from '@/components/seo/page-json-ld'
-import { isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
+import { ROUTED_LOCALES, isRoutedLocale, languageAlternatesForPath, localePath, type RoutedLocale } from '@/lib/i18n'
 import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedContactContent } from '@/lib/localized-marketing-content'
 import { getLocalizedSeo } from '@/lib/localized-seo'
@@ -10,7 +10,7 @@ import { getLocalizedSeo } from '@/lib/localized-seo'
 type PageProps = { params: Promise<{ locale: string }> }
 
 export function generateStaticParams() {
-  return [{ locale: 'es' }, { locale: 'fr' }, { locale: 'de' }, { locale: 'ja' }]
+  return ROUTED_LOCALES.map((locale) => ({ locale }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

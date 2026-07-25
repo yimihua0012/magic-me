@@ -35,6 +35,23 @@ export const sampleGalleryContent: Record<Locale, SampleGalleryContent> = {
     secondaryLink: 'Read AI headshot questions',
     keywords: ['AI headshot examples', 'AI portrait styles', 'AI avatar examples', 'high likeness AI portraits', 'fast headshot generation'],
   },
+  zh: {
+    title: 'AI职业形象照示例：真实头像、商务风格和头像灵感',
+    description:
+      '查看 AI 职业形象照示例，比较自拍原图、真实头像、商务风格、影棚质感和个人品牌头像效果。',
+    h1: 'AI职业形象照示例和风格图库',
+    eyebrow: '风格示例',
+    intro:
+      '浏览自拍如何生成不同方向的 AI 职业形象照，包括自然影棚头像、商务资料照、LinkedIn 头像、创意头像和个人品牌照片。你可以比较相似度、光线、服装、背景和适用场景，再决定生成哪种风格。',
+    emptyTitle: '更多示例即将上线',
+    emptyText: '我们正在准备更多真实、商务和创意方向的 AI 头像示例。',
+    ctaTitle: '生成前先选择适合的风格',
+    ctaText:
+      '通过图库比较真实、精致和创意方向，再生成符合目标场景的职业形象照。',
+    ctaLabel: '生成你的职业形象照',
+    secondaryLink: '阅读常见问题',
+    keywords: ['AI职业形象照示例', 'AI头像风格', '职业头像样张'],
+  },
   es: {
     title: 'Ejemplos de headshots IA: retratos realistas, estilos creativos e ideas de avatar',
     description:

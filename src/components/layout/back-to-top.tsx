@@ -10,6 +10,7 @@ const labels: Record<Locale, string> = {
   fr: 'Retour en haut',
   de: 'Nach oben',
   ja: 'トップへ戻る',
+  zh: '返回顶部',
 }
 
 export default function BackToTop() {

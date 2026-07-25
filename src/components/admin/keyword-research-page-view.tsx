@@ -18,6 +18,7 @@ const localeLabels: Record<Locale, string> = {
   fr: 'French / France',
   de: 'German / Germany',
   ja: 'Japanese / Japan',
+  zh: 'Simplified Chinese',
 }
 
 export default function KeywordResearchPageView({ locale = 'en' }: KeywordResearchPageViewProps) {

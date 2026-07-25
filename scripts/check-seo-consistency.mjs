@@ -411,13 +411,16 @@ function keywordOverlapMinimum(keyword) {
 const META_DESCRIPTION_LENGTH_RANGES = {
   default: { min: 100, max: 140, label: '100-140 Unicode characters' },
   ja: { min: 55, max: 90, label: '55-90 Japanese characters' },
+  zh: { min: 50, max: 90, label: '50-90 Chinese characters' },
 }
 
 function metaDescriptionLengthIssue(locale, description) {
   const length = Array.from(description.trim()).length
   const range = locale === 'ja'
     ? META_DESCRIPTION_LENGTH_RANGES.ja
-    : META_DESCRIPTION_LENGTH_RANGES.default
+    : locale === 'zh'
+      ? META_DESCRIPTION_LENGTH_RANGES.zh
+      : META_DESCRIPTION_LENGTH_RANGES.default
 
   if (length < range.min || length > range.max) {
     return `description length must be ${range.label}; got ${length}.`
@@ -450,7 +453,7 @@ function duplicateKeywords(keywords) {
 function inferLocaleFromRepoPath(repoPath) {
   const parts = repoPath.split('/')
   const locale = parts[2]
-  return ['en', 'es', 'fr', 'de', 'ja'].includes(locale) ? locale : 'en'
+  return ['en', 'es', 'fr', 'de', 'ja', 'zh'].includes(locale) ? locale : 'en'
 }
 
 function validateSeoBasics(label, { locale = 'en', title = '', h1 = '', description = '', keywords = [], checkH1 = true, firstContent = '' }, issues) {

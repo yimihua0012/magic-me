@@ -86,6 +86,24 @@ const localizedContent: Record<RoutedLocale, {
     ],
     imageAlt: 'Kostenloses Tool zum Zuschneiden und Drucken von Ausweisfotos',
   },
+  zh: {
+    title: '免费证件照裁剪、换底和排版工具 | Magic-Headshot',
+    description: '免费处理日常证件照：裁剪尺寸、准备透明 PNG、换白底蓝底红底，并生成适合打印的排版图片。',
+    keywords: [
+      '免费证件照工具',
+      '证件照裁剪',
+      '证件照换底',
+    ],
+    name: '免费证件照裁剪、换底和排版工具',
+    features: [
+      '证件照尺寸裁剪',
+      '白底、蓝底、红底背景',
+      '透明 PNG 下载',
+      '6寸相纸排版',
+      '适合简历、考试、学生证和员工证照片',
+    ],
+    imageAlt: '免费证件照裁剪、换底和打印排版工具',
+  },
   ja: {
     title: "証明写真を無料で切り抜き・印刷 | Magic-Headshot",
     description: "証明写真を無料で準備できるツールです。写真を切り抜き、透明PNGの背景色を調整し、履歴書、試験、社員証、学生証向けの印刷シートを作成できます。",
