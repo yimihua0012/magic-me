@@ -37,6 +37,14 @@ type GoogleAdsKeywordIdeaResponse = {
   }
 }
 
+type GoogleAdsAccessibleCustomersResponse = {
+  resourceNames?: string[]
+  error?: {
+    message?: string
+    details?: { errors?: { message?: string }[] }[]
+  }
+}
+
 export type GoogleAdsKeywordIdea = {
   keyword: string
   avgMonthlySearches: number | null
@@ -67,12 +75,26 @@ export async function generateGoogleAdsKeywordIdeas(keyword: string, locale: Loc
 
   const accessToken = await getAccessToken(config)
   const targeting = localeTargeting[locale]
+  const accessibleCustomerIds = await getAccessibleCustomerIds(config, accessToken)
   const headers: Record<string, string> = {
     Authorization: `Bearer ${accessToken}`,
     'developer-token': config.developerToken,
     'Content-Type': 'application/json',
   }
-  if (config.loginCustomerId) headers['login-customer-id'] = config.loginCustomerId
+  const targetIsDirectlyAccessible = accessibleCustomerIds.has(config.customerId)
+  const managerIsDirectlyAccessible = Boolean(
+    config.loginCustomerId && accessibleCustomerIds.has(config.loginCustomerId),
+  )
+
+  if (!targetIsDirectlyAccessible && !managerIsDirectlyAccessible) {
+    throw new Error(
+      'The OAuth Google account cannot access the configured Google Ads customer or manager account. Add that Google account in Google Ads > Admin > Access and security, then create a new refresh token.',
+    )
+  }
+
+  if (!targetIsDirectlyAccessible && config.loginCustomerId) {
+    headers['login-customer-id'] = config.loginCustomerId
+  }
 
   const response = await fetchGoogle(
     `https://googleads.googleapis.com/${config.apiVersion}/customers/${config.customerId}:generateKeywordIdeas`,
@@ -126,6 +148,37 @@ export async function generateGoogleAdsKeywordIdeas(keyword: string, locale: Loc
     if (competitionDifference !== 0) return competitionDifference
     return (right.avgMonthlySearches || 0) - (left.avgMonthlySearches || 0)
   })
+}
+
+async function getAccessibleCustomerIds(config: GoogleAdsConfig, accessToken: string) {
+  const response = await fetchGoogle(
+    `https://googleads.googleapis.com/${config.apiVersion}/customers:listAccessibleCustomers`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'developer-token': config.developerToken,
+      },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      cache: 'no-store',
+    },
+    'Google Ads account access check',
+  )
+  const payload = parseJson<GoogleAdsAccessibleCustomersResponse>(await response.text())
+  if (!response.ok) {
+    console.error('[Google Ads Keyword Ideas] Account access check error:', {
+      status: response.status,
+      requestId: response.headers.get('request-id'),
+      message: payload?.error?.message || null,
+      details: payload?.error?.details || [],
+    })
+    throw new Error(readGoogleAdsError(payload, `Google Ads account access check failed with status ${response.status}.`))
+  }
+
+  return new Set(
+    (payload?.resourceNames || [])
+      .map((resourceName) => resourceName.match(/^customers\/(\d+)$/)?.[1] || '')
+      .filter(Boolean),
+  )
 }
 
 function readGoogleAdsConfig(): GoogleAdsConfig | null {
@@ -201,7 +254,10 @@ function readNumber(value: string | number | undefined) {
   return Number.isFinite(numberValue) ? numberValue : null
 }
 
-function readGoogleAdsError(payload: GoogleAdsKeywordIdeaResponse | null, fallback: string) {
+function readGoogleAdsError(
+  payload: GoogleAdsKeywordIdeaResponse | GoogleAdsAccessibleCustomersResponse | null,
+  fallback: string,
+) {
   return payload?.error?.message || payload?.error?.details?.flatMap((detail) => detail.errors || []).find((error) => error.message)?.message || fallback
 }
 
