@@ -71,6 +71,7 @@ export async function GET(request: Request) {
   let query = supabaseAdmin
     .from('fast_content_keywords')
     .select(columns)
+    .neq('keyword', 'fast-content-cron')
     .order('updated_at', { ascending: false })
     .limit(300)
 

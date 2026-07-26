@@ -16,6 +16,8 @@ export const dynamic = 'force-dynamic'
 
 const MAX_ATTEMPTS_PER_RUN = 3
 const PICK_LIMIT = 200
+const CRON_LOCK_ID = 'fast-content-cron'
+const CRON_LOCK_TTL_MS = 25 * 60 * 1000
 
 const META_DESCRIPTION_RULE =
   '- description must be 100-140 Unicode characters for English, Spanish, French, and German. For Japanese, keep it 55-90 Japanese characters.'
@@ -56,99 +58,112 @@ async function runFastContentCron(request: Request) {
 
   const { searchParams } = new URL(request.url)
   const locale = parseLocale(searchParams.get('locale'))
-  const picked = await pickRandomKeyword(locale)
-  if (!picked) {
+  const lock = await acquireCronLock()
+  if (!lock.acquired) {
     return NextResponse.json({
       success: true,
       skipped: true,
-      reason: 'No pending fast content keyword found.',
+      reason: 'Fast content cron is already running.',
     })
   }
 
-  const userId = picked.created_by || process.env.FAST_CONTENT_CRON_USER_ID?.trim()
-  if (!userId) {
-    await markKeywordFailed(picked.id, 'Missing FAST_CONTENT_CRON_USER_ID and keyword has no created_by user.')
-    return NextResponse.json(
-      { success: false, keywordId: picked.id, error: 'Missing publish user id.' },
-      { status: 500 },
-    )
-  }
-
-  let lastError = ''
-  let lastPrompt = ''
-
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_RUN; attempt += 1) {
-    const attemptCount = (picked.attempt_count || 0) + attempt
-    const acquired = await markKeywordGenerating(picked.id, attemptCount)
-    if (!acquired) {
+  try {
+    const picked = await pickRandomKeyword(locale)
+    if (!picked) {
       return NextResponse.json({
         success: true,
         skipped: true,
-        keywordId: picked.id,
-        reason: 'Selected keyword is already being processed.',
+        reason: 'No pending fast content keyword found.',
       })
     }
 
-    try {
-      const { prompt, keywords } = preparePrompt(picked.locale, picked.keyword)
-      lastPrompt = prompt
-      const draft = await generateArticle(picked.locale, keywords, prompt)
-      const publishInput: BlogPostInput = {
-        ...draft,
-        status: 'published',
-      }
-      const validationErrors = validateBlogPostInput(publishInput)
-      if (validationErrors.length > 0) {
-        throw new Error(validationErrors.join(' '))
-      }
+    const userId = picked.created_by || process.env.FAST_CONTENT_CRON_USER_ID?.trim()
+    if (!userId) {
+      await markKeywordFailed(picked.id, 'Missing FAST_CONTENT_CRON_USER_ID and keyword has no created_by user.')
+      return NextResponse.json(
+        { success: false, keywordId: picked.id, error: 'Missing publish user id.' },
+        { status: 500 },
+      )
+    }
 
-      const previousPost = publishInput.id ? await getAdminBlogPostById(publishInput.id) : null
-      const result = await upsertAdminBlogPost(publishInput, userId)
-      if (!result.ok) {
-        throw new Error(result.errors.join(' '))
-      }
+    let lastError = ''
+    let lastPrompt = ''
 
-      const categorySlugs = [previousPost, result.post]
-        .filter((post): post is NonNullable<typeof post> => Boolean(post))
-        .map((post) => slugifyBlogCategory(blogPostCategoryLabel(post)))
-
-      revalidateBlogPaths(result.post.locale, result.post.slug, categorySlugs)
-      if (previousPost && previousPost.locale === result.post.locale && previousPost.slug !== result.post.slug) {
-        revalidateBlogPaths(previousPost.locale, previousPost.slug, categorySlugs)
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_RUN; attempt += 1) {
+      const attemptCount = (picked.attempt_count || 0) + attempt
+      const acquired = await markKeywordGenerating(picked.id, attemptCount)
+      if (!acquired) {
+        return NextResponse.json({
+          success: true,
+          skipped: true,
+          keywordId: picked.id,
+          reason: 'Selected keyword is already being processed.',
+        })
       }
 
-      await markKeywordPublished(picked.id, result.post.id || null, result.post.slug, prompt)
+      try {
+        const { prompt, keywords } = preparePrompt(picked.locale, picked.keyword)
+        lastPrompt = prompt
+        const draft = await generateArticle(picked.locale, keywords, prompt)
+        const publishInput: BlogPostInput = {
+          ...draft,
+          status: 'published',
+        }
+        const validationErrors = validateBlogPostInput(publishInput)
+        if (validationErrors.length > 0) {
+          throw new Error(validationErrors.join(' '))
+        }
 
-      return NextResponse.json({
-        success: true,
+        const previousPost = publishInput.id ? await getAdminBlogPostById(publishInput.id) : null
+        const result = await upsertAdminBlogPost(publishInput, userId)
+        if (!result.ok) {
+          throw new Error(result.errors.join(' '))
+        }
+
+        const categorySlugs = [previousPost, result.post]
+          .filter((post): post is NonNullable<typeof post> => Boolean(post))
+          .map((post) => slugifyBlogCategory(blogPostCategoryLabel(post)))
+
+        revalidateBlogPaths(result.post.locale, result.post.slug, categorySlugs)
+        if (previousPost && previousPost.locale === result.post.locale && previousPost.slug !== result.post.slug) {
+          revalidateBlogPaths(previousPost.locale, previousPost.slug, categorySlugs)
+        }
+
+        await markKeywordPublished(picked.id, result.post.id || null, result.post.slug, prompt)
+
+        return NextResponse.json({
+          success: true,
+          keywordId: picked.id,
+          keyword: picked.keyword,
+          locale: picked.locale,
+          attempts: attempt,
+          post: {
+            id: result.post.id,
+            slug: result.post.slug,
+            locale: result.post.locale,
+            title: result.post.title,
+          },
+        })
+      } catch (error) {
+        lastError = errorMessage(error)
+        await markKeywordFailed(picked.id, lastError, lastPrompt)
+      }
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
         keywordId: picked.id,
         keyword: picked.keyword,
         locale: picked.locale,
-        attempts: attempt,
-        post: {
-          id: result.post.id,
-          slug: result.post.slug,
-          locale: result.post.locale,
-          title: result.post.title,
-        },
-      })
-    } catch (error) {
-      lastError = errorMessage(error)
-      await markKeywordFailed(picked.id, lastError, lastPrompt)
-    }
+        attempts: MAX_ATTEMPTS_PER_RUN,
+        error: lastError || 'Fast content generation failed.',
+      },
+      { status: 500 },
+    )
+  } finally {
+    await releaseCronLock(lock.id)
   }
-
-  return NextResponse.json(
-    {
-      success: false,
-      keywordId: picked.id,
-      keyword: picked.keyword,
-      locale: picked.locale,
-      attempts: MAX_ATTEMPTS_PER_RUN,
-      error: lastError || 'Fast content generation failed.',
-    },
-    { status: 500 },
-  )
 }
 
 function verifyCronAuth(request: Request) {
@@ -170,6 +185,7 @@ async function pickRandomKeyword(locale?: Locale) {
     .from('fast_content_keywords')
     .select(queueColumns)
     .in('status', ['pending', 'failed'])
+    .neq('keyword', CRON_LOCK_ID)
     .order('updated_at', { ascending: true })
     .limit(PICK_LIMIT)
 
@@ -183,6 +199,52 @@ async function pickRandomKeyword(locale?: Locale) {
 
   if (candidates.length === 0) return null
   return candidates[Math.floor(Math.random() * candidates.length)]
+}
+
+async function acquireCronLock() {
+  const now = new Date()
+  const staleBefore = new Date(now.getTime() - CRON_LOCK_TTL_MS).toISOString()
+
+  const updated = await supabaseAdmin
+    .from('fast_content_keywords')
+    .update({
+      status: 'generating',
+      error_message: CRON_LOCK_ID,
+      last_attempt_at: now.toISOString(),
+    })
+    .eq('keyword', CRON_LOCK_ID)
+    .or(`status.neq.generating,last_attempt_at.lt.${staleBefore}`)
+    .select('id')
+    .maybeSingle()
+
+  if (!updated.error && updated.data?.id) return { acquired: true, id: updated.data.id as string }
+
+  const inserted = await supabaseAdmin
+    .from('fast_content_keywords')
+    .insert({
+      locale: 'en',
+      keyword: CRON_LOCK_ID,
+      status: 'generating',
+      error_message: CRON_LOCK_ID,
+      last_attempt_at: now.toISOString(),
+    })
+    .select('id')
+    .maybeSingle()
+
+  if (!inserted.error && inserted.data?.id) return { acquired: true, id: inserted.data.id as string }
+  return { acquired: false, id: '' }
+}
+
+async function releaseCronLock(id: string) {
+  if (!id) return
+  await supabaseAdmin
+    .from('fast_content_keywords')
+    .update({
+      status: 'failed',
+      error_message: 'cron lock released',
+    })
+    .eq('id', id)
+    .eq('keyword', CRON_LOCK_ID)
 }
 
 async function markKeywordGenerating(id: string, attemptCount: number) {
