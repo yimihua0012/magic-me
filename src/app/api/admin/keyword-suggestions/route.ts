@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import { isAdminEmail } from '@/lib/admin'
 import { getCurrentUser } from '@/lib/auth/server'
 import { generateAiText, isAiTextGenerationConfigured } from '@/lib/ai/text-generation'
+import {
+  generateGoogleAdsKeywordIdeas,
+  isGoogleAdsKeywordIdeasConfigured,
+} from '@/lib/google-ads-keyword-ideas'
+import { LOCALES, type Locale } from '@/lib/i18n'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +25,7 @@ const localeOptions = {
 } as const
 
 type LocaleKey = keyof typeof localeOptions
-type SearchEngine = 'google' | 'bing'
+type SearchEngine = 'google' | 'bing' | 'google-ads'
 
 type KeywordResearchBody = {
   keyword?: unknown
@@ -66,23 +71,42 @@ export async function POST(request: Request) {
     const authorizationError = await requireAdmin(request)
     if (authorizationError) return authorizationError
 
-    if (!isAiTextGenerationConfigured()) {
+    const body = await request.json().catch(() => null) as KeywordResearchBody | null
+    const keyword = typeof body?.keyword === 'string' ? body.keyword.trim() : ''
+    const locale = normalizeLocale(typeof body?.locale === 'string' ? body.locale : null)
+    const engine = normalizeEngine(body?.engine)
+
+    if (engine !== 'google-ads' && !isAiTextGenerationConfigured()) {
       return NextResponse.json(
         { error: 'Missing AI text provider key. Configure DEEPSEEK_KEY or QIANWEN_KEY on the server.' },
         { status: 500 },
       )
     }
 
-    const body = await request.json().catch(() => null) as KeywordResearchBody | null
-    const keyword = typeof body?.keyword === 'string' ? body.keyword.trim() : ''
-    const locale = normalizeLocale(typeof body?.locale === 'string' ? body.locale : null)
-    const engine = normalizeEngine(body?.engine)
-
     if (!keyword) {
       return NextResponse.json({ error: 'Enter a keyword first.' }, { status: 400 })
     }
     if (keyword.length > MAX_KEYWORD_LENGTH) {
       return NextResponse.json({ error: `Keyword must be ${MAX_KEYWORD_LENGTH} characters or fewer.` }, { status: 400 })
+    }
+
+    if (engine === 'google-ads') {
+      if (!isGoogleAdsKeywordIdeasConfigured()) {
+        return NextResponse.json(
+          { error: 'Google Ads keyword data is not configured. Add the Google Ads OAuth and customer environment variables first.' },
+          { status: 500 },
+        )
+      }
+
+      const keywordIdeas = await generateGoogleAdsKeywordIdeas(keyword, locale)
+      return NextResponse.json({
+        query: keyword,
+        locale,
+        source: 'Google Ads Keyword Planner',
+        count: keywordIdeas.length,
+        suggestions: keywordIdeas.map((idea) => idea.keyword),
+        metrics: keywordIdeas,
+      })
     }
 
     const result = await generateAiText({
@@ -95,7 +119,7 @@ export async function POST(request: Request) {
       user: buildAiKeywordResearchPrompt(keyword, locale, engine),
       temperature: 0.45,
     })
-    const suggestions = readAiSuggestions(result.content, keyword)
+    const suggestions = readAiSuggestions(result.content, keyword, locale)
 
     if (suggestions.length === 0) {
       return NextResponse.json({ error: 'The AI provider did not return usable keyword suggestions.' }, { status: 502 })
@@ -122,6 +146,7 @@ function normalizeLocale(value: string | null): LocaleKey {
 }
 
 function normalizeEngine(value: unknown): SearchEngine {
+  if (value === 'google-ads') return 'google-ads'
   return value === 'bing' ? 'bing' : 'google'
 }
 
@@ -241,11 +266,15 @@ function buildAiKeywordResearchPrompt(keyword: string, locale: LocaleKey, engine
     `Target language and market: ${languageNames[locale]}.`,
     `Research perspective: ${engineName} search.`,
     '',
-    `Generate 18-24 unique long-tail keyword candidates people in this market could plausibly search on ${engineName}.`,
+    `Generate 18-24 unique, concise long-tail keyword candidates people in this market could plausibly search on ${engineName}.`,
     'Prioritize specific, useful phrases with clear informational, commercial, or transactional intent.',
     'Favor less broad, lower-competition opportunities: concrete use case, audience, format, problem, requirement, comparison, or workflow.',
     'Keep every result tightly related to the seed keyword. Do not include unrelated topics, brand-only terms, keyword stuffing, or duplicate variants.',
     'Write each keyword naturally in the target language. Do not translate word-for-word from English.',
+    'Return keyword phrases, not full questions, article titles, explanations, or sentences with punctuation.',
+    'For English, Spanish, French, and German: use 2-6 words and no more than 60 characters.',
+    'For Simplified Chinese: use a compact 4-18 character phrase after spaces are removed.',
+    'For Japanese: use a compact 5-26 character phrase after spaces are removed.',
     'Do not include search volumes, numeric traffic estimates, ranks, or claims that the keywords are verified low competition.',
     '',
     'Return exactly this JSON object:',
@@ -253,7 +282,7 @@ function buildAiKeywordResearchPrompt(keyword: string, locale: LocaleKey, engine
   ].join('\n')
 }
 
-function readAiSuggestions(content: string, seedKeyword: string) {
+function readAiSuggestions(content: string, seedKeyword: string, locale: LocaleKey) {
   const parsed = parseJson(stripJsonFence(content))
   const rawSuggestions = parsed && typeof parsed === 'object' && Array.isArray((parsed as { suggestions?: unknown }).suggestions)
     ? (parsed as { suggestions: unknown[] }).suggestions
@@ -268,7 +297,7 @@ function readAiSuggestions(content: string, seedKeyword: string) {
     const comparisonKey = suggestion.toLocaleLowerCase()
     if (
       !suggestion ||
-      suggestion.length > MAX_KEYWORD_LENGTH ||
+      !isAcceptableKeywordLength(suggestion, locale) ||
       comparisonKey === normalizedSeed ||
       seen.has(comparisonKey)
     ) continue
@@ -279,6 +308,16 @@ function readAiSuggestions(content: string, seedKeyword: string) {
   }
 
   return suggestions
+}
+
+function isAcceptableKeywordLength(keyword: string, locale: LocaleKey) {
+  const compactLength = keyword.replace(/\s+/g, '').length
+
+  if (locale === 'zh') return compactLength >= 4 && compactLength <= 18
+  if (locale === 'ja') return compactLength >= 5 && compactLength <= 26
+
+  const wordCount = keyword.split(/\s+/).filter(Boolean).length
+  return wordCount >= 2 && wordCount <= 6 && keyword.length <= 60
 }
 
 function stripJsonFence(value: string) {

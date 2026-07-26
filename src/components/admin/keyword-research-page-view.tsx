@@ -6,10 +6,17 @@ import { useAdminAuth } from '@/components/admin/admin-auth'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import { LOCALES, type Locale } from '@/lib/i18n'
-import { CheckCircle2, Copy, Search, Sparkles, XCircle } from 'lucide-react'
+import { BarChart3, CheckCircle2, Copy, Search, Sparkles, XCircle } from 'lucide-react'
 
 interface KeywordResearchPageViewProps {
   locale?: Locale
+}
+
+type GoogleAdsKeywordMetric = {
+  keyword: string
+  avgMonthlySearches: number | null
+  competition: string
+  competitionIndex: number | null
 }
 
 const localeLabels: Record<Locale, string> = {
@@ -26,7 +33,8 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
   const [query, setQuery] = useState('')
   const [targetLocale, setTargetLocale] = useState<Locale>(locale)
   const [suggestionsText, setSuggestionsText] = useState('')
-  const [loadingAction, setLoadingAction] = useState<'related' | 'google' | 'bing' | null>(null)
+  const [googleAdsMetrics, setGoogleAdsMetrics] = useState<GoogleAdsKeywordMetric[]>([])
+  const [loadingAction, setLoadingAction] = useState<'related' | 'google' | 'bing' | 'google-ads' | null>(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
@@ -72,6 +80,7 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
         : []
 
       setSuggestionsText(suggestions.join('\n'))
+      setGoogleAdsMetrics([])
       const source = typeof data.source === 'string' ? data.source : 'search autocomplete'
       setMessage(`Loaded ${suggestions.length} related keywords from ${source}.`)
     } catch (loadError) {
@@ -121,10 +130,58 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
         : []
 
       setSuggestionsText(suggestions.join('\n'))
+      setGoogleAdsMetrics([])
       const source = typeof data.source === 'string' ? data.source : `AI ${engine} long-tail research`
       setMessage(`Generated ${suggestions.length} keyword candidates from ${source}. Verify traffic and competition before publishing.`)
     } catch (researchError) {
       setError(researchError instanceof Error ? researchError.message : 'Could not generate keyword research suggestions.')
+    } finally {
+      setLoadingAction(null)
+    }
+  }
+
+  const loadGoogleAdsData = async () => {
+    setError('')
+    setMessage('')
+
+    if (!query.trim()) {
+      setError('Enter a keyword first.')
+      return
+    }
+
+    if (!accessToken) {
+      window.location.href = dashboardHref
+      return
+    }
+
+    setLoadingAction('google-ads')
+
+    try {
+      const response = await fetch('/api/admin/keyword-suggestions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          keyword: query.trim(),
+          locale: targetLocale,
+          engine: 'google-ads',
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Could not load Google Ads keyword data.')
+      }
+
+      const rawMetrics: unknown[] = Array.isArray(data.metrics) ? data.metrics : []
+      const metrics = rawMetrics.filter(isGoogleAdsKeywordMetric)
+      setGoogleAdsMetrics(metrics)
+      setSuggestionsText(metrics.map((item) => item.keyword).join('\n'))
+      setMessage(`Loaded ${metrics.length} keyword ideas with Google Ads search metrics.`)
+    } catch (googleAdsError) {
+      setError(googleAdsError instanceof Error ? googleAdsError.message : 'Could not load Google Ads keyword data.')
     } finally {
       setLoadingAction(null)
     }
@@ -211,6 +268,16 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
                 <Sparkles className="mr-2 h-4 w-4" />
                 AI Bing Long-tail
               </Button>
+              <Button
+                variant="secondary"
+                onClick={loadGoogleAdsData}
+                isLoading={loadingAction === 'google-ads'}
+                disabled={loadingAction !== null || !query.trim()}
+                className="flex-1 sm:flex-none"
+              >
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Google Ads Data
+              </Button>
             </div>
           </div>
         </Card>
@@ -249,7 +316,57 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
             className="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm leading-6 text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </Card>
+
+        {googleAdsMetrics.length > 0 && (
+          <Card className="overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
+              <h2 className="text-lg font-bold text-slate-900">Google Ads Keyword Data</h2>
+              <p className="mt-1 text-sm text-slate-500">Keyword Planner ideas for the selected language and market.</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-100 text-sm">
+                <thead className="bg-slate-50 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-5 py-3 sm:px-6">Keyword</th>
+                    <th className="px-5 py-3 sm:px-6">Avg. monthly searches</th>
+                    <th className="px-5 py-3 sm:px-6">Competition</th>
+                    <th className="px-5 py-3 text-right sm:px-6">Competition index</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 bg-white">
+                  {googleAdsMetrics.map((item) => (
+                    <tr key={item.keyword}>
+                      <td className="px-5 py-3 font-semibold text-slate-900 sm:px-6">{item.keyword}</td>
+                      <td className="px-5 py-3 text-slate-700 sm:px-6">{formatMetricNumber(item.avgMonthlySearches)}</td>
+                      <td className="px-5 py-3 text-slate-700 sm:px-6">{formatCompetition(item.competition)}</td>
+                      <td className="px-5 py-3 text-right text-slate-700 sm:px-6">{formatMetricNumber(item.competitionIndex)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
       </div>
     </AdminPageFrame>
   )
+}
+
+function isGoogleAdsKeywordMetric(value: unknown): value is GoogleAdsKeywordMetric {
+  if (!value || typeof value !== 'object') return false
+  const item = value as Partial<GoogleAdsKeywordMetric>
+  return (
+    typeof item.keyword === 'string' &&
+    typeof item.competition === 'string' &&
+    (typeof item.avgMonthlySearches === 'number' || item.avgMonthlySearches === null) &&
+    (typeof item.competitionIndex === 'number' || item.competitionIndex === null)
+  )
+}
+
+function formatMetricNumber(value: number | null) {
+  return value === null ? '—' : new Intl.NumberFormat().format(value)
+}
+
+function formatCompetition(value: string) {
+  return value === 'UNAVAILABLE' ? '—' : value.charAt(0) + value.slice(1).toLowerCase()
 }
