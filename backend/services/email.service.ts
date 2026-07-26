@@ -479,8 +479,10 @@ export class EmailService {
   }
 
   async sendZipAttachmentEmail(data: ZipAttachmentEmailData): Promise<void> {
-    const appName = config.email.fromName
-    const filename = data.filename || `photo-results-${data.orderid || 'package'}.zip`
+    const appName = '宇希证件照'
+    const sentAt = new Date()
+    const timestamp = `${sentAt.getFullYear()}年${String(sentAt.getMonth() + 1).padStart(2, '0')}月${String(sentAt.getDate()).padStart(2, '0')}日${String(sentAt.getHours()).padStart(2, '0')}时${String(sentAt.getMinutes()).padStart(2, '0')}分${String(sentAt.getSeconds()).padStart(2, '0')}秒`
+    const filename = data.filename || `${timestamp}-${appName}.zip`
     const response = await fetch(data.zipUrl)
     if (!response.ok) {
       throw new Error(`Failed to download ZIP attachment: ${response.status}`)
@@ -503,14 +505,17 @@ export class EmailService {
       <html>
         <head>
           <meta charset="utf-8">
-          <title>${appName} - Photo Package Ready</title>
+          <title>${appName} - 照片包已生成</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #10B981;">Your photo package is ready</h1>
-            <p>The processed photo package is attached as a ZIP file.</p>
-            ${safeOrder ? `<p><strong>Order ID:</strong> ${safeOrder}</p>` : ''}
-            <p>If the attachment is unavailable in your email client, contact support with the order ID.</p>
+            <h1 style="color: #10B981;">您的照片包已生成</h1>
+            <p>您好，您申请处理的证件照和相关图片已整理完成，并已作为 ZIP 附件发送。</p>
+            ${safeOrder ? `<p><strong>订单号：</strong>${safeOrder}</p>` : ''}
+            <div style="margin: 20px 0; border-left: 4px solid #f59e0b; background: #fffbeb; padding: 14px 16px; border-radius: 6px;">
+              <p style="margin: 0; color: #92400e;"><strong>请尽快下载并保存附件。</strong> 为保护您的照片内容，文件将在生成后 30 天自动清除，清除后将无法恢复。</p>
+            </div>
+            <p>如邮件客户端未显示附件，或下载遇到问题，请联系客户服务并提供订单号。</p>
           </div>
         </body>
       </html>
@@ -518,7 +523,7 @@ export class EmailService {
 
     await this.sendEmail({
       to: data.email,
-      subject: `${appName} - Photo Package Ready${data.orderid ? ` - ${data.orderid}` : ''}`,
+      subject: `${appName}：您的照片包已生成${data.orderid ? `（${data.orderid}）` : ''}`,
       html,
       attachments: [{
         filename,

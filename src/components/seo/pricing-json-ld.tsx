@@ -102,6 +102,8 @@ export default function PricingJsonLd({
   const reviews = productReviews(locale)
   const returnPolicy = merchantReturnPolicy()
   const shippingDetails = digitalDeliveryPolicy(currency)
+  const returnPolicyRef = { '@id': returnPolicy['@id'] }
+  const shippingDetailsRef = { '@id': shippingDetails['@id'] }
   const planProducts = planIds.map((planId) => {
     const plan = PLANS[planId]
     const price = plan.prices[currency]
@@ -144,8 +146,8 @@ export default function PricingJsonLd({
           billingIncrement: 1,
           unitText: 'one-time purchase',
         },
-        hasMerchantReturnPolicy: returnPolicy,
-        shippingDetails,
+        hasMerchantReturnPolicy: returnPolicyRef,
+        shippingDetails: shippingDetailsRef,
       },
     }
   })
@@ -177,13 +179,15 @@ export default function PricingJsonLd({
       url: pageUrl,
       availability: 'https://schema.org/InStock',
       seller,
-      hasMerchantReturnPolicy: returnPolicy,
-      shippingDetails,
+      hasMerchantReturnPolicy: returnPolicyRef,
+      shippingDetails: shippingDetailsRef,
     },
   }
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
+      returnPolicy,
+      shippingDetails,
       product,
       ...planProducts,
     ],

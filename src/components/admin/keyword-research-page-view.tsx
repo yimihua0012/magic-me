@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/components/admin/admin-auth'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import { LOCALES, type Locale } from '@/lib/i18n'
-import { CheckCircle2, Copy, Search, XCircle } from 'lucide-react'
+import { CheckCircle2, Copy, Search, Sparkles, XCircle } from 'lucide-react'
 
 interface KeywordResearchPageViewProps {
   locale?: Locale
@@ -26,7 +26,7 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
   const [query, setQuery] = useState('')
   const [targetLocale, setTargetLocale] = useState<Locale>(locale)
   const [suggestionsText, setSuggestionsText] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [loadingAction, setLoadingAction] = useState<'related' | 'google' | 'bing' | null>(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
@@ -49,7 +49,7 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
       return
     }
 
-    setIsLoading(true)
+    setLoadingAction('related')
 
     try {
       const params = new URLSearchParams({
@@ -77,7 +77,56 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Could not load related keywords.')
     } finally {
-      setIsLoading(false)
+      setLoadingAction(null)
+    }
+  }
+
+  const researchWithAi = async (engine: 'google' | 'bing') => {
+    setError('')
+    setMessage('')
+
+    if (!query.trim()) {
+      setError('Enter a keyword first.')
+      return
+    }
+
+    if (!accessToken) {
+      window.location.href = dashboardHref
+      return
+    }
+
+    setLoadingAction(engine)
+
+    try {
+      const response = await fetch('/api/admin/keyword-suggestions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          keyword: query.trim(),
+          locale: targetLocale,
+          engine,
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Could not generate keyword research suggestions.')
+      }
+
+      const suggestions = Array.isArray(data.suggestions)
+        ? data.suggestions.filter((item: unknown): item is string => typeof item === 'string')
+        : []
+
+      setSuggestionsText(suggestions.join('\n'))
+      const source = typeof data.source === 'string' ? data.source : `AI ${engine} long-tail research`
+      setMessage(`Generated ${suggestions.length} keyword candidates from ${source}. Verify traffic and competition before publishing.`)
+    } catch (researchError) {
+      setError(researchError instanceof Error ? researchError.message : 'Could not generate keyword research suggestions.')
+    } finally {
+      setLoadingAction(null)
     }
   }
 
@@ -96,13 +145,13 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
     <AdminPageFrame
       locale={locale}
       title="Keyword Research"
-      subtitle="Enter a seed keyword and pull Google-style related search suggestions into a copyable box."
+      subtitle="Use live autocomplete or AI-assisted Google and Bing long-tail research, then copy the candidates into your content workflow."
       isCheckingAuth={isCheckingAuth}
       isAuthorized={isAuthorized}
     >
       <div className="space-y-6">
         <Card className="p-5 sm:p-6">
-          <div className="grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-end">
+          <div className="grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)] lg:items-end">
             <label className="block text-sm font-semibold text-slate-700">
               Locale
               <select
@@ -132,10 +181,37 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
               />
             </label>
 
-            <Button onClick={loadSuggestions} isLoading={isLoading} disabled={isLoading || !query.trim()} className="w-full lg:w-auto">
+            <div className="flex flex-wrap gap-2 lg:col-start-2">
+              <Button
+                onClick={loadSuggestions}
+                isLoading={loadingAction === 'related'}
+                disabled={loadingAction !== null || !query.trim()}
+                className="flex-1 sm:flex-none"
+              >
               <Search className="mr-2 h-4 w-4" />
               Find Related
-            </Button>
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => void researchWithAi('google')}
+                isLoading={loadingAction === 'google'}
+                disabled={loadingAction !== null || !query.trim()}
+                className="flex-1 sm:flex-none"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                AI Google Long-tail
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => void researchWithAi('bing')}
+                isLoading={loadingAction === 'bing'}
+                disabled={loadingAction !== null || !query.trim()}
+                className="flex-1 sm:flex-none"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                AI Bing Long-tail
+              </Button>
+            </div>
           </div>
         </Card>
 
@@ -157,7 +233,7 @@ export default function KeywordResearchPageView({ locale = 'en' }: KeywordResear
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Related Keywords</h2>
-              <p className="text-sm text-slate-500">{suggestionCount} keywords ready to copy.</p>
+              <p className="text-sm text-slate-500">{suggestionCount} keywords ready to copy. AI candidates should be checked in a keyword tool before publishing.</p>
             </div>
             <Button variant="secondary" onClick={copySuggestions} disabled={!suggestionsText.trim()}>
               <Copy className="mr-2 h-4 w-4" />
