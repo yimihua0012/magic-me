@@ -96,6 +96,12 @@ export async function generateGoogleAdsKeywordIdeas(keyword: string, locale: Loc
   const raw = await response.text()
   const payload = parseJson<GoogleAdsKeywordIdeaResponse>(raw)
   if (!response.ok) {
+    console.error('[Google Ads Keyword Ideas] Keyword Planner API error:', {
+      status: response.status,
+      requestId: response.headers.get('request-id'),
+      message: payload?.error?.message || null,
+      details: payload?.error?.details || [],
+    })
     throw new Error(readGoogleAdsError(payload, `Google Ads request failed with status ${response.status}.`))
   }
 
@@ -159,6 +165,11 @@ async function getAccessToken(config: GoogleAdsConfig) {
   }, 'Google OAuth')
   const payload = parseJson<GoogleAdsTokenResponse>(await response.text())
   if (!response.ok || !payload?.access_token) {
+    console.error('[Google Ads Keyword Ideas] OAuth token refresh error:', {
+      status: response.status,
+      error: payload?.error || null,
+      message: payload?.error_description || null,
+    })
     throw new Error(payload?.error_description || payload?.error || 'Could not refresh the Google Ads access token.')
   }
 
