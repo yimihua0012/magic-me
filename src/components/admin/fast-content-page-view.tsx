@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/components/admin/admin-auth'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import { LOCALES, localePath, type Locale } from '@/lib/i18n'
-import { ExternalLink, RefreshCw, Rocket, Send, Sparkles } from 'lucide-react'
+import { BarChart3, ExternalLink, RefreshCw, Rocket, Send, Sparkles } from 'lucide-react'
 
 type FastContentStatus = 'pending' | 'generating' | 'draft' | 'failed' | 'published'
 
@@ -21,6 +21,18 @@ type FastContentItem = {
   errorMessage: string | null
   createdAt: string
   updatedAt: string
+}
+
+type PublishedDaySummary = {
+  date: string
+  count: number
+  locales: Partial<Record<Locale, number>>
+}
+
+type PublishedLast10Days = {
+  timeZone: string
+  total: number
+  days: PublishedDaySummary[]
 }
 
 type BlogPostAdminItem = {
@@ -54,6 +66,7 @@ export default function FastContentPageView({ locale = 'en' }: FastContentPageVi
   const [selectedLocale, setSelectedLocale] = useState<Locale>('en')
   const [keywordLines, setKeywordLines] = useState('')
   const [items, setItems] = useState<FastContentItem[]>([])
+  const [publishedLast10Days, setPublishedLast10Days] = useState<PublishedLast10Days | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
   const [activeId, setActiveId] = useState('')
@@ -85,6 +98,7 @@ export default function FastContentPageView({ locale = 'en' }: FastContentPageVi
         throw new Error(typeof data.error === 'string' ? data.error : 'Could not load fast content keywords.')
       }
       setItems(Array.isArray(data.items) ? data.items : [])
+      setPublishedLast10Days(isPublishedLast10Days(data.publishedLast10Days) ? data.publishedLast10Days : null)
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Could not load fast content keywords.')
     } finally {
@@ -122,8 +136,9 @@ export default function FastContentPageView({ locale = 'en' }: FastContentPageVi
 
       const insertedCount = Array.isArray(data.inserted) ? data.inserted.length : 0
       const skippedCount = Array.isArray(data.skipped) ? data.skipped.length : 0
+      const skippedCmsCount = Array.isArray(data.skippedCms) ? data.skippedCms.length : 0
       const errorCount = Array.isArray(data.errors) ? data.errors.length : 0
-      setMessage(`Added ${insertedCount}. Skipped duplicates ${skippedCount}. Failed ${errorCount}.`)
+      setMessage(`Added ${insertedCount}. Queue duplicates ${skippedCount}. CMS keyword duplicates ${skippedCmsCount}. Failed ${errorCount}.`)
       if (insertedCount > 0) setKeywordLines('')
       await loadItems()
     } catch (addError) {
@@ -362,6 +377,34 @@ export default function FastContentPageView({ locale = 'en' }: FastContentPageVi
         {error && <Notice tone="error" message={error} />}
         {message && <Notice tone="success" message={message} />}
 
+        <Card className="p-5 sm:p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-blue-600" />
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Published in the last 10 days</h2>
+                <p className="text-sm text-slate-500">Fast Content only, grouped by Shanghai time.</p>
+              </div>
+            </div>
+            <div className="text-sm font-bold text-slate-900">
+              {publishedLast10Days ? `${publishedLast10Days.total} published` : 'Loading...'}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            {(publishedLast10Days?.days || Array.from({ length: 10 }, (_, index) => ({ date: `day-${index}`, count: 0, locales: {} }))).map((day) => (
+              <div key={day.date} className="min-h-24 border border-slate-200 bg-slate-50 px-3 py-3">
+                <div className="text-xs font-semibold text-slate-500">{formatPublishedDay(day.date)}</div>
+                <div className="mt-2 text-2xl font-bold text-slate-900">{publishedLast10Days ? day.count : '—'}</div>
+                {publishedLast10Days && (
+                  <div className="mt-1 truncate text-xs text-slate-500">
+                    {formatLocaleCounts(day.locales) || 'No posts'}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+
         <Card className="overflow-hidden">
           <div className="flex items-center justify-between gap-4 border-b border-slate-100 p-4">
             <div>
@@ -508,4 +551,22 @@ function formatAdminDateTime(value?: string) {
   const hours = String(date.getHours()).padStart(2, '0')
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${date.getFullYear()}-${month}-${day} ${hours}:${minutes}`
+}
+
+function isPublishedLast10Days(value: unknown): value is PublishedLast10Days {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Partial<PublishedLast10Days>
+  return typeof candidate.total === 'number' && Array.isArray(candidate.days)
+}
+
+function formatPublishedDay(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '...'
+  return value.slice(5).replace('-', '/')
+}
+
+function formatLocaleCounts(locales: Partial<Record<Locale, number>>) {
+  return Object.entries(locales)
+    .filter((entry): entry is [Locale, number] => typeof entry[1] === 'number' && entry[1] > 0)
+    .map(([itemLocale, count]) => `${itemLocale.toUpperCase()} ${count}`)
+    .join(' · ')
 }

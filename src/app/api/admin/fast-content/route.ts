@@ -7,6 +7,9 @@ import { supabaseAdmin } from '@backend/config/supabase'
 export const dynamic = 'force-dynamic'
 
 const statuses = ['pending', 'generating', 'draft', 'failed', 'published'] as const
+const PUBLISHED_STATS_DAY_COUNT = 10
+const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
+const CMS_KEYWORD_PAGE_SIZE = 1000
 
 type FastContentStatus = typeof statuses[number]
 
@@ -21,6 +24,15 @@ type FastContentRow = {
   error_message: string | null
   created_at: string
   updated_at: string
+}
+
+type PublishedFastContentRow = {
+  locale: Locale
+  published_at: string | null
+}
+
+type CmsKeywordRow = {
+  keywords: string[] | null
 }
 
 type FastContentBody = {
@@ -72,7 +84,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ items: ((data || []) as unknown as FastContentRow[]).map(rowToItem) })
+  const publishedLast10Days = await getPublishedLast10Days()
+
+  return NextResponse.json({
+    items: ((data || []) as unknown as FastContentRow[]).map(rowToItem),
+    publishedLast10Days,
+  })
 }
 
 export async function POST(request: Request) {
@@ -87,11 +104,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Enter at least one keyword.' }, { status: 400 })
   }
 
+  let cmsKeywordKeys: Set<string>
+  try {
+    cmsKeywordKeys = await getCmsKeywordKeys(locale)
+  } catch (error) {
+    return NextResponse.json(
+      { error: `Could not check CMS keyword duplicates: ${errorMessage(error)}` },
+      { status: 500 },
+    )
+  }
+
   const inserted: ReturnType<typeof rowToItem>[] = []
   const skipped: string[] = []
+  const skippedCms: string[] = []
   const errors: { keyword: string; error: string }[] = []
 
   for (const keyword of keywords) {
+    if (cmsKeywordKeys.has(normalizeKeywordKey(keyword))) {
+      skippedCms.push(keyword)
+      continue
+    }
+
     const { data, error } = await supabaseAdmin
       .from('fast_content_keywords')
       .insert({
@@ -121,7 +154,7 @@ export async function POST(request: Request) {
     inserted.push(rowToItem(data as unknown as FastContentRow))
   }
 
-  return NextResponse.json({ inserted, skipped, errors })
+  return NextResponse.json({ inserted, skipped, skippedCms, errors })
 }
 
 export async function PATCH(request: Request) {
@@ -199,14 +232,47 @@ function normalizeKeywordLines(value: unknown) {
   const keywords: string[] = []
 
   for (const line of raw.split(/\r?\n/)) {
-    const keyword = line.trim().replace(/\s+/g, ' ')
-    const key = keyword.toLocaleLowerCase()
+    const keyword = line.normalize('NFKC').trim().replace(/\s+/g, ' ')
+    const key = normalizeKeywordKey(keyword)
     if (!keyword || seen.has(key)) continue
     seen.add(key)
     keywords.push(keyword)
   }
 
   return keywords
+}
+
+async function getCmsKeywordKeys(locale: Locale) {
+  const keywordKeys = new Set<string>()
+  let offset = 0
+
+  while (true) {
+    const { data, error } = await supabaseAdmin
+      .from('blog_posts')
+      .select('keywords')
+      .eq('locale', locale)
+      .in('status', ['draft', 'published'])
+      .range(offset, offset + CMS_KEYWORD_PAGE_SIZE - 1)
+
+    if (error) throw error
+
+    const rows = (data || []) as unknown as CmsKeywordRow[]
+    for (const row of rows) {
+      for (const keyword of row.keywords || []) {
+        const key = normalizeKeywordKey(keyword)
+        if (key) keywordKeys.add(key)
+      }
+    }
+
+    if (rows.length < CMS_KEYWORD_PAGE_SIZE) break
+    offset += CMS_KEYWORD_PAGE_SIZE
+  }
+
+  return keywordKeys
+}
+
+function normalizeKeywordKey(value: string) {
+  return value.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase()
 }
 
 function rowToItem(row: FastContentRow) {
@@ -222,4 +288,65 @@ function rowToItem(row: FastContentRow) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
+}
+
+async function getPublishedLast10Days() {
+  const days = recentShanghaiDays(PUBLISHED_STATS_DAY_COUNT)
+  const daysByKey = new Map(days.map((date) => [date, { date, count: 0, locales: {} as Partial<Record<Locale, number>> }]))
+  const earliestDay = days[0]
+  const cutoff = new Date(`${earliestDay}T00:00:00+08:00`).toISOString()
+
+  const { data, error } = await supabaseAdmin
+    .from('fast_content_keywords')
+    .select('locale,published_at')
+    .eq('status', 'published')
+    .gte('published_at', cutoff)
+
+  if (error) throw error
+
+  for (const row of (data || []) as unknown as PublishedFastContentRow[]) {
+    if (!row.published_at || !(LOCALES as readonly string[]).includes(row.locale)) continue
+    const day = shanghaiDateKey(new Date(row.published_at))
+    const summary = daysByKey.get(day)
+    if (!summary) continue
+
+    summary.count += 1
+    summary.locales[row.locale] = (summary.locales[row.locale] || 0) + 1
+  }
+
+  const daySummaries = days.map((date) => daysByKey.get(date)!)
+  return {
+    timeZone: SHANGHAI_TIME_ZONE,
+    total: daySummaries.reduce((total, day) => total + day.count, 0),
+    days: daySummaries.reverse(),
+  }
+}
+
+function recentShanghaiDays(dayCount: number) {
+  const today = shanghaiDateKey(new Date())
+  const [year, month, day] = today.split('-').map(Number)
+  const dates: string[] = []
+
+  for (let offset = dayCount - 1; offset >= 0; offset -= 1) {
+    const date = new Date(Date.UTC(year, month - 1, day - offset, -8))
+    dates.push(shanghaiDateKey(date))
+  }
+
+  return dates
+}
+
+function shanghaiDateKey(value: Date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: SHANGHAI_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(value)
+  const readPart = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value || ''
+
+  return `${readPart('year')}-${readPart('month')}-${readPart('day')}`
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error'
 }
