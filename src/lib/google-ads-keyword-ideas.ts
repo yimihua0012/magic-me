@@ -33,7 +33,12 @@ type GoogleAdsKeywordIdeaResponse = {
   }[]
   error?: {
     message?: string
-    details?: { errors?: { message?: string }[] }[]
+    details?: {
+      errors?: {
+        message?: string
+        errorCode?: Record<string, string>
+      }[]
+    }[]
   }
 }
 
@@ -41,7 +46,12 @@ type GoogleAdsAccessibleCustomersResponse = {
   resourceNames?: string[]
   error?: {
     message?: string
-    details?: { errors?: { message?: string }[] }[]
+    details?: {
+      errors?: {
+        message?: string
+        errorCode?: Record<string, string>
+      }[]
+    }[]
   }
 }
 
@@ -118,13 +128,14 @@ export async function generateGoogleAdsKeywordIdeas(keyword: string, locale: Loc
   const raw = await response.text()
   const payload = parseJson<GoogleAdsKeywordIdeaResponse>(raw)
   if (!response.ok) {
+    const requestId = response.headers.get('request-id')
     console.error('[Google Ads Keyword Ideas] Keyword Planner API error:', {
       status: response.status,
-      requestId: response.headers.get('request-id'),
+      requestId,
       message: payload?.error?.message || null,
       details: payload?.error?.details || [],
     })
-    throw new Error(readGoogleAdsError(payload, `Google Ads request failed with status ${response.status}.`))
+    throw new Error(readGoogleAdsError(payload, `Google Ads request failed with status ${response.status}.`, requestId))
   }
 
   const seen = new Set<string>()
@@ -165,13 +176,14 @@ async function getAccessibleCustomerIds(config: GoogleAdsConfig, accessToken: st
   )
   const payload = parseJson<GoogleAdsAccessibleCustomersResponse>(await response.text())
   if (!response.ok) {
+    const requestId = response.headers.get('request-id')
     console.error('[Google Ads Keyword Ideas] Account access check error:', {
       status: response.status,
-      requestId: response.headers.get('request-id'),
+      requestId,
       message: payload?.error?.message || null,
       details: payload?.error?.details || [],
     })
-    throw new Error(readGoogleAdsError(payload, `Google Ads account access check failed with status ${response.status}.`))
+    throw new Error(readGoogleAdsError(payload, `Google Ads account access check failed with status ${response.status}.`, requestId))
   }
 
   return new Set(
@@ -257,8 +269,16 @@ function readNumber(value: string | number | undefined) {
 function readGoogleAdsError(
   payload: GoogleAdsKeywordIdeaResponse | GoogleAdsAccessibleCustomersResponse | null,
   fallback: string,
+  requestId?: string | null,
 ) {
-  return payload?.error?.message || payload?.error?.details?.flatMap((detail) => detail.errors || []).find((error) => error.message)?.message || fallback
+  const error = payload?.error?.details?.flatMap((detail) => detail.errors || [])[0]
+  const errorCode = error?.errorCode
+    ? Object.entries(error.errorCode).find(([, value]) => Boolean(value))?.[1]
+    : ''
+  const message = error?.message || payload?.error?.message || fallback
+  const requestIdSuffix = requestId ? ` Request ID: ${requestId}.` : ''
+
+  return `${errorCode ? `${errorCode}: ` : ''}${message}${requestIdSuffix}`
 }
 
 async function fetchGoogle(url: string, init: RequestInit, serviceName: string) {
