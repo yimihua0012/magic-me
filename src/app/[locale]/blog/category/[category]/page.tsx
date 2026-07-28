@@ -12,7 +12,7 @@ import {
 } from '@/lib/blog-store'
 import { OPEN_GRAPH_LOCALES, ROUTED_LOCALES, isRoutedLocale, type RoutedLocale } from '@/lib/i18n'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 600
 
 type BlogCategoryPageProps = {
   params: Promise<{

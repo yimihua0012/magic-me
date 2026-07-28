@@ -10,7 +10,7 @@ import {
   getPublishedBlogCategory,
 } from '@/lib/blog-store'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 600
 
 type BlogCategoryPageProps = {
   params: Promise<{

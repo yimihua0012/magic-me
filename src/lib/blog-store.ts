@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { unstable_cache } from 'next/cache'
 import { supabaseAdmin } from '@backend/config/supabase'
 import { blogPosts as staticBlogPosts, type BlogPost } from '@/lib/seo-content'
 import { blogEnhancements, type BlogEnhancement } from '@/lib/blog-enhancements'
@@ -82,6 +83,29 @@ const publishedColumns = [
   'localized_slugs',
   'submitted_to_bing',
 ].join(',')
+
+const blogListColumns = [
+  'id',
+  'locale',
+  'translation_group_id',
+  'source_post_id',
+  'slug',
+  'status',
+  'title',
+  'description',
+  'keywords',
+  'category',
+  'cover_image_url',
+  'cover_image_alt',
+  'intro',
+  'seo_enhancement',
+  'published_at',
+  'updated_at',
+  'localized_slugs',
+  'submitted_to_bing',
+].join(',')
+
+const BLOG_CACHE_REVALIDATE_SECONDS = 600
 
 function staticPostToMeta(post: BlogPost): BlogPostWithMeta {
   return {
@@ -189,10 +213,18 @@ function mergeWithStaticFallback(cmsPosts: BlogPostWithMeta[], locale: Locale) {
 }
 
 export async function getPublishedBlogPosts(locale: Locale = 'en') {
+  return getCachedPublishedBlogPosts(locale)
+}
+
+export async function getCmsPublishedBlogPosts(locale: Locale) {
+  return getCachedCmsPublishedBlogPosts(locale)
+}
+
+async function readPublishedBlogPosts(locale: Locale = 'en') {
   try {
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
-      .select(publishedColumns)
+      .select(blogListColumns)
       .eq('status', 'published')
       .eq('locale', locale)
       .order('published_at', { ascending: false, nullsFirst: false })
@@ -210,11 +242,11 @@ export async function getPublishedBlogPosts(locale: Locale = 'en') {
   }
 }
 
-export async function getCmsPublishedBlogPosts(locale: Locale) {
+async function readCmsPublishedBlogPosts(locale: Locale) {
   try {
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
-      .select(publishedColumns)
+      .select(blogListColumns)
       .eq('status', 'published')
       .eq('locale', locale)
       .order('published_at', { ascending: false, nullsFirst: false })
@@ -233,6 +265,10 @@ export async function getCmsPublishedBlogPosts(locale: Locale) {
 }
 
 export async function getPublishedBlogPost(slug: string, locale: Locale = 'en') {
+  return getCachedPublishedBlogPost(locale, slug)
+}
+
+async function readPublishedBlogPost(locale: Locale, slug: string) {
   try {
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
@@ -259,15 +295,24 @@ export async function getRelatedPublishedBlogPosts(
   relatedSlugs: string[] | undefined,
   limit = 3,
 ) {
+  return getCachedRelatedPublishedBlogPosts(locale, currentSlug, relatedSlugs || [], limit)
+}
+
+async function readRelatedPublishedBlogPosts(
+  locale: Locale,
+  currentSlug: string,
+  relatedSlugs: string[],
+  limit = 3,
+) {
   const related: BlogPostWithMeta[] = []
   const used = new Set([currentSlug])
-  const requestedSlugs = (relatedSlugs || []).filter((slug) => slug && !used.has(slug)).slice(0, limit)
+  const requestedSlugs = relatedSlugs.filter((slug) => slug && !used.has(slug)).slice(0, limit)
 
   if (requestedSlugs.length > 0) {
     try {
       const { data, error } = await supabaseAdmin
         .from('blog_posts')
-        .select(publishedColumns)
+        .select(blogListColumns)
         .eq('status', 'published')
         .eq('locale', locale)
         .in('slug', requestedSlugs)
@@ -292,7 +337,7 @@ export async function getRelatedPublishedBlogPosts(
   try {
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
-      .select(publishedColumns)
+      .select(blogListColumns)
       .eq('status', 'published')
       .eq('locale', locale)
       .order('published_at', { ascending: false, nullsFirst: false })
@@ -324,6 +369,61 @@ export async function getRelatedPublishedBlogPosts(
 
   return related
 }
+
+const getCachedPublishedBlogPosts = unstable_cache(
+  async (locale: Locale) => readPublishedBlogPosts(locale),
+  ['published-blog-posts'],
+  { revalidate: BLOG_CACHE_REVALIDATE_SECONDS, tags: ['blog-posts'] },
+)
+
+const getCachedCmsPublishedBlogPosts = unstable_cache(
+  async (locale: Locale) => readCmsPublishedBlogPosts(locale),
+  ['cms-published-blog-posts'],
+  { revalidate: BLOG_CACHE_REVALIDATE_SECONDS, tags: ['blog-posts'] },
+)
+
+const getCachedPublishedBlogPost = unstable_cache(
+  async (locale: Locale, slug: string) => readPublishedBlogPost(locale, slug),
+  ['published-blog-post'],
+  { revalidate: BLOG_CACHE_REVALIDATE_SECONDS, tags: ['blog-posts'] },
+)
+
+const getCachedRelatedPublishedBlogPosts = unstable_cache(
+  async (locale: Locale, currentSlug: string, relatedSlugs: string[], limit: number) => (
+    readRelatedPublishedBlogPosts(locale, currentSlug, relatedSlugs, limit)
+  ),
+  ['related-published-blog-posts'],
+  { revalidate: BLOG_CACHE_REVALIDATE_SECONDS, tags: ['blog-posts'] },
+)
+
+type BlogAlternateGroups = Record<string, Partial<Record<Locale, string>>>
+
+const getCachedBlogAlternateGroups = unstable_cache(
+  async (): Promise<BlogAlternateGroups> => {
+    const { data, error } = await supabaseAdmin
+      .from('blog_posts')
+      .select('translation_group_id,locale,slug')
+      .eq('status', 'published')
+      .not('translation_group_id', 'is', null)
+
+    if (error) {
+      console.warn('[Blog Store] Could not read blog language alternates:', error.message)
+      return {}
+    }
+
+    const groups: BlogAlternateGroups = {}
+
+    for (const item of (data || []) as { translation_group_id: string | null; locale: Locale; slug: string }[]) {
+      if (!item.translation_group_id || !(LOCALES as readonly string[]).includes(item.locale)) continue
+      groups[item.translation_group_id] ||= {}
+      groups[item.translation_group_id][item.locale] = item.slug
+    }
+
+    return groups
+  },
+  ['blog-alternate-groups'],
+  { revalidate: BLOG_CACHE_REVALIDATE_SECONDS, tags: ['blog-posts'] },
+)
 
 export async function getAdminBlogPostById(id: string) {
   try {
@@ -409,14 +509,22 @@ export function getBlogCategoriesFromPosts(posts: BlogPostWithMeta[], locale: Lo
 }
 
 export async function getPublishedBlogCategories(locale: Locale = 'en') {
-  const posts = await getPublishedBlogPosts(locale)
-  return getBlogCategoriesFromPosts(posts, locale)
+  return getCachedPublishedBlogCategories(locale)
 }
 
 export async function getPublishedBlogCategory(categorySlug: string, locale: Locale = 'en') {
   const categories = await getPublishedBlogCategories(locale)
   return categories.find((category) => category.slug === categorySlug)
 }
+
+const getCachedPublishedBlogCategories = unstable_cache(
+  async (locale: Locale) => {
+    const posts = await readPublishedBlogPosts(locale)
+    return getBlogCategoriesFromPosts(posts, locale)
+  },
+  ['published-blog-categories'],
+  { revalidate: BLOG_CACHE_REVALIDATE_SECONDS, tags: ['blog-posts'] },
+)
 
 export async function getBlogCategoryLanguageAlternates(category: BlogCategorySummary) {
   const alternates: Partial<Record<Locale | 'x-default', string>> = {
@@ -453,20 +561,17 @@ export async function getBlogLanguageAlternates(post: BlogPostWithMeta) {
     return alternates
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('blog_posts')
-    .select('locale,slug')
-    .eq('translation_group_id', post.translationGroupId)
-    .eq('status', 'published')
+  const groups = await getCachedBlogAlternateGroups()
+  const group = groups[post.translationGroupId] || {}
 
-  if (error) {
-    alternates[post.locale] = blogPath(post.locale, post.slug)
-    return alternates
+  for (const locale of LOCALES) {
+    const slug = group[locale]
+    if (slug) {
+      alternates[locale] = blogPath(locale, slug)
+    }
   }
 
-  for (const item of (data || []) as { locale: Locale; slug: string }[]) {
-    alternates[item.locale] = blogPath(item.locale, item.slug)
-  }
+  alternates[post.locale] = alternates[post.locale] || blogPath(post.locale, post.slug)
 
   if (alternates.en) {
     alternates['x-default'] = alternates.en
@@ -494,9 +599,27 @@ export async function getBlogIndexLanguageAlternates() {
 
 export async function localeHasPublishedCmsBlogPosts(locale: Locale) {
   if (locale === DEFAULT_LOCALE) return true
-  const posts = await getCmsPublishedBlogPosts(locale)
-  return posts.length > 0
+  return getCachedLocaleHasPublishedCmsBlogPosts(locale)
 }
+
+const getCachedLocaleHasPublishedCmsBlogPosts = unstable_cache(
+  async (locale: Locale) => {
+    const { count, error } = await supabaseAdmin
+      .from('blog_posts')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'published')
+      .eq('locale', locale)
+
+    if (error) {
+      console.warn('[Blog Store] Could not count localized CMS blog posts:', error.message)
+      return false
+    }
+
+    return Boolean(count && count > 0)
+  },
+  ['locale-has-published-cms-blog-posts'],
+  { revalidate: BLOG_CACHE_REVALIDATE_SECONDS, tags: ['blog-posts'] },
+)
 
 export type BlogPostInput = {
   id?: string
