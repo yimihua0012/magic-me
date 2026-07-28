@@ -18,6 +18,7 @@ const MAX_ATTEMPTS_PER_RUN = 3
 const PICK_LIMIT = 200
 const CRON_LOCK_ID = 'fast-content-cron'
 const CRON_LOCK_TTL_MS = 25 * 60 * 1000
+const CRON_LOCK_TTL_SECONDS = Math.floor(CRON_LOCK_TTL_MS / 1000)
 
 const META_DESCRIPTION_RULE =
   '- description must be 100-140 Unicode characters for English, Spanish, French, and German. For Japanese, keep it 55-90 Japanese characters.'
@@ -202,49 +203,28 @@ async function pickRandomKeyword(locale?: Locale) {
 }
 
 async function acquireCronLock() {
-  const now = new Date()
-  const staleBefore = new Date(now.getTime() - CRON_LOCK_TTL_MS).toISOString()
+  const owner = crypto.randomUUID()
+  const { data, error } = await supabaseAdmin.rpc('acquire_cron_lock', {
+    lock_name: CRON_LOCK_ID,
+    ttl_seconds: CRON_LOCK_TTL_SECONDS,
+    lock_owner: owner,
+  })
 
-  const updated = await supabaseAdmin
-    .from('fast_content_keywords')
-    .update({
-      status: 'generating',
-      error_message: CRON_LOCK_ID,
-      last_attempt_at: now.toISOString(),
-    })
-    .eq('keyword', CRON_LOCK_ID)
-    .or(`status.neq.generating,last_attempt_at.lt.${staleBefore}`)
-    .select('id')
-    .maybeSingle()
+  if (error) {
+    console.error('[Fast Content Cron] Cron lock RPC is not available:', error)
+    throw new Error('Fast content cron lock is not configured. Run scripts/create-fast-content-cron-lock.sql in Supabase before enabling the cron.')
+  }
 
-  if (!updated.error && updated.data?.id) return { acquired: true, id: updated.data.id as string }
-
-  const inserted = await supabaseAdmin
-    .from('fast_content_keywords')
-    .insert({
-      locale: 'en',
-      keyword: CRON_LOCK_ID,
-      status: 'generating',
-      error_message: CRON_LOCK_ID,
-      last_attempt_at: now.toISOString(),
-    })
-    .select('id')
-    .maybeSingle()
-
-  if (!inserted.error && inserted.data?.id) return { acquired: true, id: inserted.data.id as string }
-  return { acquired: false, id: '' }
+  return { acquired: data === true, id: owner }
 }
 
 async function releaseCronLock(id: string) {
   if (!id) return
-  await supabaseAdmin
-    .from('fast_content_keywords')
-    .update({
-      status: 'failed',
-      error_message: 'cron lock released',
-    })
-    .eq('id', id)
-    .eq('keyword', CRON_LOCK_ID)
+  const { error } = await supabaseAdmin.rpc('release_cron_lock', {
+    lock_name: CRON_LOCK_ID,
+    lock_owner: id,
+  })
+  if (error) console.error('[Fast Content Cron] Could not release cron lock:', error)
 }
 
 async function markKeywordGenerating(id: string, attemptCount: number) {

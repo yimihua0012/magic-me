@@ -9,7 +9,7 @@ import Footer from '@/components/layout/localized-footer'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import BlogPostJsonLd from '@/components/seo/blog-post-json-ld'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
-import { getBlogLanguageAlternates, getCmsPublishedBlogPosts, getPublishedBlogPost } from '@/lib/blog-store'
+import { getBlogLanguageAlternates, getCmsPublishedBlogPosts, getPublishedBlogPost, getRelatedPublishedBlogPosts } from '@/lib/blog-store'
 import { OPEN_GRAPH_LOCALES, isRoutedLocale, localePath, ROUTED_LOCALES, type RoutedLocale } from '@/lib/i18n'
 
 type PageProps = {
@@ -108,9 +108,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const post = await getPublishedBlogPost(slug, locale)
   if (!post || post.source !== 'cms') return { title: blogArticleLabels[locale].fallbackTitle }
   const alternates = await getBlogLanguageAlternates(post)
-  const posts = await getCmsPublishedBlogPosts(locale)
-  const postIndex = posts.findIndex((item) => item.slug === post.slug)
-  const image = getBlogArticleImage(post, postIndex)
+  const image = getBlogArticleImage(post, 0)
 
   return {
     title: post.title,
@@ -147,15 +145,13 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
     notFound()
   }
 
-  const posts = await getCmsPublishedBlogPosts(routedLocale)
-  const postIndex = posts.findIndex((item) => item.slug === post.slug)
-  const image = getBlogArticleImage(post, postIndex)
-  const related = getRelatedPosts(posts, post.slug, post.enhancement?.relatedSlugs)
+  const image = getBlogArticleImage(post, 0)
+  const related = await getRelatedPublishedBlogPosts(routedLocale, post.slug, post.enhancement?.relatedSlugs)
   const labels = blogArticleLabels[routedLocale]
 
   return (
     <div className="min-h-screen bg-white">
-      <BlogPostJsonLd post={post} index={Math.max(postIndex, 0)} imagePath={image?.url} locale={routedLocale} />
+      <BlogPostJsonLd post={post} index={0} imagePath={image?.url} locale={routedLocale} />
       <Navbar locale={routedLocale} />
       <main className="pt-20">
         <article className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
@@ -248,30 +244,4 @@ function getBlogArticleImage(post: { coverImage?: { url: string; alt: string } }
 
   const fallbackPortrait = fallbackImages[Math.max(postIndex, 0) % fallbackImages.length]
   return { url: fallbackPortrait.src, alt: fallbackPortrait.alt }
-}
-
-function getRelatedPosts<T extends { slug: string }>(
-  posts: T[],
-  currentSlug: string,
-  relatedSlugs: string[] | undefined,
-) {
-  const related: T[] = []
-  const used = new Set([currentSlug])
-
-  for (const relatedSlug of relatedSlugs || []) {
-    const post = posts.find((item) => item.slug === relatedSlug)
-    if (!post || used.has(post.slug)) continue
-    used.add(post.slug)
-    related.push(post)
-    if (related.length >= 3) return related
-  }
-
-  for (const post of posts) {
-    if (used.has(post.slug)) continue
-    used.add(post.slug)
-    related.push(post)
-    if (related.length >= 3) return related
-  }
-
-  return related
 }

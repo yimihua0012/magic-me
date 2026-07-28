@@ -233,8 +233,96 @@ export async function getCmsPublishedBlogPosts(locale: Locale) {
 }
 
 export async function getPublishedBlogPost(slug: string, locale: Locale = 'en') {
-  const posts = await getPublishedBlogPosts(locale)
-  return posts.find((post) => post.slug === slug)
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('blog_posts')
+      .select(publishedColumns)
+      .eq('status', 'published')
+      .eq('locale', locale)
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (!error && data) return rowToPost(data as unknown as BlogPostRow)
+    if (error) console.warn('[Blog Store] Could not read published blog post:', error.message)
+  } catch (error) {
+    console.warn('[Blog Store] Could not read published blog post.', error)
+  }
+
+  if (locale !== DEFAULT_LOCALE) return undefined
+  const staticPost = staticBlogPosts.find((post) => post.slug === slug)
+  return staticPost ? staticPostToMeta(staticPost) : undefined
+}
+
+export async function getRelatedPublishedBlogPosts(
+  locale: Locale,
+  currentSlug: string,
+  relatedSlugs: string[] | undefined,
+  limit = 3,
+) {
+  const related: BlogPostWithMeta[] = []
+  const used = new Set([currentSlug])
+  const requestedSlugs = (relatedSlugs || []).filter((slug) => slug && !used.has(slug)).slice(0, limit)
+
+  if (requestedSlugs.length > 0) {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('blog_posts')
+        .select(publishedColumns)
+        .eq('status', 'published')
+        .eq('locale', locale)
+        .in('slug', requestedSlugs)
+
+      if (!error) {
+        const postsBySlug = new Map(((data || []) as unknown as BlogPostRow[]).map((row) => [row.slug, rowToPost(row)]))
+        for (const slug of requestedSlugs) {
+          const post = postsBySlug.get(slug)
+          if (!post || used.has(post.slug)) continue
+          used.add(post.slug)
+          related.push(post)
+          if (related.length >= limit) return related
+        }
+      } else {
+        console.warn('[Blog Store] Could not read related blog posts:', error.message)
+      }
+    } catch (error) {
+      console.warn('[Blog Store] Could not read related blog posts.', error)
+    }
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('blog_posts')
+      .select(publishedColumns)
+      .eq('status', 'published')
+      .eq('locale', locale)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('updated_at', { ascending: false })
+      .limit(24)
+
+    if (!error) {
+      for (const post of ((data || []) as unknown as BlogPostRow[]).map(rowToPost)) {
+        if (used.has(post.slug)) continue
+        used.add(post.slug)
+        related.push(post)
+        if (related.length >= limit) return related
+      }
+    } else {
+      console.warn('[Blog Store] Could not read recent related blog posts:', error.message)
+    }
+  } catch (error) {
+    console.warn('[Blog Store] Could not read recent related blog posts.', error)
+  }
+
+  if (locale === DEFAULT_LOCALE && related.length < limit) {
+    for (const post of staticBlogPosts.map(staticPostToMeta)) {
+      if (used.has(post.slug)) continue
+      used.add(post.slug)
+      related.push(post)
+      if (related.length >= limit) break
+    }
+  }
+
+  return related
 }
 
 export async function getAdminBlogPostById(id: string) {

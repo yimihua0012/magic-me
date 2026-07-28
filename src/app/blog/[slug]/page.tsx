@@ -10,7 +10,7 @@ import BlogPostJsonLd from '@/components/seo/blog-post-json-ld'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 import { getBlogEnhancement } from '@/lib/blog-enhancements'
-import { getBlogLanguageAlternates, getPublishedBlogPost, getPublishedBlogPosts, getPublishedBlogSlugs } from '@/lib/blog-store'
+import { getBlogLanguageAlternates, getPublishedBlogPost, getPublishedBlogPosts, getPublishedBlogSlugs, getRelatedPublishedBlogPosts } from '@/lib/blog-store'
 
 
 type BlogArticlePageProps = {
@@ -54,9 +54,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
     }
   }
 
-  const allPosts = await getPublishedBlogPosts('en')
-  const postIndex = allPosts.findIndex((item) => item.slug === post.slug)
-  const fallbackPortrait = postIndex >= 0 && postIndex < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[postIndex] : null
+  const fallbackPortrait = blogGeneratedPortraitImages[0] || null
   const portrait = post.coverImage || (fallbackPortrait ? { url: fallbackPortrait.src, alt: fallbackPortrait.alt } : null)
 
   return {
@@ -91,17 +89,15 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     notFound()
   }
 
-  const allPosts = await getPublishedBlogPosts('en')
-  const postIndex = allPosts.findIndex((item) => item.slug === post.slug)
-  const fallbackPortrait = postIndex >= 0 && postIndex < blogGeneratedPortraitImages.length ? blogGeneratedPortraitImages[postIndex] : null
+  const fallbackPortrait = blogGeneratedPortraitImages[0] || null
   const portrait = post.coverImage || (fallbackPortrait ? { url: fallbackPortrait.src, alt: fallbackPortrait.alt } : null)
   const enhancement = post.enhancement || getBlogEnhancement(post.slug)
-  const related = getRelatedPosts(allPosts, post.slug, enhancement?.relatedSlugs)
+  const related = await getRelatedPublishedBlogPosts('en', post.slug, enhancement?.relatedSlugs)
   const workflowLinks = getRenderableWorkflowLinks(enhancement?.internalLinks)
 
   return (
     <StaticMarketingShell>
-      <BlogPostJsonLd post={post} index={postIndex} imagePath={portrait?.url} />
+      <BlogPostJsonLd post={post} index={0} imagePath={portrait?.url} />
       <main>
         <article className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <Link href="/blog" className="mb-8 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
@@ -111,7 +107,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">{post.title}</h1>
           <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-slate-500">
             <CalendarDays className="h-4 w-4" />
-            {getBlogPublishDate(Math.max(postIndex, 0))}
+            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en') : getBlogPublishDate(0)}
           </div>
           <p className="mt-5 break-words text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">{post.description}</p>
           <div className="mt-7">
@@ -263,30 +259,4 @@ function getRenderableWorkflowLinks(
   ))
 
   return publicLinks.length > 0 ? publicLinks : defaultWorkflowLinks
-}
-
-function getRelatedPosts<T extends { slug: string }>(
-  posts: T[],
-  currentSlug: string,
-  relatedSlugs: string[] | undefined,
-) {
-  const related: T[] = []
-  const used = new Set([currentSlug])
-
-  for (const relatedSlug of relatedSlugs || []) {
-    const post = posts.find((item) => item.slug === relatedSlug)
-    if (!post || used.has(post.slug)) continue
-    used.add(post.slug)
-    related.push(post)
-    if (related.length >= 3) return related
-  }
-
-  for (const post of posts) {
-    if (used.has(post.slug)) continue
-    used.add(post.slug)
-    related.push(post)
-    if (related.length >= 3) return related
-  }
-
-  return related
 }
