@@ -14,11 +14,13 @@ import { generateAiText, isAiTextGenerationConfigured } from '@/lib/ai/text-gene
 
 export const dynamic = 'force-dynamic'
 
-const MAX_ATTEMPTS_PER_RUN = 3
+const MAX_ATTEMPTS_PER_RUN = 1
+const MAX_TOTAL_ATTEMPTS = 3
 const PICK_LIMIT = 200
 const CRON_LOCK_ID = 'fast-content-cron'
 const CRON_LOCK_TTL_MS = 25 * 60 * 1000
 const CRON_LOCK_TTL_SECONDS = Math.floor(CRON_LOCK_TTL_MS / 1000)
+const STALE_GENERATING_MS = 30 * 60 * 1000
 
 const META_DESCRIPTION_RULE =
   '- description must be 100-140 Unicode characters for English, Spanish, French, and German. For Japanese, keep it 55-90 Japanese characters.'
@@ -69,6 +71,7 @@ async function runFastContentCron(request: Request) {
   }
 
   try {
+    await recoverStaleGeneratingKeywords()
     const picked = await pickRandomKeyword(locale)
     if (!picked) {
       return NextResponse.json({
@@ -187,6 +190,7 @@ async function pickRandomKeyword(locale?: Locale) {
     .select(queueColumns)
     .in('status', ['pending', 'failed'])
     .neq('keyword', CRON_LOCK_ID)
+    .lt('attempt_count', MAX_TOTAL_ATTEMPTS)
     .order('updated_at', { ascending: true })
     .limit(PICK_LIMIT)
 
@@ -200,6 +204,38 @@ async function pickRandomKeyword(locale?: Locale) {
 
   if (candidates.length === 0) return null
   return candidates[Math.floor(Math.random() * candidates.length)]
+}
+
+async function recoverStaleGeneratingKeywords() {
+  const cutoff = new Date(Date.now() - STALE_GENERATING_MS).toISOString()
+  const { data, error } = await supabaseAdmin
+    .from('fast_content_keywords')
+    .select('id,attempt_count')
+    .eq('status', 'generating')
+    .lt('last_attempt_at', cutoff)
+    .neq('keyword', CRON_LOCK_ID)
+    .limit(50)
+
+  if (error) throw error
+
+  const rows = (data || []) as Array<{ id: string; attempt_count: number | null }>
+  for (const row of rows) {
+    const attempts = row.attempt_count || 0
+    const status = attempts >= MAX_TOTAL_ATTEMPTS ? 'failed' : 'pending'
+    const errorMessageValue = status === 'failed'
+      ? `Generation was stuck and reached the ${MAX_TOTAL_ATTEMPTS}-attempt limit.`
+      : 'Generation was stuck and returned to the pending queue.'
+
+    const { error: updateError } = await supabaseAdmin
+      .from('fast_content_keywords')
+      .update({
+        status,
+        error_message: errorMessageValue,
+      })
+      .eq('id', row.id)
+
+    if (updateError) throw updateError
+  }
 }
 
 async function acquireCronLock() {
@@ -299,7 +335,8 @@ async function generateArticle(locale: Locale, keywords: string[], prompt: strin
       'The description field must be concise: 100-140 Unicode characters for English, Spanish, French, and German; 55-90 Japanese characters for Japanese.',
     ].join('\n'),
     user: prompt,
-    temperature: 0.7,
+    temperature: 0.65,
+    timeoutMs: 180_000,
   })
 
   const parsedDraft = parseJson<Record<string, unknown>>(stripJsonFence(result.content))
@@ -344,7 +381,7 @@ function buildBlogDraftPrompt(locale: Locale, keyword: string, uniquenessHint: s
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
     '- coverImageAlt must describe the intended cover image in the article language.',
     '- intro must be 80-140 words and should sound helpful and specific, not like a generic SEO opener.',
-    '- visible article body should be about 1000-1200 words total.',
+    '- visible article body should be about 800-1000 words total.',
     '- sections must be an array of 5-7 objects, each with heading and body. Body should be 100-150 words.',
     '- enhancement must include category, audience, searchIntent, uniqueAngle, actionSteps, qualityChecks, avoid, internalLinks, relatedSlugs.',
     '- actionSteps must be 4-6 practical steps.',
