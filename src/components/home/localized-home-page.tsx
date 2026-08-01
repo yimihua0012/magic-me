@@ -93,6 +93,7 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
   const currency = getDefaultCurrencyForLocale(locale)
   const gallery = galleryLabels[locale]
   const pricingContent = localizedPricingContent[locale]
+  const bottomSecondaryPath = locale === 'zh' ? '/photo-tools' : '/pricing'
 
   return (
     <main className="min-h-screen bg-white">
@@ -334,7 +335,7 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
               <Camera className="mr-2 h-5 w-5" />
               {content.bottomPrimaryCta}
             </Link>
-            <Link href={withSource(localePath(locale, '/pricing'), `home_bottom_secondary_${locale}`)} className={buttonStyles({ variant: 'ghost', size: 'lg', className: 'w-full bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 sm:w-auto' })}>
+            <Link href={withSource(localePath(locale, bottomSecondaryPath), `home_bottom_secondary_${locale}`)} className={buttonStyles({ variant: 'ghost', size: 'lg', className: 'w-full bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 sm:w-auto' })}>
               {content.bottomSecondaryCta}
             </Link>
           </div>

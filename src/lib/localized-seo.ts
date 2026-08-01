@@ -46,9 +46,9 @@ const coreKeywords: Record<RoutedLocale, string[]> = {
     'プロフィール写真 AI',
   ],
   zh: [
-    'AI职业形象照',
-    'LinkedIn头像',
-    '简历照片',
+    'AI头像生成',
+    '职业头像',
+    '证件照工具',
   ],
 }
 
@@ -253,8 +253,8 @@ export const localizedSeoContent: Record<RoutedLocale, Record<LocalizedSeoPage, 
   zh: {
     ...useCaseSeoContent.zh,
     home: {
-      title: 'AI职业形象照生成器：LinkedIn、简历和个人资料 | Magic Headshot',
-      description: '上传自拍生成自然可信的 AI 职业形象照，适合 LinkedIn、简历、团队页面、个人网站和商务头像。',
+      title: 'AI头像生成器和证件照工具：职业头像、裁剪换底 | Magic Headshot',
+      description: '上传自拍生成 AI 职业头像和证件照，支持头像背景、裁剪缩放、换底、去背景和打印排版。',
       keywords: coreKeywords.zh,
     },
     landing: {
