@@ -49,13 +49,12 @@ export default async function BlogPage() {
               <BookOpen className="h-6 w-6" />
             </div>
             <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">
-              AI Image Generation and Headshot Blog
+              Professional Headshot and Photo Tools Blog
             </h1>
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-              Twenty static guides covering Magic-Headshot, AI image generation, AI headshots for LinkedIn, professional
-              headshots without photographer sessions, AI resume photo generator workflows, and realistic business
-              portraits. Browse practical advice on what to upload, how to choose styles, where to use the results, and
-              how to keep professional profile photos believable.
+              Read practical guides for professional headshots, LinkedIn photos, resume portraits, ID photo tools,
+              background removal, background color changes, cropping, resizing, and printable photo layouts. Each guide
+              points you toward the right next step: generate a polished headshot or finish the photo with a focused tool.
             </p>
             <div className="mt-7">
               <KeywordStrip keywords={coreSeoKeywords.slice(0, 6)} />
@@ -145,14 +144,14 @@ export default async function BlogPage() {
         <BlogPhotoToolsCta
           locale="en"
           photoTools={{
-            heading: 'Try the photo tools',
-            description: 'After reading a guide, use the photo tools to crop an ID-style image, resize files, prepare printable photo sheets, or adjust a background before publishing or submitting a profile photo.',
+            heading: 'Use the right photo tool',
+            description: 'Open the photo tools to remove a background, change background color, crop an ID photo, resize an image, compress to KB, or build a printable photo sheet.',
             linkLabel: 'Open photo tools',
           }}
           workflow={{
-            heading: 'Try the workflow in Magic-Headshot',
-            description: 'Generate realistic AI headshots for LinkedIn, resumes, team pages, and professional profiles after you understand which photo style and checks fit your goal.',
-            linkLabel: 'Generate headshots',
+            heading: 'Generate professional headshots',
+            description: 'Use the blog guidance to choose a better direction, then generate professional headshots for LinkedIn, resumes, business profiles, team pages, or public bios.',
+            linkLabel: 'Generate professional headshots',
           }}
           pricing={{
             heading: 'Choose the right credit pack',

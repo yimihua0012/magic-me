@@ -10,6 +10,7 @@ import BlogPostJsonLd from '@/components/seo/blog-post-json-ld'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 import { getBlogEnhancement } from '@/lib/blog-enhancements'
+import { getEnglishBlogCtaContent, getEnglishBlogInternalLinks } from '@/lib/blog-internal-links'
 import { getBlogLanguageAlternates, getPublishedBlogPost, getPublishedBlogPosts, getPublishedBlogSlugs, getRelatedPublishedBlogPosts } from '@/lib/blog-store'
 
 
@@ -93,7 +94,8 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   const portrait = post.coverImage || (fallbackPortrait ? { url: fallbackPortrait.src, alt: fallbackPortrait.alt } : null)
   const enhancement = post.enhancement || getBlogEnhancement(post.slug)
   const related = await getRelatedPublishedBlogPosts('en', post.slug, enhancement?.relatedSlugs)
-  const workflowLinks = getRenderableWorkflowLinks(enhancement?.internalLinks)
+  const workflowLinks = getEnglishBlogInternalLinks(post, getRenderableWorkflowLinks(enhancement?.internalLinks))
+  const ctaContent = getEnglishBlogCtaContent(post)
 
   return (
     <StaticMarketingShell>
@@ -195,8 +197,11 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           )}
 
           <section className="content-auto mt-10">
-            <h2 className="break-words text-2xl font-bold text-slate-950">Plan your AI headshot workflow</h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <h2 className="break-words text-2xl font-bold text-slate-950">Use This Guide to Finish Your Photo</h2>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
+              Choose the next step based on what this article covers: edit the photo with a focused tool, generate a professional headshot, compare samples, or check pricing.
+            </p>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {workflowLinks.map((item) => (
                 <Link
                   key={item.href}
@@ -213,21 +218,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
         <BlogPhotoToolsCta
           locale="en"
-          photoTools={{
-            heading: 'Try the photo tools',
-            description: 'Use the photo tools after reading this guide to crop an ID-style image, resize files, prepare printable photo sheets, or adjust a background before publishing or submitting a profile photo.',
-            linkLabel: 'Open photo tools',
-          }}
-          workflow={{
-            heading: 'Try the workflow in Magic-Headshot',
-            description: 'Generate realistic AI headshots for LinkedIn, resumes, team pages, and professional profiles after you understand which photo style and quality checks fit your goal.',
-            linkLabel: 'Generate headshots',
-          }}
-          pricing={{
-            heading: 'Choose the right credit pack',
-            description: 'Compare one-time credit packs before producing final images for a profile refresh, job application, team page, or document-style photo workflow.',
-            linkLabel: 'View pricing',
-          }}
+          photoTools={ctaContent.photoTools}
+          workflow={ctaContent.workflow}
+          pricing={ctaContent.pricing}
         />
 
         <section className="content-auto border-t border-slate-200 bg-slate-50 py-12">

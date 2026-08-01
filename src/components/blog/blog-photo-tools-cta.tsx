@@ -14,6 +14,7 @@ type BlogCtaItem = {
   heading: string
   description: string
   linkLabel: string
+  href?: string
 }
 
 export default function BlogPhotoToolsCta({
@@ -27,15 +28,15 @@ export default function BlogPhotoToolsCta({
   const items = [
     {
       ...photoTools,
-      href: localePath(locale, '/photo-tools'),
+      href: localePath(locale, photoTools.href || '/photo-tools'),
     },
     {
       ...workflow,
-      href: localePath(locale, '/upload'),
+      href: localePath(locale, workflow.href || '/upload'),
     },
     {
       ...pricing,
-      href: localePath(locale, '/pricing'),
+      href: localePath(locale, pricing.href || '/pricing'),
     },
   ]
 
