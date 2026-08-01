@@ -9,13 +9,13 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { coreSeoKeywords, questions } from '@/lib/seo-content'
 
 export const metadata: Metadata = {
-  title: 'AI Headshot Questions and Answers for LinkedIn, Resumes, and Profile Photos',
+  title: 'Professional Headshot Questions and Answers',
   description:
-    'Answers about AI headshots for LinkedIn, resume photos, likeness, upload quality, styles, pricing, and realistic profile images.',
-    keywords: [
-      'Magic-Headshot',
-      'AI headshots for LinkedIn',
-      'realistic profile images',
+    'Answers about professional headshots, LinkedIn headshots, resume photos, photo quality, styles, and headshot pricing.',
+  keywords: [
+    'professional headshots',
+    'LinkedIn headshots',
+    'headshot pricing',
   ],
   alternates: {
     canonical: '/questions',
@@ -29,8 +29,8 @@ export default function QuestionsPage() {
       <FaqPageJsonLd
         locale="en"
         path="/questions"
-        title="AI Headshot Questions and Answers"
-        description="Answers about AI headshots for LinkedIn, resume photos, likeness, upload quality, styles, pricing, and realistic profile images."
+        title="Professional Headshot Questions and Answers"
+        description="Answers about professional headshots, LinkedIn headshots, resume photos, photo quality, styles, and headshot pricing."
         items={questions}
       />
       <main>
@@ -40,13 +40,12 @@ export default function QuestionsPage() {
               <HelpCircle className="h-6 w-6" />
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">
-              AI Headshot Questions and Answers
+              Professional Headshot Questions and Answers
             </h1>
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-              Clear answers about Magic-Headshot, AI headshots for LinkedIn, professional headshots without photographer
-              sessions, AI resume photo generator workflows, likeness, upload quality, and business profile use. Start
-              here before buying credits or uploading selfies so you know how the generation flow, photo choices, and
-              commercial usage fit your profile goals.
+              Clear answers about professional headshots for LinkedIn, resume photos, business headshots, corporate
+              profiles, upload quality, and headshot pricing. Start here before buying credits or uploading selfies so
+              you know how the generation flow, photo choices, and commercial usage fit your profile goals.
             </p>
             <div className="mt-7">
               <KeywordStrip keywords={coreSeoKeywords.slice(0, 5)} />
@@ -73,12 +72,15 @@ export default function QuestionsPage() {
 
         <section className="content-auto bg-primary-600 py-12 text-white">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold sm:text-3xl">Ready to compare real AI headshot samples?</h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">Ready to compare real professional headshot samples?</h2>
             <p className="mx-auto mt-3 max-w-2xl text-primary-100">
-              Review original photo and generated portrait examples before choosing styles for LinkedIn, resumes, and
-              business profiles.
+              Review original photo and generated portrait examples before choosing styles for LinkedIn, resumes,
+              business headshots, and corporate profiles.
             </p>
-            <Link href="/sample" className={buttonStyles({ size: 'lg', className: 'mt-7 bg-white text-primary-600 hover:bg-primary-50' })}>
+            <Link
+              href="/sample"
+              className={buttonStyles({ size: 'lg', className: 'mt-7 bg-white text-primary-600 hover:bg-primary-50' })}
+            >
               View Sample Comparisons
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

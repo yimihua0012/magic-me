@@ -24,22 +24,22 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {
-  title: 'AI LinkedIn Headshots from Selfies in Minutes',
+  title: 'Professional LinkedIn Headshots from Selfies in Minutes',
   description:
-    'Upload selfies and create realistic AI LinkedIn headshots for resumes, team pages, business profiles, and personal branding.',
+    'Upload selfies and create professional LinkedIn headshots for resumes, team pages, business profiles, and personal branding.',
   keywords: [
-    'AI LinkedIn headshots',
-    'realistic AI headshots',
-    'resume headshot generator',
+    'LinkedIn headshots',
+    'professional headshots',
+    'business headshots',
   ],
   alternates: {
     canonical: '/landing',
     languages: languageAlternatesForPath('/landing'),
   },
   openGraph: {
-    title: 'AI LinkedIn Headshots from Selfies in Minutes',
+    title: 'Professional LinkedIn Headshots from Selfies in Minutes',
     description:
-      'Upload selfies, choose professional styles, and get polished AI headshots for LinkedIn, resumes, and business profiles.',
+      'Upload selfies, choose professional styles, and get polished LinkedIn headshots for resumes, business profiles, and team pages.',
     url: '/landing',
     type: 'website',
     images: [
@@ -127,15 +127,15 @@ export default function LandingPage() {
       <WebPageJsonLd
         locale="en"
         path="/landing"
-        title="AI LinkedIn Headshots That Look Professional in Minutes"
-        description="A conversion-focused AI headshot landing page for professionals who need realistic LinkedIn, resume, and team portraits without booking a photographer."
+        title="Professional LinkedIn Headshots That Look Great in Minutes"
+        description="A conversion-focused AI headshot landing page for professionals who need realistic LinkedIn, resume, business, and team portraits without booking a photographer."
         image="/landing-headshot-showcase.png"
       />
       <FaqPageJsonLd
         locale="en"
         path="/landing"
         title="Questions before you start?"
-        description="Clear answers about credits, uploads, and usage before you buy."
+        description="Clear answers about professional headshots, credits, uploads, and usage before you buy."
         items={faqs.map((faq) => ({ question: faq.q, answer: faq.a }))}
       />
       <Navbar />
@@ -156,7 +156,7 @@ export default function LandingPage() {
           <div className="max-w-3xl text-center lg:text-left">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md">
               <Linkedin className="h-4 w-4 text-sky-300" />
-              AI headshots for LinkedIn, resumes, and teams
+              Professional headshots for LinkedIn, resumes, and teams
             </div>
 
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -164,9 +164,9 @@ export default function LandingPage() {
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg lg:mx-0">
-              Turn everyday selfies into realistic business portraits for LinkedIn, resumes, company bios, and personal
-              branding. Pay once, choose styles, and generate only what you need, with a workflow built for professionals
-              who want a credible profile photo without waiting for a studio session.
+              Turn everyday selfies into realistic professional portraits for LinkedIn, resumes, business profiles,
+              company bios, and personal branding. Pay once, choose styles, and generate only what you need, with a
+              workflow built for professionals who want a credible profile photo without waiting for a studio session.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
@@ -205,7 +205,7 @@ export default function LandingPage() {
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-slate-100">Profile upgrade preview</p>
-                  <p className="text-xs text-slate-300">From casual selfie to business-ready portrait</p>
+                  <p className="text-xs text-slate-300">From casual selfie to business-ready headshot</p>
                 </div>
                 <Sparkles className="h-5 w-5 text-accent-300" />
               </div>
@@ -273,7 +273,7 @@ export default function LandingPage() {
             <div>
               <h2 className="section-heading">Three steps from selfie to polished profile photo</h2>
               <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
-                Upload a few clear selfies, choose the professional styles you want, and download portraits that are ready for your public profiles.
+                Upload a few clear selfies, choose the professional styles you want, and download portraits that are ready for LinkedIn, resumes, business profiles, and corporate pages.
               </p>
               <TrackedLink
                 href="/pricing?plan=basic#plans"
@@ -317,7 +317,7 @@ export default function LandingPage() {
                 {[...Array(5)].map((_, index) => (
                   <Star key={index} className="h-4 w-4 fill-accent-300 text-accent-300" />
                 ))}
-                Built for profile upgrades that need to look credible
+                Built for professional headshots that need to look credible
               </div>
               <h2 className="mt-5 text-2xl font-bold tracking-tight sm:text-3xl">
                 Start with {PLANS.basic.name}: {PLANS.basic.credits} headshots for ${PLANS.basic.price}
@@ -367,7 +367,7 @@ export default function LandingPage() {
           <div className="text-center">
             <h2 className="section-heading">Questions before you start?</h2>
             <p className="section-subheading mx-auto mt-4">
-              Clear answers about credits, uploads, and usage before you buy.
+              Clear answers about professional headshots, credits, uploads, and usage before you buy.
             </p>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
@@ -385,7 +385,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold tracking-tight sm:text-4xl">Ready to make the profile photo the easy part?</h2>
           <p className="mx-auto mt-4 max-w-2xl text-primary-100">
-            Buy credits once, pick the styles you want, and generate professional portraits without waiting on a studio booking.
+            Buy credits once, pick the styles you want, and generate professional portraits for LinkedIn, resumes, and business profiles without waiting on a studio booking.
           </p>
           <TrackedLink
             href="/pricing?plan=basic#plans"

@@ -1,19 +1,19 @@
 export const coreSeoKeywords = [
   'Magic-Headshot',
-  'AI headshots for LinkedIn',
-  'professional headshots without photographer',
-  'AI resume photo generator',
-  'realistic AI headshot generator',
-  'LinkedIn profile photo maker',
-  'professional profile photo maker',
-  'business portrait AI generator',
+  'professional headshot',
+  'LinkedIn headshot',
+  'business headshots',
+  'corporate headshots',
+  'professional photos for LinkedIn',
+  'headshot pricing',
+  'photo tools',
 ] as const
 
 export const questions = [
   {
-    question: 'What makes Magic-Headshot useful for AI headshots for LinkedIn?',
+    question: 'What makes Magic-Headshot useful for professional headshots?',
     answer:
-      'Magic-Headshot focuses on realistic AI headshot generator output for LinkedIn, resumes, founder bios, and business profiles. The goal is a polished professional profile photo maker workflow without booking a studio session.',
+      'Magic-Headshot focuses on realistic professional headshots for LinkedIn, resumes, founder bios, and business profiles. The goal is a polished profile photo workflow without booking a studio session.',
   },
   {
     question: 'Can I create professional headshots without photographer scheduling?',
@@ -21,19 +21,19 @@ export const questions = [
       'Yes. The service is designed for people who need professional headshots without photographer costs, travel, or studio scheduling. Upload clear selfies, choose portrait styles, and generate business-ready results.',
   },
   {
-    question: 'Is an AI resume photo generator different from a LinkedIn headshot tool?',
+    question: 'Is a resume photo different from a LinkedIn headshot?',
     answer:
-      'The use case is slightly different. An AI resume photo generator should produce a clean, approachable image that works in a CV layout, while AI headshots for LinkedIn can lean more toward profile visibility and personal branding.',
+      'The use case is slightly different. A resume photo should produce a clean, approachable image that works in a CV layout, while LinkedIn headshots can lean a little more toward profile visibility and personal branding.',
   },
   {
-    question: 'How should I choose selfies for better AI headshot results?',
+    question: 'How should I choose selfies for better professional headshots?',
     answer:
-      'Use recent photos with clear lighting, a visible face, and minimal filters. A realistic AI headshot generator works best when the original image has enough face detail and a natural expression.',
+      'Use recent photos with clear lighting, a visible face, and minimal filters. A professional headshot generator works best when the original image has enough face detail and a natural expression.',
   },
   {
-    question: 'Can Magic-Headshot create a business portrait AI generator look?',
+    question: 'Can Magic-Headshot create business headshots for company pages?',
     answer:
-      'Yes. Magic-Headshot supports business portrait AI generator styles for corporate pages, speaker bios, sales profiles, and LinkedIn profile photo maker needs.',
+      'Yes. Magic-Headshot supports business headshots for corporate pages, speaker bios, sales profiles, and LinkedIn profile photo needs.',
   },
   {
     question: 'Are generated headshots suitable for teams?',
@@ -59,8 +59,8 @@ export const questions = [
 
 export const sampleComparisons = [
   {
-    title: 'LinkedIn Profile Refresh',
-    keyword: 'AI headshots for LinkedIn',
+    title: 'LinkedIn Headshot Refresh',
+    keyword: 'LinkedIn headshot',
     original: {
       src: '/home-pages/corporate/headshot-1.jpg',
       alt: 'Original reference photo before AI headshots for LinkedIn generation',
@@ -76,11 +76,11 @@ export const sampleComparisons = [
       },
     ],
     description:
-      'A real reference image becomes two polished LinkedIn portrait options with cleaner lighting, stronger framing, and a business-ready expression.',
+      'A real reference image becomes two polished LinkedIn headshot options with cleaner lighting, stronger framing, and a business-ready expression.',
   },
   {
     title: 'Resume Photo Upgrade',
-    keyword: 'AI resume photo generator',
+    keyword: 'professional profile photo',
     original: {
       src: '/home-pages/corporate/headshot-4.jpg',
       alt: 'Original reference photo before AI resume photo generator processing',
@@ -99,8 +99,8 @@ export const sampleComparisons = [
       'The generated resume versions keep the face approachable and professional, making the result easier to use in a CV, portfolio, or job application profile.',
   },
   {
-    title: 'Corporate Business Portrait',
-    keyword: 'business portrait AI generator',
+    title: 'Corporate Business Headshot',
+    keyword: 'business headshots',
     original: {
       src: '/home-pages/corporate/headshot-7.jpg',
       alt: 'Original reference photo before business portrait AI generator processing',
@@ -116,7 +116,7 @@ export const sampleComparisons = [
       },
     ],
     description:
-      'The corporate portrait results show how professional headshots without photographer scheduling can still support company bios, sales profiles, and LinkedIn pages.',
+      'The corporate headshot results show how professional headshots without photographer scheduling can still support company bios, sales profiles, and LinkedIn pages.',
   },
 ] as const
 

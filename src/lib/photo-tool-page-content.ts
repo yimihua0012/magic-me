@@ -547,11 +547,11 @@ const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPa
   fr: {
     'id-photo-crop': {
       label: 'Recadrer photo ID',
-      title: 'Outil gratuit pour recadrer une photo ID, passeport ou CV',
-      h1: 'Recadrez une photo ID pour passeport, CV, examens et profils',
+      title: 'Recadrer une photo ID en ligne : passeport, CV, examen',
+      h1: 'Recadrez une photo ID pour passeport, CV et examens',
       description:
-        'Importez une image JPG, PNG ou WebP, choisissez un format de photo ID, ajustez le cadrage et téléchargez un JPG prêt pour formulaires, CV, examens ou profils.',
-      keywords: ['recadrer photo ID', 'photo passeport en ligne', 'photo CV', 'photo examen'],
+        'Recadrez une photo ID en ligne, choisissez le format, ajustez le visage et téléchargez un JPG pour CV, examen ou profil.',
+      keywords: ['recadrer photo ID', 'photo passeport en ligne', 'photo CV'],
       features: ['Recadrage photo ID', 'Formats courants de documents', 'Zoom et position', 'Traitement local dans le navigateur', 'Téléchargement JPG'],
       faqs: [
         { question: 'Puis-je recadrer une photo ID en ligne ?', answer: 'Oui. Chargez une image locale et préparez une photo au format document.' },
@@ -596,11 +596,11 @@ const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPa
     },
     'remove-background': {
       label: 'Remove background',
-      title: 'Remove Background en ligne : PNG transparent pour personnes et produits',
-      h1: 'Remove Background pour personnes, produits et objets',
+      title: 'Remove Background en ligne : PNG transparent',
+      h1: 'Retirez le fond d’une image et téléchargez un PNG',
       description:
-        'Importez une image de personne, produit ou objet, retirez l’arrière-plan en ligne et téléchargez un PNG transparent. Chaque compte a 1 essai gratuit; ensuite 1 crédit par export réussi.',
-      keywords: ['remove background', 'PNG transparent', 'retirer fond produit', 'retirer fond portrait'],
+        'Retirez le fond d’une photo de personne, produit ou objet, puis téléchargez un PNG transparent. 1 essai gratuit avec compte.',
+      keywords: ['remove background', 'PNG transparent', 'retirer fond produit'],
       features: ['Portraits et personnes', 'Produits et objets', 'PNG transparent', '1 essai gratuit avec compte', 'Crédits ensuite'],
       toolTitle: 'Remove Background',
       toolDescription: 'Importez une personne, un produit ou un objet. L’outil retire l’arrière-plan et produit un PNG transparent.',
@@ -646,11 +646,11 @@ const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPa
   de: {
     'id-photo-crop': {
       label: 'ID-Foto zuschneiden',
-      title: 'Kostenloses Tool zum Zuschneiden von ID-Fotos, Passbildern und Bewerbungsfotos',
-      h1: 'ID-Fotos fuer Pass, Bewerbung, Pruefung und Profile zuschneiden',
+      title: 'ID-Foto online zuschneiden: Passbild und Bewerbung',
+      h1: 'ID-Fotos fuer Pass, Bewerbung und Pruefung zuschneiden',
       description:
-        'Lade ein JPG, PNG oder WebP hoch, waehle eine ID-Fotogroesse, passe den Ausschnitt an und lade ein fertiges JPG fuer Formulare, Bewerbungen, Pruefungen oder Profile herunter.',
-      keywords: ['ID-Foto zuschneiden', 'Passfoto online zuschneiden', 'Bewerbungsfoto zuschneiden', 'Pruefungsfoto'],
+        'Schneide ein ID-Foto online zu, waehle die Fotogroesse, passe das Gesicht an und lade ein JPG fuer Bewerbung oder Pruefung herunter.',
+      keywords: ['ID-Foto zuschneiden', 'Passfoto online zuschneiden', 'Bewerbungsfoto zuschneiden'],
       features: ['ID-Foto-Zuschnitt', 'Gaengige Dokumentformate', 'Zoom und Position', 'Lokale Verarbeitung im Browser', 'JPG-Download'],
       faqs: [
         { question: 'Kann ich ein ID-Foto online zuschneiden?', answer: 'Ja. Du kannst ein lokales Bild laden und als Dokumentfoto vorbereiten.' },
@@ -716,8 +716,8 @@ const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPa
       title: 'ID-Foto-Hintergrund aendern: weiss, blau oder rot',
       h1: 'ID-Foto-Hintergrund auf weiss, blau oder rot aendern',
       description:
-        'Lade ein transparentes PNG hoch, waehle Fotogroesse und Hintergrundfarbe, und lade ein fertiges JPG mit weissem, blauem, rotem oder hellgrauem Hintergrund herunter.',
-      keywords: ['ID-Foto Hintergrund aendern', 'Foto weisser Hintergrund', 'blauer Hintergrund ID-Foto', 'roter Hintergrund Foto'],
+        'Aendere den ID-Foto-Hintergrund online zu Weiss, Blau, Rot oder Grau, waehle die Fotogroesse und lade ein fertiges JPG herunter.',
+      keywords: ['ID-Foto Hintergrund aendern', 'Foto weisser Hintergrund', 'blauer Hintergrund ID-Foto'],
       features: ['Weisser Hintergrund', 'Blauer Hintergrund', 'Roter Hintergrund', 'ID-Fotogroessen', 'JPG-Export'],
       faqs: [
         { question: 'Brauche ich ein transparentes PNG?', answer: 'Ja. Das Tool legt eine saubere Farbe hinter das Motiv.' },
@@ -749,7 +749,7 @@ const localizedPhotoToolPages: Partial<Record<Locale, Partial<Record<PhotoToolPa
       h1: 'ID写真、履歴書、試験、プロフィール用に写真を整える',
       description:
         'JPG、PNG、WebP画像をアップロードし、ID写真サイズを選び、位置を調整して、フォームや履歴書、試験登録、プロフィール用のJPGをダウンロードできます。',
-      keywords: ['ID写真 トリミング', 'パスポート写真 オンライン', '履歴書写真', '試験用写真'],
+      keywords: ['ID写真 トリミング', 'パスポート写真 オンライン', '履歴書写真'],
       features: ['ID写真向けトリミング', 'よく使う証明写真サイズ', 'ズームと位置調整', 'ブラウザ内で処理', 'JPGで保存'],
       faqs: [
         { question: 'オンラインでID写真を切り抜けますか？', answer: 'はい。手元の画像を読み込み、証明写真向けのサイズと構図に整えられます。' },
@@ -881,10 +881,10 @@ Object.assign(localizedPhotoToolPages, {
     ...localizedPhotoToolPages.fr,
     'shape-crop': {
       label: 'Recadrage forme',
-      title: 'Recadrer une photo en cercle, coeur, avatar arrondi et PNG transparent',
+      title: 'Recadrer une photo en cercle, coeur ou avatar PNG',
       h1: 'Recadrez une photo par forme pour avatar, profil et icone',
       description:
-        'Recadrez une photo en cercle, coeur, carre ou coins arrondis, puis telechargez un PNG transparent.',
+        'Recadrez une photo en cercle, coeur, carre ou coins arrondis, puis telechargez un PNG transparent pour avatar ou profil.',
       keywords: ['recadrer photo cercle', 'recadrer image coeur', 'recadrage par forme'],
       features: ['Recadrage circulaire', 'Recadrage coeur', 'Avatar carre arrondi', 'PNG transparent', 'Traitement local'],
       faqs: [

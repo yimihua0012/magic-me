@@ -10,14 +10,14 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { coreSeoKeywords, sampleComparisons } from '@/lib/seo-content'
 
 export const metadata: Metadata = {
-  title: 'AI Headshot Samples: Before and After Comparisons',
+  title: 'Professional Headshot Samples: Before and After Comparisons',
   description:
-    'Compare AI headshot samples before and after, including original selfies and generated portraits for LinkedIn, resumes, profiles, and teams.',
-    keywords: [
-      'AI headshots for LinkedIn',
-      'AI resume photo generator',
-      'business profile portraits',
-    ],
+    'Compare professional headshot samples before and after for LinkedIn, resumes, business headshots, corporate profiles, and teams.',
+  keywords: [
+    'professional headshot samples',
+    'LinkedIn headshots',
+    'business headshots',
+  ],
   alternates: {
     canonical: '/sample',
     languages: languageAlternatesForPath('/sample'),
@@ -30,8 +30,8 @@ export default function SamplePage() {
       <CollectionPageJsonLd
         locale="en"
         path="/sample"
-        title="AI Headshot Sample Comparisons"
-        description="See AI headshot sample comparisons with original photos and generated portraits for LinkedIn, resumes, business profiles, and teams."
+        title="Professional Headshot Sample Comparisons"
+        description="See professional headshot sample comparisons with original photos and generated portraits for LinkedIn, resumes, business profiles, and teams."
         image={sampleComparisons[0]?.generated[0]?.src}
         items={sampleComparisons.map((sample) => ({
           name: sample.title,
@@ -46,13 +46,13 @@ export default function SamplePage() {
               <Images className="h-6 w-6" />
             </div>
             <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
-              AI Headshot Sample Comparisons
+              Professional Headshot Sample Comparisons
             </h1>
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
               Explore real Magic-Headshot comparison groups: one original reference photo and two generated AI
-              headshots for LinkedIn, AI resume photo generator use cases, business portrait AI generator styles, and
-              professional headshots without photographer scheduling. Use these examples to judge likeness, background
-              direction, wardrobe tone, and how different portrait styles can support a more credible public profile.
+              headshots for LinkedIn, resume photos, business headshots, and corporate profiles. Use these examples to
+              judge likeness, background direction, wardrobe tone, and how different portrait styles can support a
+              more credible public profile.
             </p>
             <div className="mt-7">
               <KeywordStrip keywords={coreSeoKeywords.slice(0, 6)} />
@@ -103,9 +103,7 @@ export default function SamplePage() {
                       {sample.keyword}
                     </div>
                     <h2 className="text-xl font-bold text-slate-950">{sample.title}</h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      {sample.description}
-                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">{sample.description}</p>
                   </div>
                 </article>
               ))}
@@ -117,8 +115,8 @@ export default function SamplePage() {
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
             <h2 className="text-2xl font-bold text-slate-950 sm:text-3xl">Use samples to choose your direction</h2>
             <p className="mx-auto mt-3 max-w-2xl text-slate-600">
-              Samples help you compare realistic AI headshot generator outputs before deciding whether you need a
-              LinkedIn profile photo maker look, a resume-ready portrait, or a business profile image.
+              Samples help you compare realistic professional headshot outputs before deciding whether you need a
+              LinkedIn headshot, a resume-ready portrait, or a business profile image.
             </p>
             <Link href="/pricing" className={buttonStyles({ size: 'lg', className: 'mt-7' })}>
               Generate Your Headshots

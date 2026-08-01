@@ -27,26 +27,26 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {
-  title: 'AI Headshot Generator for LinkedIn, Resumes, and Profiles',
+  title: 'Professional Headshot Generator for LinkedIn, Resumes, and Profiles',
   description: appConfig.description,
   keywords: [
-    'AI headshot generator',
-    'AI headshots for LinkedIn',
-    'AI resume photo generator',
+    'professional headshot generator',
+    'LinkedIn headshot',
+    'business headshots',
   ],
   alternates: {
     canonical: '/',
     languages: languageAlternatesForPath(),
   },
   openGraph: {
-    title: 'AI Headshot Generator for LinkedIn, Resumes, and Profiles',
+    title: 'Professional Headshot Generator for LinkedIn, Resumes, and Profiles',
     description: appConfig.description,
     url: '/',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Headshot Generator for LinkedIn, Resumes, and Profiles',
+    title: 'Professional Headshot Generator for LinkedIn, Resumes, and Profiles',
     description: appConfig.description,
   },
 }
@@ -60,7 +60,7 @@ const features = [
   {
     icon: <Sparkles className="w-6 h-6" />,
     title: 'Professional Styles',
-    description: 'Business-ready options for LinkedIn, resumes, websites, and teams.',
+    description: 'Business-ready options for LinkedIn, resumes, websites, corporate pages, and teams.',
   },
   {
     icon: <Shield className="w-6 h-6" />,
@@ -80,14 +80,14 @@ const features = [
   {
     icon: <Users className="w-6 h-6" />,
     title: 'Team Friendly',
-    description: 'Create consistent portraits for remote teams and company pages.',
+    description: 'Create consistent portraits for remote teams, company pages, and business headshots.',
   },
 ]
 
 const testimonials = [
   {
     name: 'Sarah Chen',
-    role: 'Product Manager at Google',
+    role: 'Product Manager',
     content: 'Best AI headshot generator for LinkedIn profile I have used! Got my professional headshot done in 3 minutes. Looks like I hired a professional photographer - perfect for my resume and CV.',
     avatar: 'SC',
   },
@@ -151,21 +151,21 @@ const resourceLinks = [
   {
     title: 'Compare AI headshot samples',
     description:
-      'See before-and-after examples for LinkedIn photos, resume portraits, and business profile images.',
+      'See before-and-after examples for professional headshots, LinkedIn photos, and business profile images.',
     href: '/sample',
     source: 'home_resource_sample',
   },
   {
-    title: 'Read common AI headshot questions',
+    title: 'Read common professional headshot questions',
     description:
-      'Learn what to upload, how credits work, and how to choose realistic professional headshots.',
+      'Learn what to upload, how credits work, and how to choose realistic professional headshots for LinkedIn and resumes.',
     href: '/questions',
     source: 'home_resource_questions',
   },
   {
-    title: 'Browse AI headshot guides',
+    title: 'Browse professional headshot guides',
     description:
-      'Explore practical guides for LinkedIn profile photos, resume photos, and headshots without a photographer.',
+      'Explore practical guides for LinkedIn headshots, resume photos, and business portraits without a photographer.',
     href: '/blog',
     source: 'home_resource_blog',
   },
@@ -176,7 +176,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-white">
       <HomeJsonLd
         locale="en"
-        title="Realistic AI Headshot Generator for LinkedIn, Resume, and Profile Photos"
+        title="Professional Headshot Generator for LinkedIn, Resume, and Profile Photos"
         description={appConfig.description}
         keywords={metadata.keywords as string[]}
       />
@@ -192,18 +192,19 @@ export default function HomePage() {
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-6">
                 <Sparkles className="w-4 h-4" />
-                AI Headshot Generator for LinkedIn
+                Professional Headshot Generator for LinkedIn
               </div>
               
               <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-tight">
-                Realistic AI Headshots for LinkedIn{' '}
+                Professional Headshots for LinkedIn{' '}
                 <span className="gradient-text">in Minutes</span>
               </h1>
               
               <p className="mt-3 sm:mt-6 text-base sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0">
-                Pay once to add credits, choose the professional styles you want, then generate and deduct only the
-                styles you selected. Use the finished portraits for LinkedIn, resumes, business profiles, team pages,
-                or personal branding when you need a realistic headshot without booking a photographer.
+                Pay once to add credits, choose the styles you want, then generate and deduct only the styles you
+                selected. Use the finished portraits for LinkedIn, resumes, business profiles, corporate pages, team
+                photos, and personal branding when you need a realistic professional headshot without booking a
+                photographer.
               </p>
               
               <div className="relative z-10 mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4 sm:justify-center lg:justify-start">
@@ -252,7 +253,7 @@ export default function HomePage() {
               <div className="text-center mb-8 sm:mb-16">
             <h2 className="section-heading">How It Works</h2>
             <p className="section-subheading mx-auto mt-3 sm:mt-4">
-              Three quick steps to realistic AI headshots
+              Three quick steps to realistic professional headshots
             </p>
           </div>
 
@@ -283,9 +284,9 @@ export default function HomePage() {
       <section id="features" className="content-auto py-10 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-16">
-            <h2 className="section-heading">Why Choose Our AI Headshot Generator</h2>
+            <h2 className="section-heading">Why Choose Our Professional Headshot Generator</h2>
             <p className="section-subheading mx-auto mt-3 sm:mt-4">
-              Built for fast, high-likeness LinkedIn headshots, resume photos, and team portraits
+              Built for fast, high-likeness LinkedIn headshots, resume photos, business headshots, and team portraits
             </p>
           </div>
 

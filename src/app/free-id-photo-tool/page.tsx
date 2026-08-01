@@ -4,13 +4,13 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
 import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 
-const title = 'Free ID Photo Generator, Crop & Print Tool | Magic-Headshot'
-const description = 'Free online ID photo tool for resumes, job applications, exams, employee badges, student cards, and printable photo sheets.'
+const title = 'Free ID Photo Tool for Passport, Resume, and Exam Photos | Magic-Headshot'
+const description = 'Free online ID photo tool for passport photos, resume photos, exams, employee badges, student cards, and printable photo sheets.'
 const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '')
 const keywords = [
-  'free ID photo print sheet',
-  'free resume photo crop',
-  'free exam photo tool',
+  'free ID photo tool',
+  'passport photo',
+  'resume photo',
 ]
 
 export const metadata: Metadata = {
@@ -54,7 +54,7 @@ export default function FreeIdPhotoToolPage() {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     '@id': `${pageUrl}#webapplication`,
-    name: 'Free ID Photo Generator, Crop & Print Tool',
+    name: 'Free ID Photo Tool for Passport, Resume, and Exam Photos',
     description,
     url: pageUrl,
     applicationCategory: 'MultimediaApplication',
@@ -65,6 +65,7 @@ export default function FreeIdPhotoToolPage() {
     featureList: [
       'Free ID photo crop tool',
       'Printable ID photo sheet layout',
+      'Passport photo crop',
       'Resume photo crop',
       'Exam photo tool',
       'Employee badge and student card photo tool',

@@ -10,30 +10,30 @@ import { languageAlternatesForPath } from '@/lib/i18n'
 import { PLANS, type PlanType } from '@backend/config/plans'
 
 export const metadata: Metadata = {
-  title: 'AI Headshot Pricing: One-Time Credits for Profile Photos',
+  title: 'Professional Headshot Pricing: One-Time Credit Packs',
   description:
-    'Compare one-time credit packs for AI headshots, LinkedIn photos, resume portraits, business profiles, and team pages.',
+    'Compare headshot pricing for LinkedIn photos, resume portraits, business headshots, corporate headshots, and team pages.',
   keywords: [
-    'AI headshot pricing',
-    'LinkedIn headshot pricing',
-    'resume photo pricing',
+    'headshot pricing',
+    'professional headshots pricing',
+    'corporate headshots pricing',
   ],
   alternates: {
     canonical: '/pricing',
     languages: languageAlternatesForPath('/pricing'),
   },
   openGraph: {
-    title: 'AI Headshot Pricing: One-Time Credits for Profile Photos',
+    title: 'Professional Headshot Pricing: One-Time Credit Packs',
     description:
-      'Compare one-time credit packs for AI headshots, LinkedIn photos, resume portraits, business profiles, and team pages.',
+      'Compare headshot pricing for LinkedIn photos, resume portraits, business headshots, corporate headshots, and team pages.',
     url: '/pricing',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Headshot Pricing: One-Time Credits for Profile Photos',
+    title: 'Professional Headshot Pricing: One-Time Credit Packs',
     description:
-      'Compare one-time credit packs for AI headshots, LinkedIn photos, resume portraits, business profiles, and team pages.',
+      'Compare headshot pricing for LinkedIn photos, resume portraits, business headshots, corporate headshots, and team pages.',
   },
 }
 
@@ -75,8 +75,8 @@ export default function PricingPage() {
       <PricingJsonLd
         locale="en"
         currency="USD"
-        title="AI Headshot Generator Pricing for LinkedIn and Resume Photos"
-        description="One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business portraits, and team pages."
+        title="Professional Headshot Pricing for LinkedIn and Resume Photos"
+        description="One-time pricing for realistic professional headshots for LinkedIn profiles, resumes, business portraits, and team pages."
         planDescription={(planId) => {
           const plan = PLANS[planId]
           return `${plan.credits} AI headshots with ${plan.validityDays} days validity. Validity starts from the first generation.`
@@ -87,12 +87,12 @@ export default function PricingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-6 text-center sm:mb-12">
             <h1 className="mb-2 text-2xl font-bold text-slate-900 sm:mb-4 sm:text-3xl lg:text-4xl">
-              AI Headshot Generator Pricing for LinkedIn and Resume Photos
+              Professional Headshot Pricing for LinkedIn and Resume Photos
             </h1>
             <p className="mx-auto max-w-2xl text-sm text-slate-600 sm:text-lg lg:text-xl">
-              One-time pricing for realistic, high-likeness AI headshots for LinkedIn profiles, resumes, business
-              portraits, and team pages. Compare credit packs before you upload, see what each plan includes, and choose
-              the package that matches how many professional styles you want to generate.
+              One-time pricing for realistic professional headshots for LinkedIn profiles, resumes, business
+              portraits, corporate headshots, and team pages. Compare credit packs before you upload, see what each
+              plan includes, and choose the package that matches how many styles you want to generate.
             </p>
           </div>
 
@@ -190,7 +190,7 @@ export default function PricingPage() {
               {[
                 {
                   q: 'Can I use the headshots commercially?',
-                  a: 'Yes. All plans include commercial use rights for LinkedIn, resumes, company profiles, websites, and marketing materials.',
+                  a: 'Yes. All plans include commercial use rights for LinkedIn, resumes, company profiles, websites, team pages, and marketing materials.',
                 },
                 {
                   q: 'What payment methods do you accept?',
@@ -210,7 +210,7 @@ export default function PricingPage() {
               Ready to Order Your AI Headshots?
             </h2>
             <p className="mb-6 text-sm text-slate-600 sm:mb-8 sm:text-base">
-              Join 10,000+ professionals who use {appConfig.name} for realistic LinkedIn headshots and resume photos.
+              Join 10,000+ professionals who use {appConfig.name} for realistic LinkedIn headshots, resume photos, and business portraits.
             </p>
             <a
               href="#plans"

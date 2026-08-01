@@ -86,7 +86,8 @@ export async function POST(request: Request) {
         HUMAN_TONE_RULES,
       ].join('\n'),
       user: prompt,
-      temperature: 0.7,
+      temperature: mode === 'prepare' ? 0.55 : 0.65,
+      timeoutMs: mode === 'prepare' ? 60_000 : 180_000,
     })
     content = result.content
   } catch (error) {
@@ -190,7 +191,7 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string, uniqu
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
     '- coverImageAlt must describe the intended cover image in the article language.',
     '- intro must be 80-140 words.',
-    '- visible article body should be about 1000-1200 words total.',
+    '- visible article body should be about 800-1000 words total.',
     '- sections must be an array of 5-7 objects, each with heading and body.',
     '- enhancement must include category, audience, searchIntent, uniqueAngle, actionSteps, qualityChecks, avoid, internalLinks, relatedSlugs.',
     '- actionSteps must be 4-6 practical steps.',
@@ -246,7 +247,7 @@ function buildBlogDraftPrompt(locale: Locale, keywords: string[], uniquenessHint
     '- coverImageUrl should be an empty string unless you know a site-local image path.',
     '- coverImageAlt must describe the intended article cover image in the article language.',
     '- intro must be 80-140 words.',
-    '- The visible article body should be about 1000-1200 words total, counting intro, sections, action steps, checks, and avoid text.',
+    '- The visible article body should be about 800-1000 words total, counting intro, sections, action steps, checks, and avoid text.',
     '- sections must be an array of 5-7 objects, each with heading and body. Body should be 100-150 words.',
     '- enhancement must include category, audience, searchIntent, uniqueAngle, actionSteps, qualityChecks, avoid, internalLinks, relatedSlugs.',
     '- actionSteps must be 4-6 practical steps.',
@@ -284,7 +285,7 @@ function withCmsJsonRequirements(prompt: string, locale: Locale, uniquenessHint:
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
     '- coverImageAlt must describe the intended cover image in the article language.',
     '- intro must be 80-140 words.',
-    '- visible article body should be about 1000-1200 words total.',
+    '- visible article body should be about 800-1000 words total.',
     '- sections must be an array of 5-7 objects, each with heading and body.',
     '- enhancement must include category, audience, searchIntent, uniqueAngle, actionSteps, qualityChecks, avoid, internalLinks, relatedSlugs.',
     '- actionSteps must be 4-6 practical steps.',
