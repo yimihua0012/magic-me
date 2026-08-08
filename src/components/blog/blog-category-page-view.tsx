@@ -137,16 +137,19 @@ export default function BlogCategoryPageView({ locale, category, content }: Blog
             heading: content.toolsHeading,
             description: content.toolsDescription,
             linkLabel: content.toolsLink,
+            href: content.toolsHref,
           }}
           workflow={{
             heading: content.workflowHeading,
             description: content.workflowDescription,
             linkLabel: content.workflowLink,
+            href: content.workflowHref,
           }}
           pricing={{
             heading: content.pricingHeading,
             description: content.pricingDescription,
             linkLabel: content.pricingLink,
+            href: content.pricingHref,
           }}
           variant="white"
         />

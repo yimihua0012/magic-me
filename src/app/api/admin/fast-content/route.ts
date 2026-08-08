@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import { isAdminEmail } from '@/lib/admin'
 import { getCurrentUser } from '@/lib/auth/server'
 import { LOCALES, type Locale } from '@/lib/i18n'
+import {
+  normalizeFastContentKeyword,
+  normalizeFastContentKeywordKey,
+  validateFastContentKeyword,
+} from '@/lib/fast-content-seo'
 import { supabaseAdmin } from '@backend/config/supabase'
 
 export const dynamic = 'force-dynamic'
@@ -10,6 +15,7 @@ const statuses = ['pending', 'generating', 'draft', 'failed', 'published'] as co
 const PUBLISHED_STATS_DAY_COUNT = 10
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
 const CMS_KEYWORD_PAGE_SIZE = 1000
+const CMS_KEYWORD_CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
 type FastContentStatus = typeof statuses[number]
 
@@ -58,6 +64,8 @@ const columns = [
   'created_at',
   'updated_at',
 ].join(',')
+
+const cmsKeywordKeyCache = new Map<Locale, { expiresAt: number; keys: Set<string> }>()
 
 export async function GET(request: Request) {
   const user = await requireAdmin(request)
@@ -118,10 +126,17 @@ export async function POST(request: Request) {
   const inserted: ReturnType<typeof rowToItem>[] = []
   const skipped: string[] = []
   const skippedCms: string[] = []
+  const rejected: { keyword: string; reasons: string[] }[] = []
   const errors: { keyword: string; error: string }[] = []
 
   for (const keyword of keywords) {
-    if (cmsKeywordKeys.has(normalizeKeywordKey(keyword))) {
+    const keywordValidation = validateFastContentKeyword(keyword, locale)
+    if (!keywordValidation.ok) {
+      rejected.push({ keyword, reasons: keywordValidation.reasons })
+      continue
+    }
+
+    if (cmsKeywordKeys.has(normalizeFastContentKeywordKey(keyword))) {
       skippedCms.push(keyword)
       continue
     }
@@ -155,7 +170,7 @@ export async function POST(request: Request) {
     inserted.push(rowToItem(data as unknown as FastContentRow))
   }
 
-  return NextResponse.json({ inserted, skipped, skippedCms, errors })
+  return NextResponse.json({ inserted, skipped, skippedCms, rejected, errors })
 }
 
 export async function PATCH(request: Request) {
@@ -233,8 +248,8 @@ function normalizeKeywordLines(value: unknown) {
   const keywords: string[] = []
 
   for (const line of raw.split(/\r?\n/)) {
-    const keyword = line.normalize('NFKC').trim().replace(/\s+/g, ' ')
-    const key = normalizeKeywordKey(keyword)
+    const keyword = normalizeFastContentKeyword(line)
+    const key = normalizeFastContentKeywordKey(keyword)
     if (!keyword || seen.has(key)) continue
     seen.add(key)
     keywords.push(keyword)
@@ -244,6 +259,11 @@ function normalizeKeywordLines(value: unknown) {
 }
 
 async function getCmsKeywordKeys(locale: Locale) {
+  const cached = cmsKeywordKeyCache.get(locale)
+  if (cached && cached.expiresAt > Date.now()) {
+    return new Set(cached.keys)
+  }
+
   const keywordKeys = new Set<string>()
   let offset = 0
 
@@ -260,7 +280,7 @@ async function getCmsKeywordKeys(locale: Locale) {
     const rows = (data || []) as unknown as CmsKeywordRow[]
     for (const row of rows) {
       for (const keyword of row.keywords || []) {
-        const key = normalizeKeywordKey(keyword)
+        const key = normalizeFastContentKeywordKey(keyword)
         if (key) keywordKeys.add(key)
       }
     }
@@ -269,11 +289,12 @@ async function getCmsKeywordKeys(locale: Locale) {
     offset += CMS_KEYWORD_PAGE_SIZE
   }
 
-  return keywordKeys
-}
+  cmsKeywordKeyCache.set(locale, {
+    expiresAt: Date.now() + CMS_KEYWORD_CACHE_TTL_MS,
+    keys: new Set(keywordKeys),
+  })
 
-function normalizeKeywordKey(value: string) {
-  return value.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase()
+  return keywordKeys
 }
 
 function rowToItem(row: FastContentRow) {

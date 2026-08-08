@@ -21,23 +21,28 @@ export type BlogCategorySeoContent = {
   toolsHeading: string
   toolsDescription: string
   toolsLink: string
+  toolsHref?: string
   workflowHeading: string
   workflowDescription: string
   workflowLink: string
+  workflowHref?: string
   pricingHeading: string
   pricingDescription: string
   pricingLink: string
+  pricingHref?: string
 }
 
 export function getBlogCategorySeoContent(locale: Locale, category: BlogCategorySummary): BlogCategorySeoContent {
   const label = category.label
   const count = category.count
   const keywords = Array.from(new Set([label, ...category.keywords])).slice(0, 3)
+  const bridgeTargets = getCategoryBridgeTargets(locale, label, keywords)
 
   const content = categoryContentByLocale[locale](label, count)
   return {
     ...content,
     keywords,
+    ...bridgeTargets,
   }
 }
 
@@ -247,4 +252,57 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     pricingDescription: `${label}向けの最終画像を作る前に、プロフィール更新、応募、チームページ、書類風写真に必要なクレジットを確認できます。`,
     pricingLink: '料金を見る',
   }),
+}
+
+function getCategoryBridgeTargets(locale: Locale, label: string, keywords: string[]) {
+  const text = `${label} ${keywords.join(' ')}`.toLowerCase()
+  const has = (...items: string[]) => items.some((item) => text.includes(item))
+
+  if (locale === 'en') {
+    if (has('linkedin')) {
+      return {
+        toolsHref: '/photo-tools/background-color-tool',
+        workflowHref: '/ai-headshot-linkedin',
+        pricingHref: '/pricing',
+      }
+    }
+
+    if (has('resume', 'cv', 'job application', 'career', 'application')) {
+      return {
+        toolsHref: '/photo-tools/resize-image-to-kb',
+        workflowHref: '/ai-headshot-resume',
+        pricingHref: '/pricing',
+      }
+    }
+
+    if (has('corporate', 'business', 'team', 'founder', 'consultant', 'professional headshot')) {
+      return {
+        toolsHref: '/sample',
+        workflowHref: '/ai-headshot-professional-photo',
+        pricingHref: '/pricing',
+      }
+    }
+
+    if (has('id photo', 'passport', 'document', 'student', 'exam', 'photo tool')) {
+      return {
+        toolsHref: '/free-id-photo-tool',
+        workflowHref: '/free-id-photo-tool',
+        pricingHref: '/pricing',
+      }
+    }
+
+    if (has('background', 'remove', 'crop', 'resize', 'print', 'utility', 'tool')) {
+      return {
+        toolsHref: '/photo-tools',
+        workflowHref: '/photo-tools',
+        pricingHref: '/pricing',
+      }
+    }
+  }
+
+  return {
+    toolsHref: locale === 'en' ? '/photo-tools' : undefined,
+    workflowHref: locale === 'en' ? '/upload' : undefined,
+    pricingHref: locale === 'en' ? '/pricing' : undefined,
+  }
 }

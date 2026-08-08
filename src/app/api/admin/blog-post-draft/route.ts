@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
   if (!isAiTextGenerationConfigured()) {
     return NextResponse.json(
-      { error: 'Missing AI text provider key. Configure DEEPSEEK_KEY or QIANWEN_KEY on the server.' },
+      { error: 'Missing AI text provider key. Configure DEEPSEEK_KEY, QIANWEN_KEY, KIMI_KEY, or GLM_KEY on the server.' },
       { status: 500 },
     )
   }
@@ -180,7 +180,7 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string, uniqu
     'The prompt must include a dedicated Meta description rule: the description must mention one concrete use case, audience, or workflow from the article, such as LinkedIn, resume/CV, document photo, student exam photo, background color, printable sheet, avatar style, or profile update, depending on the selected keyword.',
     'The prompt must include human-tone rules: the article should sound warm, specific, and useful to a real reader, not generic, robotic, or overly promotional.',
     'The prompt must include a human-detail rule: at least one section should mention a practical moment, tradeoff, or decision the reader would actually make.',
-    'Critical: the prompt must require DeepSeek to return only one valid JSON object that can be parsed and saved by the blog CMS.',
+    'Critical: the prompt must require the AI provider to return only one valid JSON object that can be parsed and saved by the blog CMS.',
     'The prompt must preserve these exact required JSON keys: slug, title, description, keywords, category, coverImageUrl, coverImageAlt, intro, sections, enhancement, localizedSlugs.',
     'The prompt must preserve these field rules:',
     '- slug must be lowercase English letters/numbers/hyphens only.',
@@ -210,7 +210,7 @@ function buildKeywordAndPromptPrompt(locale: Locale, relatedTerms: string, uniqu
     '',
     'JSON rules:',
     '- keywords must be an array with exactly one localized long-tail Google search phrase.',
-    '- prompt must be a detailed string that can be sent directly to DeepSeek to generate the article JSON.',
+    '- prompt must be a detailed string that can be sent directly to the AI provider to generate the article JSON.',
     '- Do not include markdown fences.',
     '- Do not include commentary outside JSON.',
   ].join('\n')

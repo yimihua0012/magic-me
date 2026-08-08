@@ -11,6 +11,7 @@ import { revalidateBlogPaths } from '@/lib/blog-revalidate'
 import { LOCALES, type Locale } from '@/lib/i18n'
 import { supabaseAdmin } from '@backend/config/supabase'
 import { generateAiText, isAiTextGenerationConfigured } from '@/lib/ai/text-generation'
+import { validateFastContentDraftSeo, validateFastContentKeyword } from '@/lib/fast-content-seo'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,7 +57,7 @@ async function runFastContentCron(request: Request) {
   if (authResult) return authResult
 
   if (!isAiTextGenerationConfigured()) {
-    return NextResponse.json({ error: 'Missing AI text provider key. Configure DEEPSEEK_KEY or QIANWEN_KEY on the server.' }, { status: 500 })
+    return NextResponse.json({ error: 'Missing AI text provider key. Configure DEEPSEEK_KEY, QIANWEN_KEY, KIMI_KEY, or GLM_KEY on the server.' }, { status: 500 })
   }
 
   const { searchParams } = new URL(request.url)
@@ -113,7 +114,10 @@ async function runFastContentCron(request: Request) {
           ...draft,
           status: 'published',
         }
-        const validationErrors = validateBlogPostInput(publishInput)
+        const validationErrors = [
+          ...validateBlogPostInput(publishInput),
+          ...validateFastContentDraftSeo(publishInput),
+        ]
         if (validationErrors.length > 0) {
           throw new Error(validationErrors.join(' '))
         }
@@ -202,8 +206,18 @@ async function pickRandomKeyword(locale?: Locale) {
   const candidates = ((data || []) as unknown as FastContentCronRow[])
     .filter((row) => (LOCALES as readonly string[]).includes(row.locale) && row.keyword.trim())
 
-  if (candidates.length === 0) return null
-  return candidates[Math.floor(Math.random() * candidates.length)]
+  const validCandidates: FastContentCronRow[] = []
+  for (const candidate of candidates) {
+    const validation = validateFastContentKeyword(candidate.keyword, candidate.locale)
+    if (validation.ok) {
+      validCandidates.push(candidate)
+    } else {
+      await markKeywordFailed(candidate.id, `Keyword rejected by SEO gate: ${validation.reasons.join(' ')}`)
+    }
+  }
+
+  if (validCandidates.length === 0) return null
+  return validCandidates[Math.floor(Math.random() * validCandidates.length)]
 }
 
 async function recoverStaleGeneratingKeywords() {
@@ -378,6 +392,8 @@ function buildBlogDraftPrompt(locale: Locale, keyword: string, uniquenessHint: s
     '- description must be unique for this draft, include the primary keyword or a natural close variant, and mention one concrete use case, audience, or workflow from the article.',
     '- description must not be the same as title or the first intro sentence.',
     '- keywords must be an array with exactly one localized long-tail search phrase, and that keyword must clearly match the description topic.',
+    '- The keyword must be closely related to headshots, profile photos, ID photos, background editing, cropping, resizing, PNG, or print layout tools.',
+    '- Reject unrelated names, competitor brands, website names, broad one-word seeds, and sentence-like keyword strings.',
     '- coverImageUrl should be an empty string unless a site-local image path is known.',
     '- coverImageAlt must describe the intended cover image in the article language.',
     '- intro must be 80-140 words and should sound helpful and specific, not like a generic SEO opener.',

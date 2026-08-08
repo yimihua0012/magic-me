@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Compass, TriangleAle
 import AdminPageFrame from '@/components/admin/admin-page-frame'
 import { useAdminAuth } from '@/components/admin/admin-auth'
 import BlogCoverImage from '@/components/blog/blog-cover-image'
+import BlogSectionBody from '@/components/blog/blog-section-body'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import { buttonStyles } from '@/components/ui/button'
 import Card from '@/components/ui/card'
@@ -202,7 +203,7 @@ export default function BlogPreviewPageView({ id, locale = 'en' }: BlogPreviewPa
           {(post.sections || []).map((section) => (
             <section key={section.heading}>
               <h2 className="break-words text-2xl font-bold text-slate-950">{section.heading}</h2>
-              <p className="mt-3 whitespace-pre-wrap text-base leading-8 text-slate-700">{section.body}</p>
+              <BlogSectionBody body={section.body} />
             </section>
           ))}
         </div>

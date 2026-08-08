@@ -512,7 +512,7 @@ export default function AdminMaintenancePageView({ locale = 'en', section }: Adm
 
         {section === 'styles' && (
           <Card className="p-5 sm:p-6">
-            <FormHeader title="Generate Style Draft" description="Enter a style direction, choose a type, then let DeepSeek prepare editable style data." onCancel={() => {
+            <FormHeader title="Generate Style Draft" description="Enter a style direction, choose a type, then let the AI provider prepare editable style data." onCancel={() => {
               setStyleDirection('')
               setStyleDraftCategory('artistic')
             }} />

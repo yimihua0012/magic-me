@@ -78,7 +78,7 @@ export async function POST(request: Request) {
 
     if (engine !== 'google-ads' && !isAiTextGenerationConfigured()) {
       return NextResponse.json(
-        { error: 'Missing AI text provider key. Configure DEEPSEEK_KEY or QIANWEN_KEY on the server.' },
+        { error: 'Missing AI text provider key. Configure DEEPSEEK_KEY, QIANWEN_KEY, KIMI_KEY, or GLM_KEY on the server.' },
         { status: 500 },
       )
     }

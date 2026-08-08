@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { tmpdir } from 'node:os'
 import { join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -8,6 +9,171 @@ const ts = require('typescript')
 const root = process.cwd()
 const appDir = join(root, 'src', 'app')
 const firstContentCharacterLimit = 400
+const seoCheckDbCacheDir = join(tmpdir(), 'magic-headshot-seo-check-cache')
+const latinFastContentLocales = new Set(['en', 'es', 'fr', 'de'])
+const genericFastContentKeywords = new Set([
+  'ai',
+  'avatar',
+  'background',
+  'crop',
+  'cropping',
+  'headshot',
+  'headshots',
+  'image',
+  'photo',
+  'photos',
+  'picture',
+  'portrait',
+  'resize',
+  'tool',
+])
+const blockedFastContentKeywordFragments = [
+  'adobe',
+  'canva',
+  'croppola',
+  'david chang',
+  'hcorpo',
+  'headshotpro',
+  'i love img',
+  'iloveimg',
+  'jcpenney',
+  'logo',
+  'phoneboard',
+  'www.',
+  '.com',
+  '.net',
+  '.org',
+]
+const allowedFastContentTopicFragments = [
+  'ai headshot',
+  'avatar',
+  'background color',
+  'background remover',
+  'bewerbungsfoto',
+  'business headshot',
+  'business portrait',
+  'career photo',
+  'change background',
+  'compress image',
+  'compress photo',
+  'crop image',
+  'crop photo',
+  'cv photo',
+  'document photo',
+  'employee photo',
+  'foto carnet',
+  'foto curriculum',
+  'foto de perfil',
+  'foto profesional',
+  'headshot',
+  'id photo',
+  'image crop',
+  'image resize',
+  'image resizer',
+  'linkedin photo',
+  'passport photo',
+  'passfoto',
+  'photo background',
+  'photo crop',
+  'photo editing',
+  'photo layout',
+  'photo resize',
+  'photo resizer',
+  'photo sheet',
+  'png',
+  'print layout',
+  'professional photo',
+  'portrait professionnel',
+  'profile photo',
+  'photo cv',
+  'photo d identite',
+  'photo d\'identite',
+  'photo identite',
+  'redimensionner photo',
+  'supprimer fond',
+  'fond photo',
+  'mise en page photo',
+  'lebenslauf foto',
+  'hintergrund',
+  'freistellen',
+  'zuschneiden',
+  'bild zuschneiden',
+  'bildgroesse',
+  'bildgröße',
+  'remove background',
+  'resize image',
+  'resize photo',
+  'resume photo',
+  '証明写真',
+  '履歴書写真',
+  'プロフィール写真',
+  '背景',
+  '切り抜き',
+  'リサイズ',
+  '头像',
+  '职业照',
+  '职业头像',
+  '证件照',
+  '简历照片',
+  '抠图',
+  '去背景',
+  '换底',
+  '裁剪',
+  '缩放',
+  '打印排版',
+]
+const fastContentIntentFragments = [
+  'background',
+  'bewerbung',
+  'business',
+  'change',
+  'compress',
+  'corporate',
+  'crop',
+  'cv',
+  'document',
+  'free',
+  'generator',
+  'id',
+  'job',
+  'kb',
+  'layout',
+  'linkedin',
+  'identite',
+  'online',
+  'passport',
+  'passfoto',
+  'print',
+  'professional',
+  'profile',
+  'remove',
+  'resize',
+  'resume',
+  'redimensionner',
+  'supprimer',
+  'fond',
+  'lebenslauf',
+  'hintergrund',
+  'freistellen',
+  'zuschneiden',
+  'tool',
+  'upload',
+  '背景',
+  '履歴書',
+  '証明',
+  '切り抜き',
+  'リサイズ',
+  '头像',
+  '职业',
+  '证件',
+  '简历',
+  '抠图',
+  '去背景',
+  '换底',
+  '裁剪',
+  '缩放',
+  '打印',
+]
 const skippedRoutePatterns = [
   /^src\/app\/(?:\[locale\]\/)?auth\//,
   /^src\/app\/(?:\[locale\]\/)?dashboard\//,
@@ -108,6 +274,58 @@ function parseEnvLine(line) {
   }
 
   return /^[A-Z0-9_]+$/.test(name) ? { name, value } : null
+}
+
+function readDailyDbCache(kind, supabaseUrl) {
+  if (process.env.SEO_CHECK_DB_CACHE === '0' || process.env.SEO_CHECK_DB_CACHE === 'false') return null
+
+  const path = dailyDbCachePath(kind, supabaseUrl)
+  if (!existsSync(path)) return null
+
+  try {
+    const parsed = JSON.parse(readFileSync(path, 'utf8'))
+    return Array.isArray(parsed?.rows) ? parsed.rows : null
+  } catch {
+    return null
+  }
+}
+
+function writeDailyDbCache(kind, supabaseUrl, rows) {
+  if (process.env.SEO_CHECK_DB_CACHE === '0' || process.env.SEO_CHECK_DB_CACHE === 'false') return
+
+  try {
+    mkdirSync(seoCheckDbCacheDir, { recursive: true })
+    writeFileSync(dailyDbCachePath(kind, supabaseUrl), JSON.stringify({
+      cachedAt: new Date().toISOString(),
+      rows,
+    }), 'utf8')
+  } catch {
+    // Cache writes should never fail the SEO check.
+  }
+}
+
+function dailyDbCachePath(kind, supabaseUrl) {
+  const projectRef = supabaseProjectRef(supabaseUrl)
+  return join(seoCheckDbCacheDir, `${kind}-${projectRef}-${shanghaiDayKey(new Date())}.json`)
+}
+
+function supabaseProjectRef(supabaseUrl) {
+  try {
+    return new URL(supabaseUrl).hostname.split('.')[0].replace(/[^a-z0-9_-]/gi, '_')
+  } catch {
+    return 'unknown'
+  }
+}
+
+function shanghaiDayKey(value) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(value)
+  const readPart = (type) => parts.find((part) => part.type === type)?.value || ''
+  return `${readPart('year')}-${readPart('month')}-${readPart('day')}`
 }
 
 function toRepoPath(path) {
@@ -448,6 +666,68 @@ function duplicateKeywords(keywords) {
   }
 
   return duplicates
+}
+
+function validateFastContentKeywordForSeo(keyword, locale = 'en') {
+  const cleanKeyword = normalizeWhitespace(String(keyword || '').normalize('NFKC'))
+  const normalized = cleanKeyword.toLocaleLowerCase()
+  const reasons = []
+
+  if (!cleanKeyword) reasons.push('keyword is empty')
+  if (/https?:\/\//i.test(cleanKeyword)) reasons.push('keyword must not be a URL')
+  if (/[<>{}[\]\\]/.test(cleanKeyword)) reasons.push('keyword contains unsupported characters')
+  if (blockedFastContentKeywordFragments.some((fragment) => normalized.includes(fragment))) {
+    reasons.push('keyword contains a competitor, website, brand, or unrelated named entity')
+  }
+
+  if (latinFastContentLocales.has(locale)) {
+    const words = splitFastContentWords(cleanKeyword)
+    if (cleanKeyword.length < 8) reasons.push('keyword is too short to show useful long-tail intent')
+    if (cleanKeyword.length > 80) reasons.push('keyword is too long for one focused article topic')
+    if (words.length < 2) reasons.push('keyword must be more specific than one broad word')
+    if (words.length > 8) reasons.push('keyword is too broad or sentence-like; keep it within 2-8 words')
+    if (genericFastContentKeywords.has(normalized)) reasons.push('keyword is too generic for Fast Content')
+  } else {
+    const length = Array.from(cleanKeyword).length
+    if (length < 4) reasons.push('keyword is too short to show useful search intent')
+    if (length > 40) reasons.push('keyword is too long for one focused article topic')
+  }
+
+  if (!hasFastContentTopic(cleanKeyword)) {
+    reasons.push('keyword is not closely related to headshots, profile photos, ID photos, or photo tools')
+  }
+
+  if (!hasFastContentIntent(cleanKeyword)) {
+    reasons.push('keyword does not show a clear use case, action, format, or target audience')
+  }
+
+  return reasons
+}
+
+function hasFastContentTopic(value) {
+  const normalized = normalizeFastContentComparable(value)
+  return allowedFastContentTopicFragments.some((fragment) => normalized.includes(normalizeFastContentComparable(fragment)))
+}
+
+function hasFastContentIntent(value) {
+  const normalized = normalizeFastContentComparable(value)
+  return fastContentIntentFragments.some((fragment) => normalized.includes(normalizeFastContentComparable(fragment)))
+}
+
+function splitFastContentWords(value) {
+  return String(value || '')
+    .toLocaleLowerCase()
+    .normalize('NFKC')
+    .split(/[^\p{Letter}\p{Number}]+/u)
+    .map((word) => word.trim())
+    .filter(Boolean)
+}
+
+function normalizeFastContentComparable(value) {
+  return String(value || '')
+    .toLocaleLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
 }
 
 function inferLocaleFromRepoPath(repoPath) {
@@ -899,6 +1179,14 @@ async function checkPublishedCmsBlogSeoConsistency() {
     return { checked: 0, warnings, issues }
   }
 
+  const cachedRows = readDailyDbCache('cms-blog-posts', supabaseUrl)
+  if (cachedRows) {
+    for (const row of cachedRows) {
+      validatePublishedCmsBlogRow(row, issues)
+    }
+    return { checked: cachedRows.length, warnings, issues }
+  }
+
   let createClient
   try {
     createClient = require('@supabase/supabase-js').createClient
@@ -928,39 +1216,128 @@ async function checkPublishedCmsBlogSeoConsistency() {
     }
 
     rows = data || []
+    writeDailyDbCache('cms-blog-posts', supabaseUrl, rows)
   } catch (error) {
     issues.push(`CMS blog_posts: query failed: ${error.message}`)
     return { checked: 0, warnings, issues }
   }
 
   for (const row of rows) {
-    const label = `${row.locale}/${row.slug}`
-    const description = typeof row.description === 'string' ? row.description.trim() : ''
-    const title = typeof row.title === 'string' ? row.title.trim() : ''
-    const keywords = Array.isArray(row.keywords) ? row.keywords.filter((keyword) => typeof keyword === 'string' && keyword.trim()) : []
-    const intro = typeof row.intro === 'string' ? row.intro.trim() : ''
-    const sections = row.content && Array.isArray(row.content.sections) ? row.content.sections : []
-    const firstSection = sections.find((section) => section && typeof section.body === 'string')
-    const firstContent = [
-      title,
-      description,
-      ...keywords,
-      intro,
-      firstSection?.heading,
-      firstSection?.body,
-    ].filter(Boolean).join(' ')
-
-    validateSeoBasics(`CMS blog_posts ${label}`, {
-      locale: row.locale,
-      title,
-      description,
-      keywords,
-      checkH1: false,
-      firstContent,
-    }, issues)
+    validatePublishedCmsBlogRow(row, issues)
   }
 
   return { checked: rows.length, warnings, issues }
+}
+
+function validatePublishedCmsBlogRow(row, issues) {
+  const label = `${row.locale}/${row.slug}`
+  const description = typeof row.description === 'string' ? row.description.trim() : ''
+  const title = typeof row.title === 'string' ? row.title.trim() : ''
+  const keywords = Array.isArray(row.keywords) ? row.keywords.filter((keyword) => typeof keyword === 'string' && keyword.trim()) : []
+  const intro = typeof row.intro === 'string' ? row.intro.trim() : ''
+  const sections = row.content && Array.isArray(row.content.sections) ? row.content.sections : []
+  const firstSection = sections.find((section) => section && typeof section.body === 'string')
+  const firstContent = [
+    title,
+    description,
+    ...keywords,
+    intro,
+    firstSection?.heading,
+    firstSection?.body,
+  ].filter(Boolean).join(' ')
+
+  validateSeoBasics(`CMS blog_posts ${label}`, {
+    locale: row.locale,
+    title,
+    description,
+    keywords,
+    checkH1: false,
+    firstContent,
+  }, issues)
+
+  for (const keyword of keywords) {
+    const keywordIssues = validateFastContentKeywordForSeo(keyword, row.locale)
+    if (keywordIssues.length > 0) {
+      issues.push(`CMS blog_posts ${label}: keyword "${keyword}" fails Fast Content SEO gate: ${keywordIssues.join('; ')}.`)
+    }
+  }
+}
+
+async function checkFastContentKeywordQueueSeo() {
+  const warnings = []
+  const issues = []
+
+  if (process.env.SEO_CHECK_CMS === '0' || process.env.SEO_CHECK_CMS === 'false') {
+    warnings.push('Fast Content keyword queue check skipped because SEO_CHECK_CMS is disabled.')
+    return { checked: 0, warnings, issues }
+  }
+
+  loadLocalEnv()
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !serviceRoleKey) {
+    warnings.push('Fast Content keyword queue check skipped because NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.')
+    return { checked: 0, warnings, issues }
+  }
+
+  const cachedRows = readDailyDbCache('fast-content-keywords', supabaseUrl)
+  if (cachedRows) {
+    for (const row of cachedRows) {
+      validateFastContentKeywordQueueRow(row, issues)
+    }
+    return { checked: cachedRows.length, warnings, issues }
+  }
+
+  let createClient
+  try {
+    createClient = require('@supabase/supabase-js').createClient
+  } catch (error) {
+    warnings.push(`Fast Content keyword queue check skipped because @supabase/supabase-js could not be loaded: ${error.message}`)
+    return { checked: 0, warnings, issues }
+  }
+
+  let rows = []
+  try {
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+    const { data, error } = await supabase
+      .from('fast_content_keywords')
+      .select('id,locale,keyword,status')
+      .neq('keyword', 'fast-content-cron')
+      .in('status', ['pending', 'failed', 'draft'])
+      .limit(1000)
+
+    if (error) {
+      issues.push(`Fast Content keyword queue: query failed: ${error.message}`)
+      return { checked: 0, warnings, issues }
+    }
+
+    rows = data || []
+    writeDailyDbCache('fast-content-keywords', supabaseUrl, rows)
+  } catch (error) {
+    issues.push(`Fast Content keyword queue: query failed: ${error.message}`)
+    return { checked: 0, warnings, issues }
+  }
+
+  for (const row of rows) {
+    validateFastContentKeywordQueueRow(row, issues)
+  }
+
+  return { checked: rows.length, warnings, issues }
+}
+
+function validateFastContentKeywordQueueRow(row, issues) {
+  const locale = ['en', 'es', 'fr', 'de', 'ja', 'zh'].includes(row.locale) ? row.locale : 'en'
+  const keyword = typeof row.keyword === 'string' ? row.keyword.trim() : ''
+  const keywordIssues = validateFastContentKeywordForSeo(keyword, locale)
+  if (keywordIssues.length > 0) {
+    issues.push(`Fast Content keyword queue ${row.id || 'unknown'} ${locale}/${row.status}: "${keyword}" fails SEO gate: ${keywordIssues.join('; ')}.`)
+  }
 }
 
 function validatePhotoToolSource(issues) {
@@ -1186,13 +1563,15 @@ export function checkAllPagesSeoConsistency() {
 export async function checkSeoConsistency() {
   const pageResult = checkAllPagesSeoConsistency()
   const cmsResult = await checkPublishedCmsBlogSeoConsistency()
+  const fastContentResult = await checkFastContentKeywordQueueSeo()
 
   return {
     checked: pageResult.checked,
     skipped: pageResult.skipped,
     cmsChecked: cmsResult.checked,
-    warnings: [...pageResult.warnings, ...cmsResult.warnings],
-    issues: [...pageResult.issues, ...cmsResult.issues],
+    fastContentChecked: fastContentResult.checked,
+    warnings: [...pageResult.warnings, ...cmsResult.warnings, ...fastContentResult.warnings],
+    issues: [...pageResult.issues, ...cmsResult.issues, ...fastContentResult.issues],
   }
 }
 
@@ -1206,9 +1585,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     for (const issue of result.issues) {
       console.error(`FAIL ${issue}`)
     }
-    console.error(`SEO consistency check failed: ${result.issues.length} issue(s), ${result.warnings.length} warning(s), ${result.cmsChecked} published CMS blog row(s) checked.`)
+    console.error(`SEO consistency check failed: ${result.issues.length} issue(s), ${result.warnings.length} warning(s), ${result.cmsChecked} published CMS blog row(s) checked, ${result.fastContentChecked} Fast Content keyword row(s) checked.`)
     process.exitCode = 1
   } else {
-    console.log(`SEO consistency check passed: ${result.checked.length} public page(s) checked, ${result.skipped.length} private/admin page(s) skipped, ${result.cmsChecked} published CMS blog row(s) checked, ${result.warnings.length} warning(s).`)
+    console.log(`SEO consistency check passed: ${result.checked.length} public page(s) checked, ${result.skipped.length} private/admin page(s) skipped, ${result.cmsChecked} published CMS blog row(s) checked, ${result.fastContentChecked} Fast Content keyword row(s) checked, ${result.warnings.length} warning(s).`)
   }
 }

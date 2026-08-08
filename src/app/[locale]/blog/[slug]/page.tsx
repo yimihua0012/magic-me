@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, CalendarDays } from 'lucide-react'
+import BlogSectionBody from '@/components/blog/blog-section-body'
 import BlogCoverImage from '@/components/blog/blog-cover-image'
 import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
 import Navbar from '@/components/layout/localized-navbar'
@@ -189,7 +190,7 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
             {post.sections.map((section) => (
               <section key={section.heading}>
                 <h2 className="break-words text-2xl font-bold text-slate-950">{section.heading}</h2>
-                <p className="mt-3 text-base leading-8 text-slate-700">{section.body}</p>
+                <BlogSectionBody body={section.body} />
               </section>
             ))}
           </div>

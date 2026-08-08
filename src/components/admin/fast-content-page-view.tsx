@@ -137,8 +137,9 @@ export default function FastContentPageView({ locale = 'en' }: FastContentPageVi
       const insertedCount = Array.isArray(data.inserted) ? data.inserted.length : 0
       const skippedCount = Array.isArray(data.skipped) ? data.skipped.length : 0
       const skippedCmsCount = Array.isArray(data.skippedCms) ? data.skippedCms.length : 0
+      const rejectedCount = Array.isArray(data.rejected) ? data.rejected.length : 0
       const errorCount = Array.isArray(data.errors) ? data.errors.length : 0
-      setMessage(`Added ${insertedCount}. Queue duplicates ${skippedCount}. CMS keyword duplicates ${skippedCmsCount}. Failed ${errorCount}.`)
+      setMessage(`Added ${insertedCount}. SEO rejected ${rejectedCount}. Queue duplicates ${skippedCount}. CMS keyword duplicates ${skippedCmsCount}. Failed ${errorCount}.`)
       if (insertedCount > 0) setKeywordLines('')
       await loadItems()
     } catch (addError) {
@@ -258,7 +259,7 @@ export default function FastContentPageView({ locale = 'en' }: FastContentPageVi
       : []
     const prompt = typeof data.prompt === 'string' ? data.prompt : ''
     if (keywords.length !== 1 || !prompt) {
-      throw new Error('DeepSeek did not return one keyword and a prompt.')
+      throw new Error('The AI provider did not return one keyword and a prompt.')
     }
     return { keyword: keywords[0], prompt }
   }
@@ -279,7 +280,7 @@ export default function FastContentPageView({ locale = 'en' }: FastContentPageVi
       throw new Error(typeof data.error === 'string' ? data.error : 'Could not generate article.')
     }
     if (!data.draft) {
-      throw new Error('DeepSeek did not return a draft.')
+      throw new Error('The AI provider did not return a draft.')
     }
     return data.draft as Partial<BlogPostAdminItem> & {
       coverImageUrl?: string
@@ -365,7 +366,7 @@ export default function FastContentPageView({ locale = 'en' }: FastContentPageVi
             <textarea
               value={keywordLines}
               onChange={(event) => setKeywordLines(event.target.value)}
-              placeholder={'one localized long-tail keyword\nanother localized long-tail keyword'}
+              placeholder={'localized long-tail keyword about headshots or photo tools\nresume photo background color online'}
               className="min-h-28 rounded-lg border border-slate-200 px-3 py-2 font-mono text-xs leading-5 text-slate-900 placeholder:text-slate-400"
             />
             <Button onClick={addKeywords} isLoading={isAdding} disabled={isAdding || !keywordLines.trim()}>

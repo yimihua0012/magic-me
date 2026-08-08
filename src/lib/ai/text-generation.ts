@@ -1,4 +1,4 @@
-export type AiTextProvider = 'deepseek' | 'qwen'
+export type AiTextProvider = 'deepseek' | 'qwen' | 'kimi' | 'glm'
 
 type AiTextGenerationInput = {
   system: string
@@ -23,7 +23,7 @@ export class AiTextGenerationError extends Error {
 }
 
 export function isAiTextGenerationConfigured() {
-  return Boolean(getDeepSeekApiKey() || getQwenApiKey())
+  return Boolean(getDeepSeekApiKey() || getQwenApiKey() || getKimiApiKey() || getGlmApiKey())
 }
 
 export async function generateAiText(input: AiTextGenerationInput) {
@@ -34,7 +34,11 @@ export async function generateAiText(input: AiTextGenerationInput) {
     try {
       const content = provider === 'qwen'
         ? await generateWithQwen(input)
-        : await generateWithDeepSeek(input)
+        : provider === 'kimi'
+          ? await generateWithKimi(input)
+          : provider === 'glm'
+            ? await generateWithGlm(input)
+            : await generateWithDeepSeek(input)
 
       return { content, provider }
     } catch (error) {
@@ -49,13 +53,12 @@ export async function generateAiText(input: AiTextGenerationInput) {
 
 function resolveProviders(): AiTextProvider[] {
   const requested = (process.env.AI_TEXT_PROVIDER || 'auto').trim().toLowerCase()
-  const preferred: AiTextProvider[] = requested === 'qwen'
-    ? ['qwen']
-    : requested === 'deepseek'
-      ? ['deepseek']
-      : ['deepseek', 'qwen']
+  const allProviders: AiTextProvider[] = ['deepseek', 'qwen', 'kimi', 'glm']
+  const preferred: AiTextProvider[] = allProviders.includes(requested as AiTextProvider)
+    ? [requested as AiTextProvider]
+    : allProviders
 
-  return preferred.filter((provider) => provider === 'qwen' ? Boolean(getQwenApiKey()) : Boolean(getDeepSeekApiKey()))
+  return preferred.filter((provider) => isProviderConfigured(provider))
 }
 
 async function generateWithDeepSeek(input: AiTextGenerationInput) {
@@ -148,12 +151,107 @@ async function generateWithQwen(input: AiTextGenerationInput) {
   return content
 }
 
+async function generateWithKimi(input: AiTextGenerationInput) {
+  const apiKey = getKimiApiKey()
+  if (!apiKey) throw new AiTextGenerationError('Kimi API key is not configured.', 'kimi')
+
+  const response = await fetch(resolveKimiEndpoint(), {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: process.env.KIMI_MODEL?.trim() || 'kimi-k2.6',
+      temperature: input.temperature ?? 0.7,
+      thinking: { type: 'disabled' },
+      messages: [
+        { role: 'system', content: input.system },
+        { role: 'user', content: input.user },
+      ],
+    }),
+    signal: AbortSignal.timeout(input.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+    cache: 'no-store',
+  })
+
+  const raw = await response.text()
+  const parsed = parseJson<{
+    choices?: { message?: { content?: string | null } }[]
+  } & ProviderErrorPayload>(raw)
+
+  if (!response.ok) {
+    throw new AiTextGenerationError(
+      readProviderError(parsed, `Kimi request failed with status ${response.status}.`),
+      'kimi',
+    )
+  }
+
+  const content = parsed?.choices?.[0]?.message?.content?.trim()
+  if (!content) throw new AiTextGenerationError('Kimi returned no text content.', 'kimi')
+  return content
+}
+
+async function generateWithGlm(input: AiTextGenerationInput) {
+  const apiKey = getGlmApiKey()
+  if (!apiKey) throw new AiTextGenerationError('GLM API key is not configured.', 'glm')
+
+  const response = await fetch(resolveGlmEndpoint(), {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: process.env.GLM_MODEL?.trim() || 'GLM-4.6',
+      temperature: input.temperature ?? 0.7,
+      stream: false,
+      messages: [
+        { role: 'system', content: input.system },
+        { role: 'user', content: input.user },
+      ],
+    }),
+    signal: AbortSignal.timeout(input.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+    cache: 'no-store',
+  })
+
+  const raw = await response.text()
+  const parsed = parseJson<{
+    choices?: { message?: { content?: string | null } }[]
+  } & ProviderErrorPayload>(raw)
+
+  if (!response.ok) {
+    throw new AiTextGenerationError(
+      readProviderError(parsed, `GLM request failed with status ${response.status}.`),
+      'glm',
+    )
+  }
+
+  const content = parsed?.choices?.[0]?.message?.content?.trim()
+  if (!content) throw new AiTextGenerationError('GLM returned no text content.', 'glm')
+  return content
+}
+
 function getDeepSeekApiKey() {
   return (process.env.DEEPSEEK_KEY || process.env.DEEPSEEK_API_KEY || '').trim()
 }
 
 function getQwenApiKey() {
   return (process.env.QIANWEN_KEY || process.env.DASHSCOPE_API_KEY || '').trim()
+}
+
+function getKimiApiKey() {
+  return (process.env.KIMI_KEY || process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY || '').trim()
+}
+
+function getGlmApiKey() {
+  return (process.env.GLM_KEY || process.env.GLM_API_KEY || process.env.ZHIPUAI_API_KEY || process.env.BIGMODEL_API_KEY || '').trim()
+}
+
+function isProviderConfigured(provider: AiTextProvider) {
+  if (provider === 'qwen') return Boolean(getQwenApiKey())
+  if (provider === 'kimi') return Boolean(getKimiApiKey())
+  if (provider === 'glm') return Boolean(getGlmApiKey())
+  return Boolean(getDeepSeekApiKey())
 }
 
 function resolveDeepSeekEndpoint() {
@@ -166,6 +264,20 @@ function resolveDeepSeekEndpoint() {
 function resolveQwenEndpoint() {
   return process.env.QIANWEN_BASE_URL?.trim()
     || 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation'
+}
+
+function resolveKimiEndpoint() {
+  const baseUrl = process.env.KIMI_BASE_URL?.trim() || process.env.MOONSHOT_BASE_URL?.trim() || 'https://api.moonshot.ai/v1'
+  return baseUrl.endsWith('/chat/completions')
+    ? baseUrl
+    : `${baseUrl.replace(/\/$/, '')}/chat/completions`
+}
+
+function resolveGlmEndpoint() {
+  const baseUrl = process.env.GLM_BASE_URL?.trim() || process.env.ZHIPUAI_BASE_URL?.trim() || 'https://open.bigmodel.cn/api/paas/v4'
+  return baseUrl.endsWith('/chat/completions')
+    ? baseUrl
+    : `${baseUrl.replace(/\/$/, '')}/chat/completions`
 }
 
 function readQwenContent(value: string | { text?: string }[] | undefined) {

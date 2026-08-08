@@ -256,7 +256,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
     const preparedPrompt = typeof data.prompt === 'string' ? data.prompt : ''
 
     if (preparedKeywords.length !== 1 || !preparedPrompt) {
-      throw new Error('DeepSeek did not return one keyword and a prompt.')
+      throw new Error('The AI provider did not return one keyword and a prompt.')
     }
 
     return {
@@ -567,7 +567,7 @@ export default function BlogContentPageView({ locale = 'en' }: BlogContentPageVi
         <Card className="p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-bold text-slate-900">DeepSeek Draft Generator</h2>
+            <h2 className="text-lg font-bold text-slate-900">AI Draft Generator</h2>
           </div>
           <div className="grid gap-3 lg:grid-cols-[160px_minmax(0,1fr)_auto_auto]">
             <select

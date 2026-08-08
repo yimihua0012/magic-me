@@ -250,7 +250,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 
 async function generateStyleDraft(body: StyleCreateInput) {
   if (!isAiTextGenerationConfigured()) {
-    return NextResponse.json({ error: 'Missing AI text provider key. Configure DEEPSEEK_KEY or QIANWEN_KEY on the server.' }, { status: 500 })
+    return NextResponse.json({ error: 'Missing AI text provider key. Configure DEEPSEEK_KEY, QIANWEN_KEY, KIMI_KEY, or GLM_KEY on the server.' }, { status: 500 })
   }
 
   const direction = typeof body.direction === 'string' ? body.direction.trim() : ''
