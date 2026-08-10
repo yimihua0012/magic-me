@@ -18,5 +18,12 @@ export const metadata: Metadata = {
 }
 
 export default function PhotoToolsPage() {
-  return <StandalonePhotoToolsPageView />
+  return (
+    <StandalonePhotoToolsPageView
+      breadcrumbItems={[
+        { label: 'Home', href: '/' },
+        { label: 'Photo Tools', href: '/photo-tools' },
+      ]}
+    />
+  )
 }

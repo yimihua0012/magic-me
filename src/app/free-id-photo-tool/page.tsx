@@ -93,8 +93,19 @@ export default function FreeIdPhotoToolPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <BreadcrumbJsonLd locale="en" path="/free-id-photo-tool" currentName={title} />
-      <PublicPhotoToolsPageView />
+      <BreadcrumbJsonLd
+        locale="en"
+        path="/free-id-photo-tool"
+        currentName={title}
+        parent={{ name: 'Photo Tools', path: '/photo-tools' }}
+      />
+      <PublicPhotoToolsPageView
+        breadcrumbItems={[
+          { label: 'Home', href: '/' },
+          { label: 'Photo Tools', href: '/photo-tools' },
+          { label: 'Free ID Photo Tool', href: '/free-id-photo-tool' },
+        ]}
+      />
     </>
   )
 }

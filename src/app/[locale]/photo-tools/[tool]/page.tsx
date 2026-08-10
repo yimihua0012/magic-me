@@ -161,7 +161,16 @@ export default async function LocalizedPhotoToolPage({ params }: PhotoToolPagePr
         currentName={page.h1}
         parent={{ name: 'Photo Tools', path: '/photo-tools' }}
       />
-      <StandalonePhotoToolsPageView locale={routedLocale} initialTool={page.activeId} seoContent={page} />
+      <StandalonePhotoToolsPageView
+        locale={routedLocale}
+        initialTool={page.activeId}
+        seoContent={page}
+        breadcrumbItems={[
+          { label: 'Home', href: localePath(routedLocale, '/') },
+          { label: 'Photo Tools', href: localePath(routedLocale, '/photo-tools') },
+          { label: page.h1, href: localePath(routedLocale, page.path) },
+        ]}
+      />
     </>
   )
 }

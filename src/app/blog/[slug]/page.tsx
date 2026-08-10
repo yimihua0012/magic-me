@@ -8,9 +8,11 @@ import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import BlogPostJsonLd from '@/components/seo/blog-post-json-ld'
+import BreadcrumbNav from '@/components/seo/breadcrumb-nav'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 import { getBlogEnhancement } from '@/lib/blog-enhancements'
+import { getBlogBreadcrumbLabel } from '@/lib/blog-breadcrumb'
 import { getEnglishBlogCtaContent, getEnglishBlogInternalLinks } from '@/lib/blog-internal-links'
 import { getBlogLanguageAlternates, getPublishedBlogPost, getPublishedBlogPosts, getPublishedBlogSlugs, getRelatedPublishedBlogPosts } from '@/lib/blog-store'
 
@@ -97,12 +99,21 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   const related = await getRelatedPublishedBlogPosts('en', post.slug, enhancement?.relatedSlugs)
   const workflowLinks = getEnglishBlogInternalLinks(post, getRenderableWorkflowLinks(enhancement?.internalLinks))
   const ctaContent = getEnglishBlogCtaContent(post)
+  const blogLabel = getBlogBreadcrumbLabel('en')
 
   return (
     <StaticMarketingShell>
       <BlogPostJsonLd post={post} index={0} imagePath={portrait?.url} />
       <main>
         <article className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <BreadcrumbNav
+            className="mb-6"
+            items={[
+              { label: 'Home', href: '/' },
+              { label: blogLabel, href: '/blog' },
+              { label: post.title, href: `/blog/${post.slug}` },
+            ]}
+          />
           <Link href="/blog" className="mb-8 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back to blog

@@ -1,4 +1,5 @@
 import { appConfig } from '@/lib/config'
+import { getBlogBreadcrumbLabel } from '@/lib/blog-breadcrumb'
 import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 import { localePath, type Locale } from '@/lib/i18n'
 import type { BlogPostWithMeta } from '@/lib/blog-store'
@@ -61,7 +62,7 @@ export default function BlogJsonLd({
         <BreadcrumbJsonLd
           locale={locale}
           path={path}
-          currentName={breadcrumbName || title}
+          currentName={breadcrumbName || getBlogBreadcrumbLabel(locale)}
           parent={breadcrumbParent}
         />
       )}

@@ -103,5 +103,13 @@ export default async function LocalizedPhotoToolsPage({ params }: PageProps) {
     notFound()
   }
 
-  return <StandalonePhotoToolsPageView locale={locale} />
+  return (
+    <StandalonePhotoToolsPageView
+      locale={locale}
+      breadcrumbItems={[
+        { label: 'Home', href: localePath(locale, '/') },
+        { label: 'Photo Tools', href: localePath(locale, '/photo-tools') },
+      ]}
+    />
+  )
 }

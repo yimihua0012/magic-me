@@ -1,4 +1,5 @@
 import { appConfig } from '@/lib/config'
+import { getBlogBreadcrumbLabel } from '@/lib/blog-breadcrumb'
 import { getBlogModifiedIsoDate, getBlogPublishIsoDate } from '@/lib/blog-dates'
 import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 import { localePath, type Locale } from '@/lib/i18n'
@@ -60,7 +61,7 @@ export default function BlogPostJsonLd({ post, index, imagePath, locale = 'en' }
         locale={locale}
         path={`/blog/${post.slug}`}
         currentName={post.title}
-        parent={{ name: 'Magic-Headshot Blog', path: '/blog' }}
+        parent={{ name: getBlogBreadcrumbLabel(locale), path: '/blog' }}
       />
     </>
   )

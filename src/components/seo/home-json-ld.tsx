@@ -2,7 +2,6 @@ import { appConfig } from '@/lib/config'
 import { getDefaultCurrencyForLocale } from '@/lib/currency'
 import { localePath, type Locale } from '@/lib/i18n'
 import { digitalMerchantPolicy } from '@/lib/merchant-structured-data'
-import { BreadcrumbJsonLd } from '@/components/seo/page-json-ld'
 import { PLANS } from '@backend/config/plans'
 
 interface HomeJsonLdProps {
@@ -48,12 +47,9 @@ export default function HomeJsonLd({ locale, title, description, keywords }: Hom
   }
 
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <BreadcrumbJsonLd locale={locale} path="/" currentName={title} />
-    </>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
   )
 }

@@ -4,6 +4,7 @@ import BlogCoverImage from '@/components/blog/blog-cover-image'
 import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
 import BlogJsonLd from '@/components/seo/blog-json-ld'
 import { FaqPageJsonLd } from '@/components/seo/page-json-ld'
+import BreadcrumbNav from '@/components/seo/breadcrumb-nav'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import type { BlogCategorySeoContent } from '@/lib/blog-category-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
@@ -42,6 +43,14 @@ export default function BlogCategoryPageView({ locale, category, content }: Blog
       <main>
         <section className="bg-slate-50 py-14 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <BreadcrumbNav
+              className="mb-6"
+              items={[
+                { label: 'Home', href: localePath(locale, '/') },
+                { label: content.blogName, href: blogHref },
+                { label: content.h1, href: localePath(locale, categoryPath) },
+              ]}
+            />
             <Link href={blogHref} className="mb-8 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
               <ArrowLeft className="mr-1 h-4 w-4" />
               {content.backToBlog}

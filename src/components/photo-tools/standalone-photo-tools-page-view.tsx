@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import LocalizedFooter from '@/components/layout/localized-footer'
 import LocalizedNavbar from '@/components/layout/localized-navbar'
+import BreadcrumbNav, { type BreadcrumbNavItem } from '@/components/seo/breadcrumb-nav'
 import AspectRatioCropTool from '@/components/photo-tools/aspect-ratio-crop-tool'
 import BackgroundColorTool from '@/components/photo-tools/background-color-tool'
 import IdPhotoCropPrintTool from '@/components/photo-tools/id-photo-crop-print-tool'
@@ -24,6 +25,7 @@ interface StandalonePhotoToolsPageViewProps {
   initialTool?: ToolId
   seoContent?: PhotoToolPageContent
   locale?: Locale
+  breadcrumbItems?: readonly BreadcrumbNavItem[]
 }
 
 const pageText: Record<Locale, {
@@ -137,6 +139,7 @@ export default function StandalonePhotoToolsPageView({
   initialTool = 'id-photo-crop',
   seoContent,
   locale = 'en',
+  breadcrumbItems,
 }: StandalonePhotoToolsPageViewProps) {
   const [activeTool, setActiveTool] = useState<ToolId>(initialTool)
   const text = pageText[locale]
@@ -184,6 +187,9 @@ export default function StandalonePhotoToolsPageView({
       {Header}
       <main className="pb-16 pt-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {breadcrumbItems && (
+            <BreadcrumbNav className="mb-6" items={breadcrumbItems} />
+          )}
           <div className="mb-8">
             <div className="mb-2 text-sm font-semibold text-blue-600">{text.eyebrow}</div>
             <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">{pageTitle}</h1>

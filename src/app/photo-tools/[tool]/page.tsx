@@ -140,7 +140,16 @@ export default async function PhotoToolPage({ params }: PhotoToolPageProps) {
         currentName={page.h1}
         parent={{ name: 'Photo Tools', path: '/photo-tools' }}
       />
-      <StandalonePhotoToolsPageView locale="en" initialTool={page.activeId} seoContent={page} />
+      <StandalonePhotoToolsPageView
+        locale="en"
+        initialTool={page.activeId}
+        seoContent={page}
+        breadcrumbItems={[
+          { label: 'Home', href: '/' },
+          { label: 'Photo Tools', href: '/photo-tools' },
+          { label: page.h1, href: page.path },
+        ]}
+      />
     </>
   )
 }

@@ -7,7 +7,9 @@ import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
 import Navbar from '@/components/layout/localized-navbar'
 import Footer from '@/components/layout/localized-footer'
 import BlogJsonLd from '@/components/seo/blog-json-ld'
+import BreadcrumbNav from '@/components/seo/breadcrumb-nav'
 import KeywordStrip from '@/components/seo/keyword-strip'
+import { getBlogBreadcrumbLabel } from '@/lib/blog-breadcrumb'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 import {
@@ -213,14 +215,22 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
   }
   const content = localizedBlogIndexContent[routedLocale]
   const categories = getBlogCategoriesFromPosts(posts, routedLocale)
+  const blogLabel = getBlogBreadcrumbLabel(routedLocale)
 
   return (
     <div className="min-h-screen bg-white">
-      <BlogJsonLd posts={posts} locale={routedLocale} path="/blog" />
+      <BlogJsonLd posts={posts} locale={routedLocale} path="/blog" breadcrumbName={blogLabel} />
       <Navbar locale={routedLocale} />
       <main className="pt-20">
         <section className="bg-slate-50 py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
+            <BreadcrumbNav
+              className="mb-6 justify-center"
+              items={[
+                { label: 'Home', href: localePath(routedLocale, '/') },
+                { label: blogLabel, href: localePath(routedLocale, '/blog') },
+              ]}
+            />
             <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-600">
               <BookOpen className="h-6 w-6" />
             </div>

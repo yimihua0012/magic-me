@@ -1,5 +1,6 @@
 import type { BlogCategorySummary } from '@/lib/blog-store'
 import type { Locale } from '@/lib/i18n'
+import { getBlogBreadcrumbLabel } from '@/lib/blog-breadcrumb'
 
 type BlogCategoryFaq = {
   question: string
@@ -75,7 +76,7 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     articleCount: `${count} article${count === 1 ? '' : 's'}`,
     readArticle: 'Read article',
     faqHeading: 'Category FAQ',
-    blogName: 'Magic-Headshot Blog',
+    blogName: getBlogBreadcrumbLabel('en'),
     toolsHeading: 'Use the right photo tool',
     toolsDescription: `Use the photo tools after reading these ${label} guides to remove a background, change background color, crop an ID photo, resize files, or prepare a printable photo sheet.`,
     toolsLink: 'Open photo tools',
@@ -105,7 +106,7 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     articleCount: `${count} 篇文章`,
     readArticle: '阅读文章',
     faqHeading: '分类常见问题',
-    blogName: 'Magic-Headshot Blog',
+    blogName: getBlogBreadcrumbLabel('zh'),
     toolsHeading: 'Try the photo tools',
     toolsDescription: '阅读指南后，可以使用 Photo Tools 裁剪证件照、压缩图片、处理背景或准备打印排版。',
     toolsLink: '打开 Photo Tools',
@@ -139,7 +140,7 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     articleCount: `${count} artículo${count === 1 ? '' : 's'}`,
     readArticle: 'Leer artículo',
     faqHeading: 'FAQ de la categoría',
-    blogName: 'Blog de Magic-Headshot',
+    blogName: getBlogBreadcrumbLabel('es'),
     toolsHeading: 'Try the photo tools',
     toolsDescription: 'Después de elegir una guía, usa las herramientas de foto para recortar, cambiar tamaño, preparar una hoja imprimible o revisar el fondo antes de publicar o enviar la imagen.',
     toolsLink: 'Abrir herramientas de foto',
@@ -173,7 +174,7 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     articleCount: `${count} article${count === 1 ? '' : 's'}`,
     readArticle: 'Lire l article',
     faqHeading: 'FAQ de la catégorie',
-    blogName: 'Blog Magic-Headshot',
+    blogName: getBlogBreadcrumbLabel('fr'),
     toolsHeading: 'Try the photo tools',
     toolsDescription: 'Après avoir choisi un guide, utilisez les outils photo pour recadrer, alléger le fichier, préparer une planche imprimable ou ajuster le fond avant publication.',
     toolsLink: 'Ouvrir les outils photo',
@@ -207,7 +208,7 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     articleCount: `${count} Artikel`,
     readArticle: 'Artikel lesen',
     faqHeading: 'Kategorie FAQ',
-    blogName: 'Magic-Headshot Blog',
+    blogName: getBlogBreadcrumbLabel('de'),
     toolsHeading: 'Try the photo tools',
     toolsDescription: 'Nach dem passenden Guide kannst du die Fotowerkzeuge nutzen, um Bilder zuzuschneiden, Dateigroessen anzupassen, Drucklayouts vorzubereiten oder den Hintergrund zu pruefen.',
     toolsLink: 'Fotowerkzeuge oeffnen',
@@ -241,7 +242,7 @@ const categoryContentByLocale: Record<Locale, (label: string, count: number) => 
     articleCount: `${count}件の記事`,
     readArticle: '記事を読む',
     faqHeading: 'カテゴリFAQ',
-    blogName: 'Magic-Headshotブログ',
+    blogName: getBlogBreadcrumbLabel('ja'),
     toolsHeading: 'Try the photo tools',
     toolsDescription: '用途に合う記事を確認したあと、写真ツールで切り抜き、サイズ調整、印刷用レイアウト、背景色の確認を行い、公開や提出前の状態を整えられます。',
     toolsLink: '写真ツールを開く',

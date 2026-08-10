@@ -9,6 +9,8 @@ import Navbar from '@/components/layout/localized-navbar'
 import Footer from '@/components/layout/localized-footer'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import BlogPostJsonLd from '@/components/seo/blog-post-json-ld'
+import BreadcrumbNav from '@/components/seo/breadcrumb-nav'
+import { getBlogBreadcrumbLabel } from '@/lib/blog-breadcrumb'
 import { blogGeneratedPortraitImages } from '@/lib/seo-content'
 import { getBlogLanguageAlternates, getCmsPublishedBlogPosts, getPublishedBlogPost, getRelatedPublishedBlogPosts } from '@/lib/blog-store'
 import { OPEN_GRAPH_LOCALES, isRoutedLocale, localePath, ROUTED_LOCALES, type RoutedLocale } from '@/lib/i18n'
@@ -149,6 +151,7 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
   const image = getBlogArticleImage(post, 0)
   const related = await getRelatedPublishedBlogPosts(routedLocale, post.slug, post.enhancement?.relatedSlugs)
   const labels = blogArticleLabels[routedLocale]
+  const blogLabel = getBlogBreadcrumbLabel(routedLocale)
 
   return (
     <div className="min-h-screen bg-white">
@@ -156,6 +159,14 @@ export default async function LocalizedBlogArticlePage({ params }: PageProps) {
       <Navbar locale={routedLocale} />
       <main className="pt-20">
         <article className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <BreadcrumbNav
+            className="mb-6"
+            items={[
+              { label: 'Home', href: localePath(routedLocale, '/') },
+              { label: blogLabel, href: localePath(routedLocale, '/blog') },
+              { label: post.title, href: localePath(routedLocale, `/blog/${post.slug}`) },
+            ]}
+          />
           <Link href={localePath(routedLocale, '/blog')} className="mb-8 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700">
             <ArrowLeft className="mr-1 h-4 w-4" />
             {labels.backToBlog}

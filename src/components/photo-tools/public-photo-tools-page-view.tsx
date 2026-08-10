@@ -7,6 +7,7 @@ import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import LocalizedNavbar from '@/components/layout/localized-navbar'
 import LocalizedFooter from '@/components/layout/localized-footer'
+import BreadcrumbNav, { type BreadcrumbNavItem } from '@/components/seo/breadcrumb-nav'
 import Button from '@/components/ui/button'
 import { BriefcaseBusiness, CheckCircle2, FileText, ImagePlus, Layers3, Palette, Printer, Shapes, ShieldAlert, SlidersHorizontal, Sparkles, UserRoundCheck } from 'lucide-react'
 import { localePath, type Locale } from '@/lib/i18n'
@@ -298,6 +299,7 @@ const seoContent: Record<Locale, SeoContent> = {
 
 interface PublicPhotoToolsPageViewProps {
   locale?: Locale
+  breadcrumbItems?: readonly BreadcrumbNavItem[]
 }
 
 type EnglishTool = 'original' | 'id-photo-crop' | 'resize-image' | 'resize-image-kb' | 'remove-background' | 'background-color' | 'print-layout' | 'aspect-ratio-crop' | 'shape-crop'
@@ -311,7 +313,7 @@ const PhotoToolsWorkbench = dynamic(() => import('@/components/photo-tools/photo
   ),
 })
 
-export default function PublicPhotoToolsPageView({ locale = 'en' }: PublicPhotoToolsPageViewProps) {
+export default function PublicPhotoToolsPageView({ locale = 'en', breadcrumbItems }: PublicPhotoToolsPageViewProps) {
   const [activeTool, setActiveTool] = useState<EnglishTool>('original')
   const content = pageContent[locale]
   const seo = seoContent[locale]
@@ -418,6 +420,9 @@ export default function PublicPhotoToolsPageView({ locale = 'en' }: PublicPhotoT
 
       <main className="pt-24 pb-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {breadcrumbItems && (
+            <BreadcrumbNav className="mb-6" items={breadcrumbItems} />
+          )}
           <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-blue-600">

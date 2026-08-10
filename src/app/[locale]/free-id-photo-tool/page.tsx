@@ -220,8 +220,20 @@ export default async function LocalizedFreeIdPhotoToolPage({ params }: PageProps
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <BreadcrumbJsonLd locale={routedLocale} path="/free-id-photo-tool" currentName={content.title} />
-      <PublicPhotoToolsPageView locale={routedLocale} />
+      <BreadcrumbJsonLd
+        locale={routedLocale}
+        path="/free-id-photo-tool"
+        currentName={content.title}
+        parent={{ name: 'Photo Tools', path: '/photo-tools' }}
+      />
+      <PublicPhotoToolsPageView
+        locale={routedLocale}
+        breadcrumbItems={[
+          { label: 'Home', href: localePath(routedLocale, '/') },
+          { label: 'Photo Tools', href: localePath(routedLocale, '/photo-tools') },
+          { label: content.title, href: localePath(routedLocale, '/free-id-photo-tool') },
+        ]}
+      />
     </>
   )
 }

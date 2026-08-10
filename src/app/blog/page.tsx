@@ -6,9 +6,11 @@ import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import BlogJsonLd from '@/components/seo/blog-json-ld'
+import BreadcrumbNav from '@/components/seo/breadcrumb-nav'
 import { blogGeneratedPortraitImages, coreSeoKeywords } from '@/lib/seo-content'
 import { getBlogPublishDate } from '@/lib/blog-dates'
 import { getBlogEnhancement } from '@/lib/blog-enhancements'
+import { getBlogBreadcrumbLabel } from '@/lib/blog-breadcrumb'
 import {
   blogCategoryPath,
   blogPostCategoryLabel,
@@ -38,13 +40,21 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function BlogPage() {
   const posts = await getPublishedBlogPosts('en')
   const categories = getBlogCategoriesFromPosts(posts, 'en')
+  const blogLabel = getBlogBreadcrumbLabel('en')
 
   return (
     <StaticMarketingShell>
-      <BlogJsonLd posts={posts} locale="en" path="/blog" />
+      <BlogJsonLd posts={posts} locale="en" path="/blog" breadcrumbName={blogLabel} />
       <main>
         <section className="bg-slate-50 py-14 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
+            <BreadcrumbNav
+              className="mb-6 justify-center"
+              items={[
+                { label: 'Home', href: '/' },
+                { label: blogLabel, href: '/blog' },
+              ]}
+            />
             <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-600">
               <BookOpen className="h-6 w-6" />
             </div>
