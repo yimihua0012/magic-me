@@ -6,7 +6,7 @@ import { ROUTED_LOCALES, isRoutedLocale, languageAlternatesForPath, localePath, 
 import { localizedSocialMetadata } from '@/lib/localized-metadata'
 import { localizedSampleContent } from '@/lib/localized-marketing-content'
 import { getLocalizedSeo } from '@/lib/localized-seo'
-import { sampleComparisons } from '@/lib/seo-content'
+import { styleShowcaseCards } from '@/lib/seo-content'
 
 type PageProps = { params: Promise<{ locale: string }> }
 
@@ -49,11 +49,11 @@ export default async function LocalizedSampleRoute({ params }: PageProps) {
         path="/sample"
         title={content.title}
         description={content.description}
-        image={sampleComparisons[0]?.generated[0]?.src}
-        items={sampleComparisons.slice(0, 4).map((sample) => ({
-          name: sample.title,
-          description: sample.description,
-          image: sample.generated[0]?.src,
+        image={styleShowcaseCards[0]?.src}
+        items={styleShowcaseCards.slice(0, 4).map((card) => ({
+          name: card.name,
+          description: content.description,
+          image: card.src,
         }))}
       />
       <LocalizedSamplePage locale={routedLocale} content={content} />

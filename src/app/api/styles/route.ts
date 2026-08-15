@@ -8,11 +8,8 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url)
-    const requestedLocale = url.searchParams.get('locale') || 'en'
+const requestedLocale = url.searchParams.get('locale') || 'en'
     const locale: Locale = isLocale(requestedLocale) ? requestedLocale : 'en'
-    const requestedGender = url.searchParams.get('gender')
-    const gender: 'neutral' | 'male' | 'female' =
-      requestedGender === 'male' || requestedGender === 'female' ? requestedGender : 'neutral'
 
     let { data, error } = await supabaseAdmin
       .from('headshot_styles')
@@ -64,7 +61,7 @@ export async function GET(request: Request) {
     const styles = includeFallbackPhotoToolStyles(data || []).map(applyPhotoToolStyleOverrides)
 
     // 预览图：优先按 style_name 精确匹配样例库，其次按 category 兜底
-    const previewMap = await loadStylePreviewMap(gender)
+    const previewMap = await loadStylePreviewMap()
 
     return NextResponse.json(
       {
@@ -161,34 +158,22 @@ type StylePreviewMap = {
   byCategory: Map<string, string>
 }
 
-// 风格模板图：优先 style_templates（按 style_id+gender 复合，缺失时按性别回退链再按 风格名/分类 兜底），
+// 风格模板图：优先 style_templates（按 style_id 精确匹配），
 // 其次 sample_picture 样例库按 风格名/分类 匹配兜底。
-async function loadStylePreviewMap(gender: 'neutral' | 'male' | 'female' = 'neutral'): Promise<StylePreviewMap> {
+async function loadStylePreviewMap(): Promise<StylePreviewMap> {
   const byStyleId = new Map<string, string>()
   const byStyleName = new Map<string, string>()
   const byCategory = new Map<string, string>()
   const normalize = (value: unknown) => String(value ?? '').trim().toLowerCase()
 
-  const genderFallbackOrder: ('neutral' | 'male' | 'female')[] =
-    gender === 'neutral' ? ['neutral', 'male', 'female'] : gender === 'male' ? ['male', 'neutral', 'female'] : ['female', 'neutral', 'male']
-
   try {
     const { data: templates } = await supabaseAdmin
       .from('style_templates')
-      .select('style_id,gender,image_url')
-      .in('gender', genderFallbackOrder)
+      .select('style_id,image_url')
 
-    const byStyleAndGender = new Map<string, { gender: string; image_url: string }[]>()
     for (const row of templates || []) {
       if (!row?.style_id || !row.image_url) continue
-      const list = byStyleAndGender.get(row.style_id) || []
-      list.push({ gender: row.gender || 'neutral', image_url: row.image_url })
-      byStyleAndGender.set(row.style_id, list)
-    }
-    for (const [styleId, list] of byStyleAndGender) {
-      const preferred = genderFallbackOrder.find((g) => list.some((entry) => entry.gender === g))
-      const match = preferred ? list.find((entry) => entry.gender === preferred) : list[0]
-      if (match?.image_url) byStyleId.set(styleId, match.image_url)
+      if (!byStyleId.has(row.style_id)) byStyleId.set(row.style_id, row.image_url)
     }
   } catch (error) {
     // 表不存在时静默降级（由 sample_picture 兜底），仅开发期打日志

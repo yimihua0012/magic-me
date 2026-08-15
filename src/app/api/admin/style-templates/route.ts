@@ -21,34 +21,23 @@ export async function GET(request: Request) {
 
   const { data: templates } = await supabaseAdmin
     .from('style_templates')
-    .select('style_id,gender,image_url,storage_path,alt,updated_at')
+    .select('style_id,image_url,storage_path,alt,updated_at')
     .order('updated_at', { ascending: false })
 
-  const templateById = new Map((templates || []).map((row) => [`${row.style_id}:${row.gender || 'neutral'}`, row]))
+  const templateById = new Map((templates || []).map((row) => [row.style_id, row]))
 
   return NextResponse.json({
     styles: styles.map((style) => {
       const id = style.id || style.default_name || style.name
-      const hasTemplate = Boolean(templateById.get(`${id}:neutral`)) || Boolean(templateById.get(`${id}:male`)) || Boolean(templateById.get(`${id}:female`))
-      const preferred = templateById.get(`${id}:neutral`) || templateById.get(`${id}:male`) || templateById.get(`${id}:female`)
+      const template = templateById.get(id)
       return {
         id,
         name: style.name,
         category: style.category,
-        has_template: hasTemplate,
-        templates: ['neutral', 'male', 'female'].map((key) => {
-          const template = templateById.get(`${id}:${key}`)
-          return {
-            key,
-            has_template: Boolean(template),
-            image_url: template?.image_url || null,
-            storage_path: template?.storage_path || null,
-            updated_at: template?.updated_at || null,
-          }
-        }),
-        image_url: preferred?.image_url || null,
-        storage_path: preferred?.storage_path || null,
-        updated_at: preferred?.updated_at || null,
+        has_template: Boolean(template?.image_url),
+        image_url: template?.image_url || null,
+        storage_path: template?.storage_path || null,
+        updated_at: template?.updated_at || null,
       }
     }),
   })
@@ -67,10 +56,6 @@ export async function POST(request: Request) {
   if (!styleId) {
     return NextResponse.json({ error: 'Style id is required.' }, { status: 400 })
   }
-
-  const gender = ['male', 'female', 'neutral'].includes(stringFormValue(formData, 'gender'))
-    ? (stringFormValue(formData, 'gender') as 'male' | 'female' | 'neutral')
-    : 'neutral'
 
   const file = formData.get('file')
   if (!(file instanceof File)) {
@@ -101,13 +86,18 @@ export async function POST(request: Request) {
   const storagePath = `${new Date().toISOString().slice(0, 10)}/${id}.${extension}`
   const buffer = Buffer.from(await file.arrayBuffer())
 
-  // 删除该 style 对应 gender 已有的旧模板文件（若存在）
+  // 删除该 style 已有的旧模板文件（若存在）
   const { data: existing } = await supabaseAdmin
     .from('style_templates')
     .select('storage_path')
     .eq('style_id', styleId)
-    .eq('gender', gender)
     .maybeSingle()
+
+  // 确保存储桶存在（不存在则以 public 创建），避免手工配置遗漏
+  const bucketError = await ensureBucket()
+  if (bucketError) {
+    return bucketError
+  }
 
   const upload = await supabaseAdmin.storage
     .from(bucket)
@@ -129,13 +119,12 @@ export async function POST(request: Request) {
     .upsert(
       {
         style_id: styleId,
-        gender,
         image_url: publicUrl,
         storage_path: storagePath,
         alt: alt || null,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: 'style_id,gender' }
+      { onConflict: 'style_id' }
     )
 
   if (upsertError) {
@@ -152,7 +141,6 @@ export async function POST(request: Request) {
     {
       style: {
         id: styleId,
-        gender,
         has_template: true,
         image_url: publicUrl,
         storage_path: storagePath,
@@ -168,23 +156,19 @@ export async function DELETE(request: Request) {
 
   const url = new URL(request.url)
   const styleId = url.searchParams.get('style_id')
-  const gender = ['male', 'female', 'neutral'].includes(url.searchParams.get('gender') || '')
-    ? (url.searchParams.get('gender') as 'male' | 'female' | 'neutral')
-    : null
   if (!styleId) {
     return NextResponse.json({ error: 'Style id is required.' }, { status: 400 })
   }
 
-  const deleteQuery = supabaseAdmin.from('style_templates').delete().eq('style_id', styleId)
-  const selectQuery = supabaseAdmin.from('style_templates').select('storage_path').eq('style_id', styleId)
-  if (gender) {
-    deleteQuery.eq('gender', gender)
-    selectQuery.eq('gender', gender)
-  }
+  const { data: existing } = await supabaseAdmin
+    .from('style_templates')
+    .select('storage_path')
+    .eq('style_id', styleId)
 
-  const { data: existing } = await selectQuery
-
-  const { error } = await deleteQuery
+  const { error } = await supabaseAdmin
+    .from('style_templates')
+    .delete()
+    .eq('style_id', styleId)
   if (error) {
     console.error('[Admin Style Templates] Delete error:', error)
     return NextResponse.json({ error: 'Failed to delete style template.' }, { status: 500 })
@@ -245,6 +229,27 @@ async function requireAdmin(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  return null
+}
+
+async function ensureBucket() {
+  const { data: existing, error: checkError } = await supabaseAdmin.storage.getBucket(bucket)
+  if (existing) {
+    return null
+  }
+
+  if (checkError && String(checkError?.message || checkError).toLowerCase().includes('not found')) {
+    const { error: createError } = await supabaseAdmin.storage.createBucket(bucket, { public: true })
+    if (createError) {
+      console.error('[Admin Style Templates] Bucket create error:', createError)
+      return NextResponse.json({ error: 'Bucket is not ready.' }, { status: 500 })
+    }
+    return null
+  }
+
+  if (checkError) {
+    console.error('[Admin Style Templates] Bucket check error:', checkError)
+  }
   return null
 }
 

@@ -21,7 +21,7 @@ interface HeroHeadshotGalleryProps {
 
 export default function HeroHeadshotGallery({
   images,
-  badgeText = 'Try 56 AI headshot styles',
+  badgeText = 'Try more AI headshot styles',
   previewTitle = 'Headshot preview',
   viewLabel = 'View larger',
 }: HeroHeadshotGalleryProps) {

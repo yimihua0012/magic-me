@@ -67,9 +67,10 @@ interface HeadshotStyle {
 const CATEGORY_LABELS: Record<string, string> = {
   professional: 'Professional',
   photo_tools: 'ID Photo And PNG',
+  student_kids: 'Student & Kids',
 }
 
-const CATEGORY_ORDER = ['professional', 'photo_tools']
+const CATEGORY_ORDER = ['professional', 'photo_tools', 'student_kids']
 
 function isUsableCreditPackage(pkg: CreditPackageSummaryItem) {
   const expiresAt = pkg.expires_at ? new Date(pkg.expires_at).getTime() : null
@@ -118,14 +119,8 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
   const [showStyleLimitModal, setShowStyleLimitModal] = useState(false)
   const [showStylePicker, setShowStylePicker] = useState(false)
   const [selectedStyleIds, setSelectedStyleIds] = useState<string[]>([])
-  const [templateGender, setTemplateGender] = useState<'neutral' | 'male' | 'female'>('neutral')
   const [stylesLoadFailed, setStylesLoadFailed] = useState(false)
 
-  const handleGenderChange = (next: 'neutral' | 'male' | 'female') => {
-    if (next === templateGender) return
-    setTemplateGender(next)
-    void loadStyles(next)
-  }
   const hasShownNoCreditsModalRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadSectionRef = useRef<HTMLDivElement>(null)
@@ -171,13 +166,12 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
     }
   }, [])
 
-const loadStyles = useCallback(async (gender?: 'neutral' | 'male' | 'female') => {
+const loadStyles = useCallback(async () => {
     try {
       setIsLoadingStyles(true)
       setStylesLoadFailed(false)
 
-      const genderParam = gender || templateGender
-      const res = await fetch(`/api/styles?locale=${locale}&gender=${genderParam}`)
+      const res = await fetch(`/api/styles?locale=${locale}`)
       if (res.ok) {
         const data = await res.json()
         setStyles(Array.isArray(data.styles) ? data.styles : [])
@@ -191,7 +185,7 @@ const loadStyles = useCallback(async (gender?: 'neutral' | 'male' | 'female') =>
     } finally {
       setIsLoadingStyles(false)
     }
-  }, [locale, templateGender])
+  }, [locale])
 
   const fetchCredits = useCallback(async (accessToken?: string) => {
     try {
@@ -536,7 +530,6 @@ if (!isAuthenticated) {
 localStorage.setItem('pending_generation_photos', JSON.stringify(base64Photos))
         localStorage.setItem('pending_generation_id', generationId)
         localStorage.setItem('pending_generation_style_ids', JSON.stringify(selectedStyleIds))
-        localStorage.setItem('pending_generation_gender', templateGender)
         router.push(localePath(locale, `/generate/${generationId}`))
       })
     }
@@ -657,24 +650,6 @@ localStorage.setItem('pending_generation_photos', JSON.stringify(base64Photos))
             </p>
           </div>
 
-          <div className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
-            {([{ key: 'neutral', label: content.picker.genderAny }, { key: 'male', label: content.picker.genderMale }, { key: 'female', label: content.picker.genderFemale }] as const).map((option) => (
-              <button
-                key={option.key}
-                type="button"
-                onClick={() => handleGenderChange(option.key)}
-                disabled={isLoadingStyles}
-                className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                  templateGender === option.key
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-transparent text-slate-600 hover:bg-white hover:text-slate-900'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-
           {isLoadingStyles ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {[...Array(12)].map((_, i) => (
@@ -729,12 +704,13 @@ localStorage.setItem('pending_generation_photos', JSON.stringify(base64Photos))
                         >
                           <div className="relative mb-2 aspect-square overflow-hidden rounded-lg bg-slate-100">
                             {style.preview_image ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
+                              <NextImage
                                 src={style.preview_image}
                                 alt={style.name}
+                                fill
+                                sizes="(min-width: 1024px) 220px, (min-width: 640px) 200px, 140px"
                                 loading="lazy"
-                                className="h-full w-full object-cover"
+                                className="object-cover"
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">

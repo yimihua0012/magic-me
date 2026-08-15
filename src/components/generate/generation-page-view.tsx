@@ -294,7 +294,6 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
 
       const photosBase64 = localStorage.getItem('pending_generation_photos')
       const storedStyleIds = localStorage.getItem('pending_generation_style_ids')
-      const storedGender = localStorage.getItem('pending_generation_gender')
       
       if (photosBase64) {
         try {
@@ -314,12 +313,10 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
 localStorage.removeItem('pending_generation_photos')
           localStorage.removeItem('pending_generation_id')
           localStorage.removeItem('pending_generation_style_ids')
-          localStorage.removeItem('pending_generation_gender')
 
           setGeneration(prev => ({ ...prev, currentStep: generationStatusText('preparing', locale), progress: 5, styleCount: styleIds.length }))
           
           const authHeaders = await getAuthHeaders()
-          const gender = storedGender === 'male' || storedGender === 'female' ? storedGender : 'neutral'
           const response = await fetch('/api/generate-headshots', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
@@ -327,7 +324,6 @@ localStorage.removeItem('pending_generation_photos')
               faceImageUrls: inputPhotos,
               styleIds,
               clientGenerationId: generationId,
-              gender,
             })
           })
 
@@ -445,11 +441,9 @@ pollIntervalRef.current = intervalId
 
 const init = async () => {
       try {
-        const storedGender = localStorage.getItem('pending_generation_gender')
-        const gender = storedGender === 'male' || storedGender === 'female' ? storedGender : 'neutral'
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.access_token) {
-          const res = await fetch(`/api/styles?locale=${locale}&gender=${gender}`, {
+          const res = await fetch(`/api/styles?locale=${locale}`, {
             headers: { Authorization: `Bearer ${session.access_token}` },
           })
           const data = await res.json()

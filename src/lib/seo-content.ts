@@ -57,6 +57,135 @@ export const questions = [
   },
 ] as const
 
+export const styleShowcaseCards = [
+  {
+    name: 'LinkedIn Professional',
+    category: 'Professional',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/home-template-linkedin_professional.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'LinkedIn Professional(Female)',
+    category: 'Professional',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/5ddbc3a7-55e3-4378-af3d-67e04f8fc29a.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Business Casual',
+    category: 'Professional',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/3ba09eb4-d59a-4268-a31a-cc3e47d5f775.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Executive Portrait',
+    category: 'Professional',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/home-template-executive_portrait.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Doctor Whitecoat',
+    category: 'Professional',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/6cc8e5fe-2843-4ffb-b655-cb3c3888f3a4.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Modern Tech',
+    category: 'Professional',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/d34e5c0b-52e8-4929-b6a7-e32c823556ab.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Financial Professional',
+    category: 'Professional',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/home-template-finance_professional.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Legal Professional',
+    category: 'Professional',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/home-template-legal_professional.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Professional ID Photo(White)',
+    category: 'Photo Tools',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/3765f555-5e10-4d71-91a5-e53b6a782739.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Professional ID Photo(Blue)',
+    category: 'Photo Tools',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/c5630f11-2bfb-4b46-a177-f8dfdad5dbfe.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Professional ID Photo(Red)',
+    category: 'Photo Tools',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/0b7ff416-a4f5-49b5-a639-c135d01e7f61.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Men Suit ID Photo(White)',
+    category: 'Photo Tools',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/7a38baf3-ffaf-4a73-a12b-be2d17b9ec57.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Men Shirt ID Photo(White)',
+    category: 'Photo Tools',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/4245766b-9f43-4873-b6ab-f4a280f9cd24.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Women Suit ID Photo(White)',
+    category: 'Photo Tools',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/869148de-e614-4834-8726-9b0ea0074fe6.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Women Shirt ID Photo(White)',
+    category: 'Photo Tools',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/f18d3778-d549-481b-8cfd-e8db73063aca.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Student ID Photo(White Male)',
+    category: 'Student & Kids',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/91d1196e-915c-4011-aebd-2c5dd5d0b4f9.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Student ID Photo(White Female)',
+    category: 'Student & Kids',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/91d1196e-915c-4011-aebd-2c5dd5d0b4f9.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Student ID Photo(Blue)',
+    category: 'Student & Kids',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/047bd89c-ce77-44ae-96ab-ba6007bf2547.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Student ID Photo(Red)',
+    category: 'Student & Kids',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/bb8bc283-06c4-4ee9-b1d6-0457dbfb03ed.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Boy ID Photo(White)',
+    category: 'Student & Kids',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/c87ddab0-b7c5-48d3-aa60-2c4ad69c8458.jpg',
+    href: '/sample',
+  },
+  {
+    name: 'Girl ID Photo(White)',
+    category: 'Student & Kids',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/94eab5ea-bbb9-4f23-ab12-f5ebb91e5759.jpg',
+    href: '/sample',
+  },
+] as const
+
 export const sampleComparisons = [
   {
     title: 'LinkedIn Headshot Refresh',

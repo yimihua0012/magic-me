@@ -96,15 +96,15 @@ const STYLE_CONFIGS: Record<string, StyleConfig> = {
     id: 'linkedin_professional',
     name: 'LinkedIn Professional',
     category: 'professional',
-    prompt: 'professional corporate headshot, linkedin profile photo, business suit, studio lighting, clean white background, confident friendly smile, canon dslr, 85mm lens',
+    prompt: 'professional corporate headshot photograph of a well-groomed businessman in a tailored navy suit with crisp white shirt and silk tie, clean light-gray seamless studio background, soft even studio lighting, head and shoulders, centered composition, confident friendly expression, sharp focus, premium executive photography, 85mm portrait lens',
     negative: 'casual clothes, outdoor, messy hair, dark shadows, blurry, low quality, distorted face, bad anatomy, multiple people'
   },
-  corporate_office: {
-    id: 'corporate_office',
-    name: 'Corporate Office',
+  linkedin_professional_female: {
+    id: 'linkedin_professional_female',
+    name: 'LinkedIn Professional(Female)',
     category: 'professional',
-    prompt: 'corporate business portrait, modern office background, business attire, professional lighting, confident pose, high-end corporate photography',
-    negative: 'casual, messy, unprofessional, dark, blurry, distorted face'
+    prompt: 'professional corporate headshot photograph of a young businesswoman in a tailored navy blazer with white blouse, no tie, clean light-gray seamless studio background, soft even studio lighting, head and shoulders, centered composition, confident friendly expression, sharp focus, premium executive photography, 85mm portrait lens',
+    negative: 'casual clothes, outdoor, messy hair, dark shadows, blurry, low quality, distorted face, bad anatomy, multiple people, tie, necktie'
   },
   business_casual: {
     id: 'business_casual',
@@ -124,7 +124,7 @@ const STYLE_CONFIGS: Record<string, StyleConfig> = {
     id: 'doctor_whitecoat',
     name: 'Doctor Whitecoat',
     category: 'professional',
-    prompt: 'medical professional portrait, white coat, stethoscope, clean clinical background, trustworthy expression, healthcare professional',
+    prompt: 'medical professional portrait, white coat, clean clinical background, trustworthy expression, healthcare professional',
     negative: 'casual clothes, messy, unprofessional, dark, distorted face'
   },
   modern_tech: {
@@ -134,12 +134,19 @@ const STYLE_CONFIGS: Record<string, StyleConfig> = {
     prompt: 'tech professional portrait, modern tech office, casual tech attire, startup environment, natural lighting, friendly smile',
     negative: 'formal suit, corporate, outdated, dark, blurry'
   },
-  creative_agency: {
-    id: 'creative_agency',
-    name: 'Creative Agency',
+  finance_professional: {
+    id: 'finance_professional',
+    name: 'Financial Professional',
     category: 'professional',
-    prompt: 'creative professional portrait, modern creative agency, trendy stylish outfit, artistic background, vibrant colors, confident creative look',
-    negative: 'corporate suit, boring, dull, dark, blurry'
+    prompt: 'professional banking headshot, corporate finance portrait, tailored dark suit with tie, clean neutral studio background, confident trustworthy expression, crisp professional lighting, polished business photography',
+    negative: 'casual clothes, outdoor, messy hair, dark shadows, blurry, low quality, distorted face, bad anatomy, multiple people'
+  },
+  legal_professional: {
+    id: 'legal_professional',
+    name: 'Legal Professional',
+    category: 'professional',
+    prompt: 'professional lawyer headshot, legal portrait, business suit with tie, clean neutral studio background, confident composed expression, sharp professional lighting, high-end corporate photography',
+    negative: 'casual clothes, outdoor, casual pose, messy hair, blurry, low quality, distorted face, bad anatomy, multiple people'
   },
   oil_painting: {
     id: 'oil_painting',
@@ -308,43 +315,26 @@ let cachedStyleTemplates: Map<string, string> | null = null
 let cachedStyleTemplatesAt = 0
 const STYLE_TEMPLATE_CACHE_MS = 60_000
 
-export type StyleTemplateGender = 'neutral' | 'male' | 'female'
-
-function genderFallbackOrder(gender: StyleTemplateGender): StyleTemplateGender[] {
-  if (gender === 'neutral') return ['neutral', 'male', 'female']
-  if (gender === 'male') return ['male', 'neutral', 'female']
-  return ['female', 'neutral', 'male']
-}
-
-// 加载 style_id -> 模板图URL 的映射（风格模板作为生成参考图），按性别优先取模板
-async function loadStyleTemplateMap(gender: StyleTemplateGender = 'neutral'): Promise<Map<string, string>> {
+// 加载 style_id -> 模板图URL 的映射（风格模板作为生成参考图）
+async function loadStyleTemplateMap(): Promise<Map<string, string>> {
   if (cachedStyleTemplates && Date.now() - cachedStyleTemplatesAt < STYLE_TEMPLATE_CACHE_MS) {
     return cachedStyleTemplates
   }
 
-  const raw = new Map<string, { gender: string; image_url: string }[]>()
+  const map = new Map<string, string>()
   try {
     const { data } = await supabaseAdmin
       .from('style_templates')
-      .select('style_id,gender,image_url')
+      .select('style_id,image_url')
 
     for (const row of data || []) {
       if (!row?.style_id || !row.image_url) continue
-      const list = raw.get(row.style_id) || []
-      list.push({ gender: row.gender || 'neutral', image_url: row.image_url })
-      raw.set(row.style_id, list)
+      if (!map.has(row.style_id)) map.set(row.style_id, row.image_url)
     }
   } catch (error) {
     if (!String(error).toLowerCase().includes('relation') && !String(error).toLowerCase().includes('does not exist')) {
       console.error('[GenerationService] Failed to load style templates:', error)
     }
-  }
-
-  const map = new Map<string, string>()
-  for (const [styleId, list] of raw) {
-    const preferred = genderFallbackOrder(gender).find((g) => list.some((entry) => entry.gender === g))
-    const match = preferred ? list.find((entry) => entry.gender === preferred) : list[0]
-    if (match?.image_url) map.set(styleId, match.image_url)
   }
 
   cachedStyleTemplates = map
@@ -456,7 +446,6 @@ export interface CreateGenerationRequest {
   faceImageUrls?: string[]
   styleIds?: string[]
   clientGenerationId?: string
-  gender?: StyleTemplateGender
 }
 
 export interface GenerationResponse {
@@ -596,7 +585,6 @@ export class GenerationService {
     logGenerationDebug(`[GenerationService] createAndActivateGeneration called - userId: ${input.userId}`)
     const { userId, styleIds, clientGenerationId } = input
     const inputPhotos = this.normalizeInputPhotos(input)
-    const templateGender = input.gender || 'neutral'
     const availableStyles = await getStyleMap()
     const styles = styleIds?.length
       ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
@@ -639,7 +627,6 @@ export class GenerationService {
         consumedCredits: consumeResult.consumedFrom || [],
         styleIds: styles,
         clientGenerationId,
-        templateGender,
       },
     }
 
@@ -691,7 +678,6 @@ export class GenerationService {
           consumedCredits: consumeResult.consumedFrom || [],
           styleIds: styles,
           clientGenerationId,
-          templateGender,
         },
       })
       logGenerationDebug(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
@@ -926,13 +912,10 @@ export class GenerationService {
 
 const outputUrls: string[] = []
     const photoToolOutputs: PhotoToolOutputRecord[] = []
-    const baseMetadata = {
+const baseMetadata = {
       ...(generation.metadata || {}),
       photoToolOutputs,
     }
-    const storedGender = generation.metadata?.templateGender
-    const templateGender: StyleTemplateGender =
-      storedGender === 'male' || storedGender === 'female' ? storedGender : 'neutral'
     const totalStyles = stylesToGenerate.length
     const storageFolderName = this.createStorageFolderName()
     let completedStyles = 0
@@ -955,8 +938,7 @@ const batchPromises = batch.map((styleId, batchItemIndex) =>
             generationId,
             folderName: storageFolderName,
             index: completedStyles + batchItemIndex,
-          },
-          templateGender
+          }
         )
       )
 
@@ -1056,11 +1038,10 @@ const batchPromises = batch.map((styleId, batchItemIndex) =>
 private static async generateWithRetry(
     faceImageUrls: string[],
     styleId: string,
-    storageContext: OutputPhotoStorageContext,
-    templateGender: StyleTemplateGender = 'neutral'
+    storageContext: OutputPhotoStorageContext
   ): Promise<StyleGenerationResult> {
     try {
-      const generatedUrl = await this.generateSingleStyle(faceImageUrls, styleId, storageContext, templateGender)
+      const generatedUrl = await this.generateSingleStyle(faceImageUrls, styleId, storageContext)
       if (!isPhotoToolStyleId(styleId)) {
         return { outputUrls: [generatedUrl] }
       }
@@ -1101,8 +1082,7 @@ private static async generateWithRetry(
 private static async generateSingleStyle(
     faceImageUrls: string[],
     styleId: string,
-    storageContext: OutputPhotoStorageContext,
-    templateGender: StyleTemplateGender = 'neutral'
+    storageContext: OutputPhotoStorageContext
   ): Promise<string> {
     const availableStyles = await getStyleMap()
     const styleConfig = availableStyles[styleId]
@@ -1118,15 +1098,15 @@ private static async generateSingleStyle(
     logGenerationDebug(`[GenerationService] Generating ${styleId} with Replicate API...`)
     
     const isPhotoToolStyle = isPhotoToolStyleId(styleId)
-    const templateImageUrl = (await loadStyleTemplateMap(templateGender)).get(styleId) || null
+    const templateImageUrl = (await loadStyleTemplateMap()).get(styleId) || null
     // 模板图作为"风格参考图"追加到 image_input 末尾，身份仍以用户照片为准
     const referenceImages = faceImageUrls.slice(0, MAX_INPUT_PHOTOS)
     const templateSuffix = templateImageUrl
-      ? ` The LAST image in the input list is the target style template. Match its composition, background, wardrobe, lighting, and mood exactly, but keep the person's identity, face shape, and likeness strictly from the reference photos of the person. Critically, never copy the template person's gender, facial features, face shape, hair style, hair color, eye color, skin tone, body type, age, or any other appearance trait from the template image. Only use the template for setting, wardrobe, props, background, composition, color palette, lighting, and overall mood. The output person must look like the real person from the reference photos, with their own gender and physical appearance.`
+      ? ` The LAST image in the input list is the target style template. Match its composition, background, wardrobe, lighting, and mood exactly, but keep the person's identity, face shape, and likeness strictly from the reference photos of the person. Critically, never copy the template person's gender, facial features, face shape, hair style, hair color, eye color, skin tone, body type, age, or any other appearance trait from the template image. Only use the template for setting, wardrobe, props, background, composition, color palette, lighting, and overall mood. The output person must look like the real person from the reference photos, with their own gender and physical appearance. Preserve the person's real hair from the reference photos exactly, and blend it naturally with the template wardrobe: hair should fall realistically over the collar and shoulders of the outfit, with clean, sharp, natural hairlines and no visible seams, gaps, or floating hair; keep consistent hair volume, color, and texture.`
       : ''
     const prompt = isPhotoToolStyle
-      ? `Create a square 1:1 realistic ID photo portrait from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness, facial structure, face shape, and recognizable likeness. Front-facing head and shoulders, centered composition. Use even studio lighting and follow the chosen style's requested ID photo background color exactly. Chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}${templateSuffix}`
-      : `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Preserve the person's facial structure, face shape, and recognizable likeness. Make the result look naturally polished and slightly refreshed, with a subtly younger appearance, without changing identity or facial proportions. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}${templateSuffix}`
+      ? `Create a square 1:1 realistic ID photo portrait from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness, facial structure, face shape, and recognizable likeness. Front-facing head and shoulders, centered composition. Use even studio lighting and follow the chosen style's requested ID photo background color exactly. Preserve the person's real hair from the reference photos and blend it naturally with the outfit: hair falls realistically over the collar and shoulders, with clean sharp natural hairlines, consistent volume, color and texture, no visible seams, gaps, or floating hair. Chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}${templateSuffix}`
+      : `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Preserve the person's facial structure, face shape, and recognizable likeness. Make the result look naturally polished and slightly refreshed, with a subtly younger appearance, without changing identity or facial proportions. Preserve the person's real hair from the reference photos and blend it naturally with the outfit: hair falls realistically over the collar and shoulders, with clean sharp natural hairlines, consistent volume, color and texture, no visible seams, gaps, or floating hair. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}${templateSuffix}`
 
     const replicateApiKey = process.env.REPLICATE_API_KEY
     const modelName = process.env.REPLICATE_MODEL_NAME || 'google/nano-banana-2'

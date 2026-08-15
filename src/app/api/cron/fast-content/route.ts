@@ -56,6 +56,14 @@ async function runFastContentCron(request: Request) {
   const authResult = verifyCronAuth(request)
   if (authResult) return authResult
 
+  if ((process.env.FAST_CONTENT_CRON_DISABLED || '').trim() === 'true') {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      reason: 'Fast content cron is disabled by FAST_CONTENT_CRON_DISABLED.',
+    })
+  }
+
   if (!isAiTextGenerationConfigured()) {
     return NextResponse.json({ error: 'Missing AI text provider key. Configure DEEPSEEK_KEY, QIANWEN_KEY, KIMI_KEY, or GLM_KEY on the server.' }, { status: 500 })
   }

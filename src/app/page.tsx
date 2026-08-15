@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { appConfig } from '@/lib/config'
 import { languageAlternatesForPath } from '@/lib/i18n'
+import { styleShowcaseCards } from '@/lib/seo-content'
 import { PLANS } from '@backend/config/plans'
 
 export const metadata: Metadata = {
@@ -106,31 +107,19 @@ const testimonials = [
 ]
 
 const styles = [
-  {
-    name: 'Corporate Office',
-    src: '/home-pages/sample/professional%20headshots%20for%20team%20photos%20.jpeg',
-  },
-  {
-    name: 'Executive Portrait',
-    src: '/home-pages/sample/headshot-executive-portrait.jpg',
-  },
-  {
-    name: 'LinkedIn Professional',
-    src: '/home-pages/sample/high-likeness%20ai%20headshots.jpg',
-  },
-  {
-    name: 'Business Casual',
-    src: '/home-pages/sample/Perfect%20AI%20business%20portrait.jpg',
-  },
-  {
-    name: 'Modern Tech',
-    src: '/home-pages/sample/perfect%20for%20my%20resume.jpg',
-  },
-  {
-    name: 'ID Photo White',
-    src: '/home-pages/sample/AI%20Headshot%20Clean%20Luxury%20Social.jpeg',
-  },
-]
+  styleShowcaseCards[0],
+  styleShowcaseCards[1],
+  styleShowcaseCards[2],
+  styleShowcaseCards[3],
+  styleShowcaseCards[11],
+  styleShowcaseCards[6],
+  styleShowcaseCards[7],
+  styleShowcaseCards[8],
+  styleShowcaseCards[13],
+  styleShowcaseCards[16],
+  styleShowcaseCards[20],
+  styleShowcaseCards[19],
+].map(({ name, src }) => ({ name, src }))
 
 const heroHeadshots = [
   {
@@ -144,6 +133,18 @@ const heroHeadshots = [
   {
     src: '/home-pages/headshot-linkedin-professional3.jpg',
     alt: 'Business profile AI headshot example',
+  },
+  {
+    src: '/home-pages/headshot-linkedin-professional4.jpg',
+    alt: 'Executive AI headshot example',
+  },
+  {
+    src: '/home-pages/headshot-linkedin-professional5.jpg',
+    alt: 'Business casual AI headshot example',
+  },
+  {
+    src: '/home-pages/headshot-linkedin-professional6.jpg',
+    alt: 'Professional headshot example',
   },
 ]
 
