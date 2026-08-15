@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@backend/config/supabase'
+import { DailyLimitService, CreditPackageService } from '@backend/services'
 import type { CreditPackage } from '@backend/types'
 import { getBearerUser } from '@/lib/auth/server'
 
@@ -12,10 +13,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
+    // 惰性发放注册试用额度（每个用户仅一次，幂等）
+    await CreditPackageService.createTrialPackage(user.id).catch((err) => {
+      console.error('[Credits] Failed to grant trial package:', err)
+    })
+
     const now = new Date().toISOString()
     const { data, error } = await supabaseAdmin
       .from('credit_packages')
-      .select('id,user_id,plan_type,total_credits,remaining_credits,purchased_at,activated_at,expires_at,validity_days,status,created_at,updated_at')
+      .select('id,user_id,plan_type,kind,total_credits,remaining_credits,purchased_at,activated_at,expires_at,validity_days,status,created_at,updated_at')
       .eq('user_id', user.id)
       .in('status', ['inactive', 'active'])
       .gt('remaining_credits', 0)
@@ -29,15 +35,31 @@ export async function GET(request: Request) {
 
     const packages = (data || []) as CreditPackage[]
     const totalRemaining = packages.reduce((sum, pkg) => sum + pkg.remaining_credits, 0)
+    const trialRemaining = packages
+      .filter((pkg) => pkg.kind === 'trial')
+      .reduce((sum, pkg) => sum + pkg.remaining_credits, 0)
     const nearestExpiresAt = packages
       .filter((pkg) => pkg.status === 'active' && pkg.expires_at)
       .sort((a, b) => new Date(a.expires_at!).getTime() - new Date(b.expires_at!).getTime())[0]?.expires_at
+
+    let dailyRemaining: number | null = null
+    let dailyResetAt: string | null = null
+    try {
+      const daily = await DailyLimitService.getStatus('generation', user.id)
+      dailyRemaining = daily.remaining
+      dailyResetAt = daily.resetAt
+    } catch (err) {
+      console.error('[Credits] Failed to fetch daily generation limit:', err)
+    }
 
     return NextResponse.json(
       {
         availableCredits: totalRemaining,
         nearestExpiresAt: nearestExpiresAt || null,
         packages,
+        trialRemaining,
+        dailyRemaining,
+        dailyResetAt,
       },
       {
         headers: {

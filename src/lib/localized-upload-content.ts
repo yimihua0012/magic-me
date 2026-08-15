@@ -28,6 +28,12 @@ type UploadContent = {
     buy: string
     later: string
   }
+  guest: {
+    badge: string
+    title: string
+    text: string
+    register: string
+  }
   styleLimit: {
     title: string
     text: string
@@ -39,6 +45,9 @@ type UploadContent = {
     intro: string
     creditHint: string
     selected: string
+    genderAny: string
+    genderMale: string
+    genderFemale: string
     loading: string
     unavailable: string
     uploadFirst: string
@@ -117,9 +126,6 @@ const en: UploadContent = {
   categories: {
     professional: 'Professional',
     photo_tools: 'ID Photo And PNG',
-    lifestyle: 'Lifestyle',
-    artistic: 'Creative',
-    seasonal: 'Seasonal',
   },
   errors: {
     faceSmall: 'Face appears too small. Try moving closer or cropping the image.',
@@ -147,6 +153,12 @@ const en: UploadContent = {
     buy: 'Buy Credits',
     later: 'Later',
   },
+  guest: {
+    badge: 'Free trial',
+    title: 'Try it free',
+    text: 'Sign up for free and get {credits} free headshots. No credit card required.',
+    register: 'Sign up for free headshots',
+  },
   styleLimit: {
     title: 'Selection limit reached',
     text: 'You can only select up to {credits} styles with your current credits. Buy more credits to add more styles.',
@@ -158,6 +170,9 @@ const en: UploadContent = {
     intro: 'Select at least 1 style you want to continue.',
     creditHint: 'Each selected style uses 1 credit. You have {credits} credits available.',
     selected: '{count} selected',
+    genderAny: 'Any',
+    genderMale: 'Male',
+    genderFemale: 'Female',
     loading: 'Loading styles...',
     unavailable: 'Styles are not available yet. Please refresh or log in again.',
     uploadFirst: 'Upload one photo first. You can preview the styles now, then select after upload.',
@@ -236,7 +251,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
   en,
   zh: {
     ...en,
-    categories: { professional: '职业形象', photo_tools: '证件照和 PNG', lifestyle: '生活方式', artistic: '创意风格', seasonal: '季节主题' },
+    categories: { professional: '职业形象', photo_tools: '证件照和 PNG' },
     errors: {
       faceSmall: '脸部看起来太小。请靠近一些拍摄，或先裁剪图片。',
       tooDark: '图片太暗。建议白天靠近窗户重新拍摄。',
@@ -259,12 +274,16 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
       description: '上传照片、选择风格，然后按选择扣除点数生成。',
     },
     noCredits: { title: '点数不足', text: '你当前没有可用点数。购买点数后即可生成职业形象照。', buy: '购买点数', later: '稍后再说' },
+    guest: { badge: '免费试用', title: '免费体验', text: '免费注册即可获得 {credits} 张免费头像，无需绑定银行卡。', register: '注册领取免费头像' },
     styleLimit: { title: '已达到选择上限', text: '当前点数最多可选择 {credits} 个风格。购买更多点数后可以添加更多风格。', buy: '购买更多点数', close: '知道了' },
     picker: {
       title: '选择风格',
       intro: '至少选择 1 个想要生成的风格。',
       creditHint: '每个选择的风格使用 1 个点数。你当前有 {credits} 个点数可用。',
       selected: '已选择 {count} 个',
+      genderAny: '通用',
+      genderMale: '男款',
+      genderFemale: '女款',
       loading: '正在加载风格...',
       unavailable: '风格暂不可用，请刷新页面或重新登录。',
       uploadFirst: '请先上传一张照片。你可以先预览风格，上传后再选择。',
@@ -343,7 +362,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
   },
   es: {
     ...en,
-    categories: { professional: 'Profesional', photo_tools: 'Foto ID y PNG', lifestyle: 'Lifestyle', artistic: 'Creativo', seasonal: 'Temporada' },
+    categories: { professional: 'Profesional', photo_tools: 'Foto ID y PNG' },
     credits: {
       ...en.credits,
       checkingTitle: 'Comprobando créditos...',
@@ -361,7 +380,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
     },
     noCredits: { title: 'No quedan créditos', text: 'No tienes créditos activos. Compra créditos para generar retratos profesionales.', buy: 'Comprar créditos', later: 'Más tarde' },
     styleLimit: { title: 'Límite de selección alcanzado', text: 'Solo puedes elegir hasta {credits} estilos con tus créditos actuales. Compra más créditos para añadir más estilos.', buy: 'Comprar más créditos', close: 'Entendido' },
-    picker: { title: 'Seleccionar estilos', intro: 'Elige al menos 1 estilo para continuar.', creditHint: 'Cada estilo seleccionado usa 1 crédito. Tienes {credits} créditos disponibles.', selected: '{count} seleccionados', loading: 'Cargando estilos...', unavailable: 'Los estilos no están disponibles. Actualiza la página o inicia sesión de nuevo.', uploadFirst: 'Sube una foto primero. Puedes previsualizar estilos ahora y seleccionarlos después.', styles: 'estilos', deducted: 'Se descontarán {count} créditos.', selectOne: 'Selecciona al menos 1 estilo para continuar.', done: 'Listo' },
+    picker: { title: 'Seleccionar estilos', intro: 'Elige al menos 1 estilo para continuar.', creditHint: 'Cada estilo seleccionado usa 1 crédito. Tienes {credits} créditos disponibles.', selected: '{count} seleccionados', genderAny: 'Cualquiera', genderMale: 'Hombre', genderFemale: 'Mujer', loading: 'Cargando estilos...', unavailable: 'Los estilos no están disponibles. Actualiza la página o inicia sesión de nuevo.', uploadFirst: 'Sube una foto primero. Puedes previsualizar estilos ahora y seleccionarlos después.', styles: 'estilos', deducted: 'Se descontarán {count} créditos.', selectOne: 'Selecciona al menos 1 estilo para continuar.', done: 'Listo' },
     paymentSuccess: { label: 'Pago correcto', titleWithCredits: 'Recibiste {credits} créditos', syncingTitle: 'Sincronizando tus créditos', textWithCredits: '{planName} está activo: {totalCredits} créditos en total, {credits} disponibles ahora. {timerMessage}', syncingText: 'Estamos sincronizando el resultado del pago. Los créditos aparecerán automáticamente. Si no aparecen pronto, actualiza esta página.', credits: 'Créditos recibidos', validity: 'Validez', timerStatus: 'Estado del contador', started: 'Iniciado', notStarted: 'No iniciado', start: 'Empezar ahora', close: 'Cerrar', planNameFallback: 'Plan de créditos', activeTimer: 'Este paquete está activo y caduca el {date}.', inactiveTimer: '{days} días de validez empiezan tras tu primera generación.', defaultTimer: 'La validez empieza tras tu primera generación.' },
     upload: { title: 'Sube tus fotos', description: 'Sube 1-3 selfies claras de la misma persona para mejorar el parecido.', note: 'Funciona mejor para fotos de perfil; otros usos pueden variar.', loadingTitle: 'Comprobando tus créditos', loadingText: 'El área de subida se desbloqueará cuando se confirmen tus créditos.', dropTitle: 'Arrastra tus selfies aquí', browse: 'o haz clic para buscar', fileHint: 'JPG, PNG o WebP. Hasta 3 fotos, 10MB cada una.', unavailableTitle: 'La generación no está disponible', unavailableText: 'Tus créditos están vacíos o caducados. Compra un nuevo paquete para continuar.', buy: 'Comprar créditos', tipTitle: 'Consejo', tipText: 'Usa la misma persona en todas las fotos, con buena luz y el rostro visible.', tipWarning: 'Evita ángulos laterales, gafas de sol, mascarillas o fotos de grupo.', preview: 'Vista previa', photoCount: '{count}/3 fotos', emptyPreview: 'Tus fotos subidas aparecerán aquí.', remove: 'Eliminar' },
     styles: { title: 'Elige estilos', loading: '(cargando...)', total: '({count} en total)', description: 'Elige al menos 1 estilo para continuar. Cada estilo seleccionado usa 1 crédito.', select: 'Seleccionar estilos', uploadFirst: 'Sube una foto primero para desbloquear la selección.', failed: 'No se pudieron cargar los estilos. Actualiza la página o inicia sesión de nuevo.', selectedTitle: 'Estilos seleccionados', selectedHint: 'Elimina estilos aquí o usa el botón Seleccionar estilos para cambiarlos.', selected: '{count} seleccionados', none: 'Aún no hay estilos seleccionados.', selectedCount: 'Seleccionados {selected} / {available} estilos', willDeduct: 'Se descontarán {count} créditos', selectToContinue: 'Selecciona al menos 1 estilo para continuar', left: 'Quedan {count} selecciones con tus créditos actuales. Compra más créditos para añadir más estilos.' },
@@ -369,7 +388,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
   },
   fr: {
     ...en,
-    categories: { professional: 'Professionnel', photo_tools: 'Photo ID et PNG', lifestyle: 'Lifestyle', artistic: 'Créatif', seasonal: 'Saisonnier' },
+    categories: { professional: 'Professionnel', photo_tools: 'Photo ID et PNG' },
     credits: {
       ...en.credits,
       checkingTitle: 'Vérification des crédits...',
@@ -387,7 +406,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
     },
     noCredits: { title: 'Aucun crédit restant', text: 'Vous n’avez aucun crédit actif. Achetez des crédits pour générer vos portraits.', buy: 'Acheter des crédits', later: 'Plus tard' },
     styleLimit: { title: 'Limite de sélection atteinte', text: 'Vous pouvez choisir jusqu’à {credits} styles avec vos crédits actuels. Achetez plus de crédits pour ajouter des styles.', buy: 'Acheter plus de crédits', close: 'Compris' },
-    picker: { title: 'Choisir les styles', intro: 'Choisissez au moins 1 style pour continuer.', creditHint: 'Chaque style sélectionné utilise 1 crédit. Vous avez {credits} crédits disponibles.', selected: '{count} sélectionnés', loading: 'Chargement des styles...', unavailable: 'Les styles ne sont pas disponibles. Actualisez ou reconnectez-vous.', uploadFirst: 'Importez d’abord une photo. Vous pouvez prévisualiser les styles maintenant, puis sélectionner après l’import.', styles: 'styles', deducted: '{count} crédits seront déduits.', selectOne: 'Sélectionnez au moins 1 style pour continuer.', done: 'Terminé' },
+    picker: { title: 'Choisir les styles', intro: 'Choisissez au moins 1 style pour continuer.', creditHint: 'Chaque style sélectionné utilise 1 crédit. Vous avez {credits} crédits disponibles.', selected: '{count} sélectionnés', genderAny: 'Tous', genderMale: 'Homme', genderFemale: 'Femme', loading: 'Chargement des styles...', unavailable: 'Les styles ne sont pas disponibles. Actualisez ou reconnectez-vous.', uploadFirst: 'Importez d’abord une photo. Vous pouvez prévisualiser les styles maintenant, puis sélectionner après l’import.', styles: 'styles', deducted: '{count} crédits seront déduits.', selectOne: 'Sélectionnez au moins 1 style pour continuer.', done: 'Terminé' },
     paymentSuccess: { label: 'Paiement réussi', titleWithCredits: 'Vous avez reçu {credits} crédits', syncingTitle: 'Synchronisation de vos crédits', textWithCredits: '{planName} est actif : {totalCredits} crédits au total, {credits} disponibles maintenant. {timerMessage}', syncingText: 'Nous synchronisons votre paiement. Les crédits apparaîtront automatiquement. Si ce n’est pas le cas, actualisez la page.', credits: 'Crédits reçus', validity: 'Validité', timerStatus: 'État du compteur', started: 'Démarré', notStarted: 'Non démarré', start: 'Commencer', close: 'Fermer', planNameFallback: 'Pack de crédits', activeTimer: 'Ce pack est actif et expire le {date}.', inactiveTimer: '{days} jours de validité commencent après votre première génération.', defaultTimer: 'La validité commence après votre première génération.' },
     upload: { title: 'Importer vos photos', description: 'Importez 1 à 3 selfies nets de la même personne pour un meilleur résultat.', note: 'Idéal pour les photos de profil ; les autres usages peuvent varier.', loadingTitle: 'Vérification de vos crédits', loadingText: 'La zone d’import sera disponible dès que vos crédits seront confirmés.', dropTitle: 'Glissez vos selfies ici', browse: 'ou cliquez pour parcourir', fileHint: 'JPG, PNG ou WebP. Jusqu’à 3 photos, 10MB chacune.', unavailableTitle: 'La génération est indisponible', unavailableText: 'Vos crédits sont vides ou expirés. Achetez un nouveau pack pour continuer.', buy: 'Acheter des crédits', tipTitle: 'Conseil', tipText: 'Utilisez la même personne sur chaque photo, avec une bonne lumière et le visage visible.', tipWarning: 'Évitez les profils, lunettes de soleil, masques ou photos de groupe.', preview: 'Aperçu', photoCount: '{count}/3 photos', emptyPreview: 'Vos photos importées apparaîtront ici.', remove: 'Retirer' },
     styles: { title: 'Choisir les styles', loading: '(chargement...)', total: '({count} au total)', description: 'Choisissez au moins 1 style pour continuer. Chaque style sélectionné utilise 1 crédit.', select: 'Choisir les styles', uploadFirst: 'Importez une photo pour débloquer la sélection.', failed: 'Les styles n’ont pas pu être chargés. Actualisez ou reconnectez-vous.', selectedTitle: 'Styles sélectionnés', selectedHint: 'Retirez des styles ici ou utilisez le bouton Choisir les styles pour les modifier.', selected: '{count} sélectionnés', none: 'Aucun style sélectionné.', selectedCount: 'Sélectionnés {selected} / {available} styles', willDeduct: '{count} crédits seront déduits', selectToContinue: 'Sélectionnez au moins 1 style pour continuer', left: '{count} sélections restantes avec vos crédits actuels. Achetez plus de crédits pour ajouter des styles.' },
@@ -395,7 +414,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
   },
   de: {
     ...en,
-    categories: { professional: 'Professionell', photo_tools: 'Passfoto und PNG', lifestyle: 'Lifestyle', artistic: 'Kreativ', seasonal: 'Saisonal' },
+    categories: { professional: 'Professionell', photo_tools: 'Passfoto und PNG' },
     credits: {
       ...en.credits,
       checkingTitle: 'Credits werden geprüft...',
@@ -413,7 +432,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
     },
     noCredits: { title: 'Keine Credits übrig', text: 'Du hast keine aktiven Credits. Kaufe Credits, um Headshots zu erstellen.', buy: 'Credits kaufen', later: 'Später' },
     styleLimit: { title: 'Auswahllimit erreicht', text: 'Du kannst mit deinen aktuellen Credits bis zu {credits} Stile auswählen. Kaufe mehr Credits, um weitere Stile hinzuzufügen.', buy: 'Mehr Credits kaufen', close: 'Verstanden' },
-    picker: { title: 'Stile auswählen', intro: 'Wähle mindestens 1 Stil aus, um fortzufahren.', creditHint: 'Jeder ausgewählte Stil nutzt 1 Credit. Du hast {credits} Credits verfügbar.', selected: '{count} ausgewählt', loading: 'Stile werden geladen...', unavailable: 'Stile sind noch nicht verfügbar. Aktualisiere die Seite oder melde dich erneut an.', uploadFirst: 'Lade zuerst ein Foto hoch. Du kannst die Stile jetzt ansehen und nach dem Upload auswählen.', styles: 'Stile', deducted: '{count} Credits werden abgezogen.', selectOne: 'Wähle mindestens 1 Stil aus, um fortzufahren.', done: 'Fertig' },
+    picker: { title: 'Stile auswählen', intro: 'Wähle mindestens 1 Stil aus, um fortzufahren.', creditHint: 'Jeder ausgewählte Stil nutzt 1 Credit. Du hast {credits} Credits verfügbar.', selected: '{count} ausgewählt', genderAny: 'Alle', genderMale: 'Mann', genderFemale: 'Frau', loading: 'Stile werden geladen...', unavailable: 'Stile sind noch nicht verfügbar. Aktualisiere die Seite oder melde dich erneut an.', uploadFirst: 'Lade zuerst ein Foto hoch. Du kannst die Stile jetzt ansehen und nach dem Upload auswählen.', styles: 'Stile', deducted: '{count} Credits werden abgezogen.', selectOne: 'Wähle mindestens 1 Stil aus, um fortzufahren.', done: 'Fertig' },
     paymentSuccess: { label: 'Zahlung erfolgreich', titleWithCredits: 'Du hast {credits} Credits erhalten', syncingTitle: 'Credits werden synchronisiert', textWithCredits: '{planName} ist aktiv: {totalCredits} Credits insgesamt, {credits} aktuell verfügbar. {timerMessage}', syncingText: 'Wir synchronisieren deine Zahlung. Credits erscheinen automatisch. Falls sie nicht bald erscheinen, lade die Seite neu.', credits: 'Erhaltene Credits', validity: 'Gültigkeit', timerStatus: 'Timer-Status', started: 'Gestartet', notStarted: 'Nicht gestartet', start: 'Jetzt starten', close: 'Schließen', planNameFallback: 'Credit-Paket', activeTimer: 'Dieses Paket ist aktiv und läuft am {date} ab.', inactiveTimer: '{days} Tage Gültigkeit starten nach deiner ersten Generierung.', defaultTimer: 'Die Gültigkeit startet nach deiner ersten Generierung.' },
     upload: { title: 'Fotos hochladen', description: 'Lade 1-3 klare Selfies derselben Person hoch, damit die Ähnlichkeit besser wird.', note: 'Am besten für Profilbilder geeignet; andere Nutzungen können variieren.', loadingTitle: 'Credits werden geprüft', loadingText: 'Der Upload-Bereich wird freigeschaltet, sobald deine Credits bestätigt sind.', dropTitle: 'Selfies hier ablegen', browse: 'oder zum Auswählen klicken', fileHint: 'JPG, PNG oder WebP. Bis zu 3 Fotos, je 10MB.', unavailableTitle: 'Generierung nicht verfügbar', unavailableText: 'Deine Credits sind leer oder abgelaufen. Kaufe ein neues Paket, um fortzufahren.', buy: 'Credits kaufen', tipTitle: 'Tipp', tipText: 'Nutze auf allen Fotos dieselbe Person mit klarem Licht und gut sichtbarem Gesicht.', tipWarning: 'Vermeide Seitenwinkel, Sonnenbrillen, Masken oder Gruppenfotos.', preview: 'Vorschau', photoCount: '{count}/3 Fotos', emptyPreview: 'Deine hochgeladenen Fotos erscheinen hier.', remove: 'Entfernen' },
     styles: { title: 'Stile auswählen', loading: '(lädt...)', total: '({count} gesamt)', description: 'Wähle mindestens 1 Stil aus, um fortzufahren. Jeder ausgewählte Stil nutzt 1 Credit.', select: 'Stile auswählen', uploadFirst: 'Lade zuerst ein Foto hoch, um die Stilauswahl freizuschalten.', failed: 'Stile konnten nicht geladen werden. Aktualisiere die Seite oder melde dich erneut an.', selectedTitle: 'Ausgewählte Stile', selectedHint: 'Entferne Stile hier oder ändere sie über den Button Stile auswählen.', selected: '{count} ausgewählt', none: 'Noch keine Stile ausgewählt.', selectedCount: 'Ausgewählt {selected} / {available} Stile', willDeduct: '{count} Credits werden abgezogen', selectToContinue: 'Wähle mindestens 1 Stil aus, um fortzufahren', left: '{count} Auswahlen mit aktuellen Credits übrig. Kaufe mehr Credits, um weitere Stile hinzuzufügen.' },
@@ -421,7 +440,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
   },
   ja: {
     ...en,
-    categories: { professional: 'プロ向け', photo_tools: '証明写真とPNG', lifestyle: 'ライフスタイル', artistic: 'クリエイティブ', seasonal: '季節' },
+    categories: { professional: 'プロ向け', photo_tools: '証明写真とPNG' },
     credits: {
       ...en.credits,
       checkingTitle: 'クレジットを確認中...',
@@ -439,7 +458,7 @@ export const localizedUploadContent: Record<Locale, UploadContent> = {
     },
     noCredits: { title: 'クレジットがありません', text: '有効なクレジットがありません。ヘッドショットを作成するにはクレジットを購入してください。', buy: 'クレジットを購入', later: 'あとで' },
     styleLimit: { title: '選択上限に達しました', text: '現在のクレジットでは最大 {credits} スタイルまで選択できます。さらに追加するにはクレジットを購入してください。', buy: 'クレジットを追加購入', close: '了解' },
-    picker: { title: 'スタイルを選択', intro: '続行するには少なくとも1つのスタイルを選択してください。', creditHint: '選択したスタイルごとに1クレジットを使用します。現在 {credits} クレジット利用できます。', selected: '{count} 件選択中', loading: 'スタイルを読み込み中...', unavailable: 'スタイルを利用できません。ページを更新するか再ログインしてください。', uploadFirst: '先に写真をアップロードしてください。スタイルのプレビューは今でも確認できます。', styles: 'スタイル', deducted: '{count} クレジットが消費されます。', selectOne: '続行するには少なくとも1つのスタイルを選択してください。', done: '完了' },
+    picker: { title: 'スタイルを選択', intro: '続行するには少なくとも1つのスタイルを選択してください。', creditHint: '選択したスタイルごとに1クレジットを使用します。現在 {credits} クレジット利用できます。', selected: '{count} 件選択中', genderAny: 'すべて', genderMale: '男性', genderFemale: '女性', loading: 'スタイルを読み込み中...', unavailable: 'スタイルを利用できません。ページを更新するか再ログインしてください。', uploadFirst: '先に写真をアップロードしてください。スタイルのプレビューは今でも確認できます。', styles: 'スタイル', deducted: '{count} クレジットが消費されます。', selectOne: '続行するには少なくとも1つのスタイルを選択してください。', done: '完了' },
     paymentSuccess: { label: '支払いが完了しました', titleWithCredits: '{credits} クレジットを受け取りました', syncingTitle: 'クレジットを同期中', textWithCredits: '{planName} が有効です。合計 {totalCredits} クレジット、現在 {credits} クレジット利用できます。{timerMessage}', syncingText: '支払い結果を同期しています。クレジットは自動で表示されます。しばらくしても表示されない場合はページを更新してください。', credits: '受け取ったクレジット', validity: '有効期間', timerStatus: 'タイマー状態', started: '開始済み', notStarted: '未開始', start: '今すぐ始める', close: '閉じる', planNameFallback: 'クレジットプラン', activeTimer: 'このパッケージは有効で、{date} に期限切れになります。', inactiveTimer: '初回生成後に {days} 日間の有効期間が始まります。', defaultTimer: '有効期間は初回生成後に始まります。' },
     upload: { title: '写真をアップロード', description: '似せやすくするため、同じ人物の鮮明なセルフィーを1〜3枚アップロードしてください。', note: 'プロフィール写真に最適です。その他の用途では結果が異なる場合があります。', loadingTitle: 'クレジットを確認中', loadingText: 'クレジットが確認されるとアップロードエリアが利用できます。', dropTitle: 'セルフィーをここにドラッグ', browse: 'またはクリックして選択', fileHint: 'JPG、PNG、WebP。最大3枚、各10MBまで。', unavailableTitle: '生成を利用できません', unavailableText: 'クレジットがないか期限切れです。続行するには新しいパッケージを購入してください。', buy: 'クレジットを購入', tipTitle: 'ヒント', tipText: 'すべての写真で同じ人物を使い、明るく顔がはっきり見える写真を選んでください。', tipWarning: '横向き、サングラス、マスク、集合写真は避けてください。', preview: 'プレビュー', photoCount: '{count}/3 枚', emptyPreview: 'アップロードした写真がここに表示されます。', remove: '削除' },
     styles: { title: 'スタイルを選択', loading: '(読み込み中...)', total: '(全 {count} 件)', description: '続行するには少なくとも1つのスタイルを選択してください。各スタイルは1クレジットを使用します。', select: 'スタイルを選択', uploadFirst: 'スタイル選択を有効にするには、先に写真をアップロードしてください。', failed: 'スタイルを読み込めませんでした。ページを更新するか再ログインしてください。', selectedTitle: '選択中のスタイル', selectedHint: 'ここで削除するか、スタイル選択ボタンから変更できます。', selected: '{count} 件選択中', none: 'まだスタイルが選択されていません。', selectedCount: '{selected} / {available} スタイル選択中', willDeduct: '{count} クレジットが消費されます', selectToContinue: '続行するには少なくとも1つ選択してください', left: '現在のクレジットであと {count} 件選択できます。さらに追加するにはクレジットを購入してください。' },
@@ -468,7 +487,7 @@ Object.assign(localizedUploadContent, {
     picker: {
       ...localizedUploadContent.es.picker,
       title: 'Elige el tipo de retrato que quieres probar',
-      intro: 'Selecciona estilos segun el uso real: LinkedIn, CV, perfil de empresa, redes personales o una imagen creativa mas editorial.',
+      intro: 'Selecciona estilos segun el uso real: LinkedIn, CV, perfil de empresa, redes personales o una foto para documento.',
       creditHint: 'Los creditos se descuentan cuando empiezas la generacion, no al explorar estilos.',
       uploadFirst: 'Sube primero una foto clara para ver que estilos encajan mejor.',
     },
@@ -484,7 +503,7 @@ Object.assign(localizedUploadContent, {
     styles: {
       ...localizedUploadContent.es.styles,
       title: 'Estilos disponibles',
-      description: 'Combina estilos profesionales, herramientas de foto, looks lifestyle y opciones artisticas. Elige pocos estilos bien pensados si buscas resultados consistentes.',
+      description: 'Combina retratos profesionales y herramientas de foto para documentos. Elige pocos estilos bien pensados si buscas resultados consistentes.',
       selectedHint: 'Revisa que los estilos elegidos coincidan con el uso final: trabajo, redes, web personal o proyecto creativo.',
       selectToContinue: 'Selecciona al menos un estilo para continuar.',
     },
@@ -507,7 +526,7 @@ Object.assign(localizedUploadContent, {
     picker: {
       ...localizedUploadContent.de.picker,
       title: 'Waehle den passenden Portratstil',
-      intro: 'Entscheide nach echtem Einsatz: LinkedIn, Bewerbung, Firmenprofil, persoenliche Social-Profile oder ein kreativer, markanter Look.',
+      intro: 'Entscheide nach echtem Einsatz: LinkedIn, Bewerbung, Firmenprofil, persoenliche Social-Profile oder ein Dokumentfoto.',
       creditHint: 'Credits werden erst beim Start der Generierung abgezogen, nicht beim Durchsehen der Styles.',
       uploadFirst: 'Lade zuerst ein klares Foto hoch, damit du passende Styles besser einschaetzen kannst.',
     },
@@ -523,7 +542,7 @@ Object.assign(localizedUploadContent, {
     styles: {
       ...localizedUploadContent.de.styles,
       title: 'Verfuegbare Styles',
-      description: 'Kombiniere Business-Looks, Fotowerkzeuge, Lifestyle-Styles und kuenstlerische Richtungen. Weniger, aber gezieltere Styles liefern meist klarere Ergebnisse.',
+      description: 'Kombiniere Business-Looks und Fotowerkzeuge fuer Dokumente. Weniger, aber gezieltere Styles liefern meist klarere Ergebnisse.',
       selectedHint: 'Pruefe, ob die gewaehlten Styles zum Ziel passen: Jobprofil, Social Media, Website oder kreatives Projekt.',
       selectToContinue: 'Waehle mindestens einen Style, um fortzufahren.',
     },
@@ -546,7 +565,7 @@ Object.assign(localizedUploadContent, {
     picker: {
       ...localizedUploadContent.ja.picker,
       title: '作りたいポートレートの方向を選ぶ',
-      intro: 'LinkedIn、履歴書、会社プロフィール、個人SNS、クリエイティブなアバターなど、実際の使い道に合わせて選べます。',
+      intro: 'LinkedIn、履歴書、会社プロフィール、証明写真など、実際の使い道に合わせて選べます。',
       creditHint: 'スタイルを見ているだけではクレジットは減りません。生成を開始すると使用されます。',
       uploadFirst: 'まず顔がはっきり見える写真をアップロードすると、合うスタイルを選びやすくなります。',
     },
@@ -562,7 +581,7 @@ Object.assign(localizedUploadContent, {
     styles: {
       ...localizedUploadContent.ja.styles,
       title: '選べるスタイル',
-      description: 'ビジネス向け、写真ツール、ライフスタイル、アート系のスタイルを選べます。目的が明確なほど、比較しやすい結果になります。',
+      description: 'ビジネス向けと証明写真ツールのスタイルを選べます。目的が明確なほど、比較しやすい結果になります。',
       selectedHint: '仕事用プロフィール、SNS、個人サイト、創作プロジェクトなど、公開先に合うスタイルか確認してください。',
       selectToContinue: '続行するには少なくとも1つのスタイルを選んでください。',
     },

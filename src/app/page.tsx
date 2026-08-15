@@ -115,7 +115,7 @@ const styles = [
     src: '/home-pages/sample/headshot-executive-portrait.jpg',
   },
   {
-    name: 'Vintage Film',
+    name: 'LinkedIn Professional',
     src: '/home-pages/sample/high-likeness%20ai%20headshots.jpg',
   },
   {
@@ -123,11 +123,11 @@ const styles = [
     src: '/home-pages/sample/Perfect%20AI%20business%20portrait.jpg',
   },
   {
-    name: 'Cinematic Portrait',
+    name: 'Modern Tech',
     src: '/home-pages/sample/perfect%20for%20my%20resume.jpg',
   },
   {
-    name: 'Coffee Shop',
+    name: 'ID Photo White',
     src: '/home-pages/sample/AI%20Headshot%20Clean%20Luxury%20Social.jpeg',
   },
 ]
@@ -200,22 +200,20 @@ export default function HomePage() {
                 <span className="gradient-text">in Minutes</span>
               </h1>
               
-              <p className="mt-3 sm:mt-6 text-base sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0">
-                Pay once to add credits, choose the styles you want, then generate and deduct only the styles you
-                selected. Use the finished portraits for LinkedIn, resumes, business profiles, corporate pages, team
-                photos, and personal branding when you need a realistic professional headshot without booking a
-                photographer.
+<p className="mt-3 sm:mt-6 text-base sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0">
+                Upload your selfies, choose a style, and generate professional AI headshots for LinkedIn, resumes,
+                business profiles, corporate pages, team photos, and personal branding. New users get 2 free headshots
+                when they create an account — no credit card required.
               </p>
               
               <div className="relative z-10 mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4 sm:justify-center lg:justify-start">
                 <TrackedLink
-                  href="/pricing?plan=basic#plans"
+                  href="/upload"
                   className={buttonStyles({ size: 'lg', className: 'w-full text-center sm:w-auto' })}
                   buttonType="primary_cta"
-                  source="home_hero_view_pricing"
-                  metadata={{ plan: 'basic', price: PLANS.basic.price }}
+                  source="home_hero_upload"
                 >
-                  Generate Headshots
+                  Try It Free — Generate Headshots
                 </TrackedLink>
                 <TrackedLink
                   href="#examples"
@@ -231,11 +229,11 @@ export default function HomePage() {
               <div className="mt-4 sm:mt-8 flex flex-wrap items-center gap-4 sm:gap-6 justify-center lg:justify-start text-xs sm:text-sm text-slate-500">
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 sm:w-5 sm:h-5 text-accent-500" />
-                  Pay once, add credits, no subscription
+                  2 free headshots for new users
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 sm:w-5 sm:h-5 text-accent-500" />
-                  Select styles, generate, then deduct by selection
+                  Pick styles, generate, then buy more credits only if you need them
                 </div>
               </div>
             </div>
@@ -337,9 +335,9 @@ export default function HomePage() {
       <section id="examples" className="content-auto py-10 sm:py-20 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">56 AI Headshot Styles, grouped by type</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Professional & ID Photo Styles</h2>
             <p className="text-slate-400 mt-3 sm:mt-4 max-w-2xl mx-auto text-sm sm:text-base">
-              Professional, lifestyle, creative, and seasonal looks. Pick any combination up to your credits.
+              Professional headshots and ID photo looks, ready for LinkedIn, resumes, and documents. Pick any combination up to your credits.
             </p>
           </div>
 
@@ -362,13 +360,12 @@ export default function HomePage() {
 
           <div className="text-center mt-8 sm:mt-12">
             <TrackedLink
-              href="/pricing?plan=basic#plans"
+              href="/upload"
               className={buttonStyles({ size: 'lg', className: 'w-full text-center sm:w-auto' })}
               buttonType="primary_cta"
-              source="home_style_examples_view_pricing"
-              metadata={{ plan: 'basic', price: PLANS.basic.price }}
+              source="home_style_examples_upload"
             >
-              Try Basic {PLANS.basic.credits} Headshots
+              Generate Headshots — 2 Free for New Users
             </TrackedLink>
           </div>
         </div>
@@ -568,10 +565,10 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <TrackedLink
-              href="/pricing"
+              href="/upload"
               className={buttonStyles({ size: 'lg', className: 'w-full bg-white text-primary-600 shadow-xl hover:bg-primary-50 sm:w-auto' })}
               buttonType="primary_cta"
-              source="home_bottom_cta_view_pricing"
+              source="home_bottom_cta_upload"
             >
               <Camera className="mr-2 h-5 w-5" />
               Generate Headshots Now

@@ -44,6 +44,7 @@ interface GenerationState {
 interface HeadshotStyle {
   id: string
   name: string
+  preview_image?: string | null
 }
 
 type GenerationPageContent = {
@@ -271,11 +272,8 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
   const [styles, setStyles] = useState<HeadshotStyle[]>([])
   const [showLightbox, setShowLightbox] = useState(false)
   const [lightboxPhoto, setLightboxPhoto] = useState<number | null>(null)
-  const [showCompletionModal, setShowCompletionModal] = useState(false)
-  const [pendingCompletion, setPendingCompletion] = useState<{ progress: number; outputUrls: string[] } | null>(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const hasStartedRef = useRef(false)
 
   useEffect(() => {
@@ -296,6 +294,7 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
 
       const photosBase64 = localStorage.getItem('pending_generation_photos')
       const storedStyleIds = localStorage.getItem('pending_generation_style_ids')
+      const storedGender = localStorage.getItem('pending_generation_gender')
       
       if (photosBase64) {
         try {
@@ -312,13 +311,15 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
           const styleIds = storedStyleIds ? JSON.parse(storedStyleIds) : []
           setSelectedStyleIds(Array.isArray(styleIds) ? styleIds : [])
 
-          localStorage.removeItem('pending_generation_photos')
+localStorage.removeItem('pending_generation_photos')
           localStorage.removeItem('pending_generation_id')
           localStorage.removeItem('pending_generation_style_ids')
+          localStorage.removeItem('pending_generation_gender')
 
           setGeneration(prev => ({ ...prev, currentStep: generationStatusText('preparing', locale), progress: 5, styleCount: styleIds.length }))
           
           const authHeaders = await getAuthHeaders()
+          const gender = storedGender === 'male' || storedGender === 'female' ? storedGender : 'neutral'
           const response = await fetch('/api/generate-headshots', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
@@ -326,6 +327,7 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
               faceImageUrls: inputPhotos,
               styleIds,
               clientGenerationId: generationId,
+              gender,
             })
           })
 
@@ -364,8 +366,13 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
           }
           
           if (data.status === 'completed') {
-            setPendingCompletion({ progress: data.progress, outputUrls: data.outputUrls })
-            setShowCompletionModal(true)
+            setGeneration(prev => ({
+              ...prev,
+              status: 'completed',
+              progress: data.progress || 100,
+              currentStep: generationStatusText('ready', locale),
+              outputPhotos: data.outputUrls || [],
+            }))
           } else {
             cleanupPolling = pollGenerationStatus(generationId)
           }
@@ -398,27 +405,19 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
             return
           }
 
-          if (data.status === 'completed') {
+if (data.status === 'completed') {
             clearInterval(intervalId)
             pollIntervalRef.current = null
-            if (progressIntervalRef.current) {
-              clearInterval(progressIntervalRef.current)
-              progressIntervalRef.current = null
-            }
             setGeneration(prev => ({
               ...prev,
+              status: 'completed',
               progress: 100,
-              currentStep: generationStatusText('complete', locale),
+              currentStep: generationStatusText('ready', locale),
+              outputPhotos: data.outputUrls || [],
             }))
-            setPendingCompletion({ progress: data.progress, outputUrls: data.outputUrls || [] })
-            setShowCompletionModal(true)
           } else if (data.status === 'failed') {
             clearInterval(intervalId)
             pollIntervalRef.current = null
-            if (progressIntervalRef.current) {
-              clearInterval(progressIntervalRef.current)
-              progressIntervalRef.current = null
-            }
             setGeneration(prev => ({
               ...prev,
               status: 'failed',
@@ -436,42 +435,21 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
         }
       }, 5000)
 
-      pollIntervalRef.current = intervalId
-
-      if (!progressIntervalRef.current) {
-        progressIntervalRef.current = setInterval(() => {
-          setGeneration(prev => {
-            if (prev.status !== 'processing') return prev
-            const nextProgress = Math.min(95, Math.max(prev.progress + 1, Math.ceil(prev.progress * 1.04)))
-            const currentStep = nextProgress >= 85
-              ? generationStatusText('finalizing', locale)
-              : nextProgress >= 65
-                ? generationStatusText('polishing', locale)
-                : nextProgress >= 45
-                  ? generationStatusText('renderingSelected', locale)
-                  : nextProgress >= 25
-                    ? generationStatusText('matching', locale)
-                    : generationStatusText('analyzing', locale)
-            return { ...prev, progress: nextProgress, currentStep }
-          })
-        }, 2500)
-      }
+pollIntervalRef.current = intervalId
 
       return () => {
         clearInterval(intervalId)
         pollIntervalRef.current = null
-        if (progressIntervalRef.current) {
-          clearInterval(progressIntervalRef.current)
-          progressIntervalRef.current = null
-        }
       }
     }
 
-    const init = async () => {
+const init = async () => {
       try {
+        const storedGender = localStorage.getItem('pending_generation_gender')
+        const gender = storedGender === 'male' || storedGender === 'female' ? storedGender : 'neutral'
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.access_token) {
-          const res = await fetch(`/api/styles?locale=${locale}`, {
+          const res = await fetch(`/api/styles?locale=${locale}&gender=${gender}`, {
             headers: { Authorization: `Bearer ${session.access_token}` },
           })
           const data = await res.json()
@@ -515,20 +493,7 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
     return () => window.removeEventListener('popstate', handleBack)
   }, [generation.status])
 
-  const confirmCompletion = () => {
-    if (!pendingCompletion) return
-    setGeneration(prev => ({
-      ...prev,
-      status: 'completed',
-      progress: 100,
-      currentStep: generationStatusText('ready', locale),
-      outputPhotos: pendingCompletion.outputUrls,
-    }))
-    setShowCompletionModal(false)
-    setPendingCompletion(null)
-  }
-
-  const togglePhotoSelection = (index: number) => {
+const togglePhotoSelection = (index: number) => {
     setSelectedPhotos(prev => {
       const newSet = new Set(prev)
       if (newSet.has(index)) {
@@ -767,31 +732,9 @@ export default function GenerationPage({ locale = 'en' }: GenerationPageProps) {
             </>
           )}
         </div>
-      </main>
+</main>
 
-      <Modal 
-        isOpen={showCompletionModal} 
-        onClose={confirmCompletion}
-        title={content.completionTitle}
-        className="max-w-md"
-      >
-        <div className="space-y-5">
-          <div className="flex items-center gap-3 rounded-lg border border-primary-100 bg-primary-50 p-4">
-            <CheckCircle2 className="h-6 w-6 shrink-0 text-primary-600" />
-            <div>
-              <p className="font-medium text-slate-900">{content.completionReady}</p>
-              <p className="mt-1 text-sm text-slate-600">
-                {content.completionText}
-              </p>
-            </div>
-          </div>
-          <Button className="w-full" onClick={confirmCompletion}>
-            {content.viewHeadshots}
-          </Button>
-        </div>
-      </Modal>
-
-      <Modal 
+      <Modal
         isOpen={showLightbox} 
         onClose={() => setShowLightbox(false)}
         className="max-w-2xl"

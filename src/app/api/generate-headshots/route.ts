@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { faceImageUrl, faceImageUrls, styleIds, clientGenerationId } = body
+    const { faceImageUrl, faceImageUrls, styleIds, clientGenerationId, gender } = body
     const inputPhotoUrls = Array.isArray(faceImageUrls)
       ? faceImageUrls
       : typeof faceImageUrl === 'string'
@@ -78,6 +78,7 @@ export async function POST(request: Request) {
       faceImageUrls: inputPhotoUrls,
       styleIds,
       clientGenerationId,
+      gender: gender === 'male' || gender === 'female' ? gender : 'neutral',
     })
 
     if (!generation.reused) {

@@ -71,6 +71,13 @@ const entries: AdminHomeEntry[] = [
     tone: 'text-fuchsia-600 bg-fuchsia-50',
   },
   {
+    title: 'Style Templates',
+    description: 'Attach one template image per style so the picker shows real generated results.',
+    href: '/dashboard/admin/style-templates',
+    icon: Image,
+    tone: 'text-purple-600 bg-purple-50',
+  },
+  {
     title: 'Keyword Research',
     description: 'Pull Google-style related keyword suggestions into a copyable list.',
     href: '/dashboard/admin/keyword-research',

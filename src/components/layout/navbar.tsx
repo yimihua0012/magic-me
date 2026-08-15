@@ -118,8 +118,8 @@ export default function Navbar({ onOpenAuthModal, solid = true }: NavbarProps) {
     router.push(loginPathForReturn(window.location.pathname || '/', '/'))
   }
 
-  const handleGenerate = () => {
-    router.push(isAuthenticated ? '/upload' : loginPathForReturn('/upload', '/'))
+const handleGenerate = () => {
+    router.push('/upload')
   }
 
   const closeMenu = () => setIsOpen(false)

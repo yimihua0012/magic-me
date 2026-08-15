@@ -3,6 +3,8 @@ import type { PlanType } from './generation.types'
 
 export type CreditPackageStatus = 'inactive' | 'active' | 'expired' | 'depleted'
 
+export type CreditPackageKind = 'purchase' | 'trial'
+
 export interface CreditPackage {
   id: string
   user_id: string
@@ -11,6 +13,9 @@ export interface CreditPackage {
   plan_type: PlanType
   total_credits: number
   remaining_credits: number
+  
+  // 包类型：purchase（购买）/ trial（注册赠送试用）
+  kind?: CreditPackageKind
   
   // 有效期（从第一次生成开始计算）
   purchased_at: string

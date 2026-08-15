@@ -19,6 +19,15 @@
 *.pem
 build*.log
 
+# local dev / codex artifacts
+*.log
+.codex-dev-process*
+.codex-next-*
+.next-dev*
+.env.local.td
+/.pnpm-store/
+/icons/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

@@ -55,6 +55,7 @@ const menuItems: AdminMenuItem[] = [
   { label: 'Blog Content', href: '/dashboard/admin/blog', icon: BookOpenText },
   { label: 'Fast Content', href: '/dashboard/admin/fastContent', icon: Rocket },
   { label: 'Sample Pictures', href: '/dashboard/admin/sample-pictures', icon: ImagePlus },
+  { label: 'Style Templates', href: '/dashboard/admin/style-templates', icon: Sparkles },
   { label: 'Keyword Research', href: '/dashboard/admin/keyword-research', icon: ListPlus },
   { label: 'Search Submission', href: '/dashboard/admin/search-submission', icon: SearchCheck, global: true },
   { label: 'Bing URL Submit', href: '/dashboard/admin/bing-url-submit', icon: SearchCheck },

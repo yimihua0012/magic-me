@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import Navbar from '@/components/layout/navbar'
 import Footer from '@/components/layout/footer'
 import Card from '@/components/ui/card'
@@ -7,7 +8,7 @@ import PricingJsonLd from '@/components/seo/pricing-json-ld'
 import { Check, X, Sparkles, Zap, Crown } from 'lucide-react'
 import { pricingConfig, pricingFAQ, appConfig } from '@/lib/config'
 import { languageAlternatesForPath } from '@/lib/i18n'
-import { PLANS, type PlanType } from '@backend/config/plans'
+import { PLANS, TRIAL_CREDITS, type PlanType } from '@backend/config/plans'
 
 export const metadata: Metadata = {
   title: 'Professional Headshot Pricing: One-Time Credit Packs',
@@ -37,17 +38,12 @@ export const metadata: Metadata = {
   },
 }
 
-const PAYPAL_BUTTONS: Record<PlanType, { id: string }> = {
-  basic: {
-    id: 'SUZNHDUUW6K6E',
-  },
-  pro: {
-    id: 'U8CQE5WXQEM4W',
-  },
-  premium: {
-    id: 'EWV87BFAXRZ88',
-  },
-}
+const PAYPAL_BUTTONS: Record<PlanType, { id: string }> = Object.fromEntries(
+  (Object.keys(PLANS) as PlanType[]).map((planId) => [
+    planId,
+    { id: PLANS[planId].prices.USD.paypalButtonId },
+  ])
+) as Record<PlanType, { id: string }>
 
 const PAYPAL_LABELS: Record<PlanType, string> = {
   basic: 'Choose Basic Plan',
@@ -96,10 +92,28 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl border border-slate-200 bg-white p-2 text-center text-xs font-medium text-slate-600 sm:hidden">
+          <div className="mb-6 grid grid-cols-3 gap-2 rounded-xl border border-slate-200 bg-white p-2 text-center text-xs font-medium text-slate-600 sm:hidden">
             <span>{PLANS.basic.credits} shots</span>
             <span>{PLANS.pro.credits} shots</span>
             <span>{PLANS.premium.credits} shots</span>
+          </div>
+
+          <div className="mb-6 flex flex-col items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 sm:flex-row sm:px-6">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
+                <Sparkles className="h-4 w-4 text-emerald-600" />
+                Try it free first
+              </p>
+              <p className="mt-1 text-sm text-emerald-700">
+                New users get {TRIAL_CREDITS} free headshots when they create an account. No credit card required.
+              </p>
+            </div>
+            <Link
+              href="/upload"
+              className="inline-flex min-h-[44px] flex-none items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+            >
+              Generate my free headshots
+            </Link>
           </div>
 
           <div id="plans" className="mx-auto grid max-w-5xl scroll-mt-24 gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">

@@ -178,6 +178,85 @@ export class CreditPackageService {
     return createdPackage
   }
 
+  /**
+   * 创建注册赠送的试用积分包（惰性发放，幂等）。
+   * - 每个用户只发一次（kind = 'trial'）
+   * - 不占用每日"购买套餐数量"上限
+   * - 与购买包共用同一套 FIFO 扣减逻辑
+   */
+  static async createTrialPackage(userId: string, credits = 2, validityDays = 7): Promise<CreditPackage> {
+    const { data: existing, error: queryError } = await supabaseAdmin
+      .from('credit_packages')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('kind', 'trial')
+      .limit(1)
+      .maybeSingle()
+
+    if (!queryError && existing) {
+      return existing as CreditPackage
+    }
+
+    const packageData: Partial<CreditPackage> = {
+      user_id: userId,
+      plan_type: 'basic',
+      kind: 'trial',
+      total_credits: credits,
+      remaining_credits: credits,
+      validity_days: validityDays,
+      amount_paid: 0,
+      currency: 'USD',
+      status: 'inactive',
+      purchased_at: new Date().toISOString(),
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('credit_packages')
+      .insert(packageData)
+      .select()
+      .single()
+
+    if (error) {
+      const { data: retryExisting, error: retryError } = await supabaseAdmin
+        .from('credit_packages')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('kind', 'trial')
+        .limit(1)
+        .maybeSingle()
+
+      if (!retryError && retryExisting) {
+        return retryExisting as CreditPackage
+      }
+
+      throw error
+    }
+
+    const created = data as CreditPackage
+    CreditTransactionService.record({
+      userId,
+      creditPackageId: created.id,
+      transactionType: 'credit_added',
+      amountDelta: created.total_credits,
+      packageRemainingAfter: created.remaining_credits,
+      description: 'Free trial credits granted',
+      source: 'trial',
+      sourceKey: `package:trial:add:${created.id}`,
+      metadata: {
+        planType: 'basic',
+        kind: 'trial',
+        amountPaid: 0,
+        currency: 'USD',
+      },
+      occurredAt: created.purchased_at,
+    }).catch((err) => {
+      console.error('[CreditPackage] Failed to record trial credit_added transaction:', err)
+    })
+
+    console.log(`[CreditPackage] Granted trial package: ${created.id}, credits: ${credits}, validity: ${validityDays} days`)
+    return created
+  }
+
   private static paymentProviderForPackage(pkg: CreditPackage): { provider: string; paymentId?: string } {
     if (pkg.stripe_payment_id) {
       return { provider: 'Stripe', paymentId: pkg.stripe_payment_id }

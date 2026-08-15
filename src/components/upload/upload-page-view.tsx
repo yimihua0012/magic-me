@@ -14,7 +14,7 @@ import { loginPathForReturn } from '@/lib/auth-return'
 import { localePath, type Locale } from '@/lib/i18n'
 import { formatUploadText, localizedUploadContent } from '@/lib/localized-upload-content'
 import { withSource } from '@/lib/navigation-source'
-import { PLANS, PlanType } from '@backend/config/plans'
+import { PLANS, TRIAL_CREDITS, PlanType } from '@backend/config/plans'
 import {
   Upload,
   X,
@@ -61,17 +61,15 @@ interface HeadshotStyle {
   prompt: string
   negative: string
   selection_count?: number
+  preview_image?: string | null
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
   professional: 'Professional',
   photo_tools: 'ID Photo And PNG',
-  lifestyle: 'Lifestyle',
-  artistic: 'Creative',
-  seasonal: 'Seasonal',
 }
 
-const CATEGORY_ORDER = ['professional', 'photo_tools', 'lifestyle', 'artistic', 'seasonal']
+const CATEGORY_ORDER = ['professional', 'photo_tools']
 
 function isUsableCreditPackage(pkg: CreditPackageSummaryItem) {
   const expiresAt = pkg.expires_at ? new Date(pkg.expires_at).getTime() : null
@@ -120,7 +118,14 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
   const [showStyleLimitModal, setShowStyleLimitModal] = useState(false)
   const [showStylePicker, setShowStylePicker] = useState(false)
   const [selectedStyleIds, setSelectedStyleIds] = useState<string[]>([])
+  const [templateGender, setTemplateGender] = useState<'neutral' | 'male' | 'female'>('neutral')
   const [stylesLoadFailed, setStylesLoadFailed] = useState(false)
+
+  const handleGenderChange = (next: 'neutral' | 'male' | 'female') => {
+    if (next === templateGender) return
+    setTemplateGender(next)
+    void loadStyles(next)
+  }
   const hasShownNoCreditsModalRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadSectionRef = useRef<HTMLDivElement>(null)
@@ -166,12 +171,13 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
     }
   }, [])
 
-  const loadStyles = useCallback(async () => {
+const loadStyles = useCallback(async (gender?: 'neutral' | 'male' | 'female') => {
     try {
       setIsLoadingStyles(true)
       setStylesLoadFailed(false)
 
-      const res = await fetch(`/api/styles?locale=${locale}`)
+      const genderParam = gender || templateGender
+      const res = await fetch(`/api/styles?locale=${locale}&gender=${genderParam}`)
       if (res.ok) {
         const data = await res.json()
         setStyles(Array.isArray(data.styles) ? data.styles : [])
@@ -185,7 +191,7 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
     } finally {
       setIsLoadingStyles(false)
     }
-  }, [locale])
+  }, [locale, templateGender])
 
   const fetchCredits = useCallback(async (accessToken?: string) => {
     try {
@@ -257,8 +263,8 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
           setShowAuthRequired(false)
           void fetchCredits(session.access_token)
         } else {
+          // 游客可先体验：不强制登录，注册墙后置到"点击生成"时
           setIsLoadingCredits(false)
-          promptForAuth()
         }
 
         const authState = supabase.auth.onAuthStateChange((_event, session) => {
@@ -422,7 +428,8 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
         return prev.filter(id => id !== styleId)
       }
 
-      const limit = availableCredits || 0
+      // 有积分时按积分上限限制，游客/无积分时允许先体验选样式
+      const limit = availableCredits > 0 ? availableCredits : 30
       if (limit > 0 && prev.length >= limit) {
         setShowStyleLimitModal(true)
         return prev
@@ -435,7 +442,7 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
   const canProceed = validPhotos.length >= 1
   const selectedStyles = styles.filter(style => selectedStyleIds.includes(style.id))
   const selectedStyleCount = selectedStyleIds.length
-  const canPickStyles = hasActiveCredits && canProceed
+  const canPickStyles = canProceed
   const styleGroups = CATEGORY_ORDER
     .map(category => ({
       category,
@@ -443,7 +450,6 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
       items: styles.filter(style => style.category === category),
     }))
     .filter(group => group.items.length > 0)
-  const canGenerate = isAuthenticated && canProceed && hasActiveCredits && selectedStyleCount > 0 && !isLoadingCredits
   const shouldShowBuyCredits = isAuthenticated && !hasActiveCredits && !isLoadingCredits
   const creditStatusTitle = isLoadingCredits
     ? content.credits.checkingTitle
@@ -499,13 +505,18 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
       },
     })
 
-    if (!isAuthenticated) {
+if (!isAuthenticated) {
       promptForAuth(true)
       return
     }
 
     if (!hasActiveCredits) {
       router.push(pricingHref(`upload_no_credits_${locale}`))
+      return
+    }
+
+    if (canProceed && selectedStyleCount > 0 && selectedStyleCount > availableCredits) {
+      setShowStyleLimitModal(true)
       return
     }
 
@@ -522,9 +533,10 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
       }
 
       void Promise.all(validPhotos.map(p => convertToBase64(p.file))).then(base64Photos => {
-        localStorage.setItem('pending_generation_photos', JSON.stringify(base64Photos))
+localStorage.setItem('pending_generation_photos', JSON.stringify(base64Photos))
         localStorage.setItem('pending_generation_id', generationId)
         localStorage.setItem('pending_generation_style_ids', JSON.stringify(selectedStyleIds))
+        localStorage.setItem('pending_generation_gender', templateGender)
         router.push(localePath(locale, `/generate/${generationId}`))
       })
     }
@@ -629,18 +641,38 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
         className="max-w-5xl"
       >
         <div className="space-y-5">
-          <div className="rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+<div className="rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
               <p className="text-sm font-semibold text-blue-900">
                 {content.picker.intro}
               </p>
-              <p className="text-xs text-blue-700">
-                {formatUploadText(content.picker.creditHint, { credits: availableCredits })}
+<p className="text-xs text-blue-700">
+                {hasActiveCredits
+                  ? formatUploadText(content.picker.creditHint, { credits: availableCredits })
+                  : formatUploadText(content.guest.text, { credits: TRIAL_CREDITS })}
               </p>
             </div>
             <p className="text-sm font-semibold text-blue-900">
               {formatUploadText(content.picker.selected, { count: selectedStyleCount })}
             </p>
+          </div>
+
+          <div className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
+            {([{ key: 'neutral', label: content.picker.genderAny }, { key: 'male', label: content.picker.genderMale }, { key: 'female', label: content.picker.genderFemale }] as const).map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => handleGenderChange(option.key)}
+                disabled={isLoadingStyles}
+                className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                  templateGender === option.key
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-transparent text-slate-600 hover:bg-white hover:text-slate-900'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
 
           {isLoadingStyles ? (
@@ -669,15 +701,16 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {group.items.map((style) => {
                       const selected = selectedStyleIds.includes(style.id)
-                      const disabled = !canPickStyles || (!selected && availableCredits > 0 && selectedStyleCount >= availableCredits)
+                      const selectionLimit = availableCredits > 0 ? availableCredits : 30
+                      const disabled = !canPickStyles || (!selected && selectedStyleCount >= selectionLimit)
                       return (
                         <button
                           key={style.id}
                           type="button"
                           onClick={() => {
                             const isSelected = selectedStyleIds.includes(style.id)
-                            if (!hasActiveCredits || !canProceed) return
-                            if (!isSelected && selectedStyleCount >= availableCredits) {
+                            if (!canProceed) return
+                            if (!isSelected && selectedStyleCount >= selectionLimit) {
                               setShowStyleLimitModal(true)
                               return
                             }
@@ -689,11 +722,31 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
                               ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
                               : !canPickStyles
                                 ? 'border-slate-200 bg-slate-50 opacity-70'
-                                : selectedStyleCount >= availableCredits
+                                : selectedStyleCount >= selectionLimit
                                   ? 'border-amber-300 bg-amber-50 hover:border-amber-400 hover:bg-amber-50'
                                   : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40'
                           } ${disabled ? 'cursor-not-allowed' : ''}`}
                         >
+                          <div className="relative mb-2 aspect-square overflow-hidden rounded-lg bg-slate-100">
+                            {style.preview_image ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={style.preview_image}
+                                alt={style.name}
+                                loading="lazy"
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">
+                                <Sparkles className="h-6 w-6 text-slate-300" />
+                              </div>
+                            )}
+                            {selected && (
+                              <div className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 shadow">
+                                <Check className="h-3.5 w-3.5 text-white" />
+                              </div>
+                            )}
+                          </div>
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
                               <p className="font-medium text-slate-900 text-sm truncate">{style.name}</p>
@@ -856,7 +909,7 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
                           <h3 className="text-lg font-semibold text-slate-900 mb-2">{content.upload.loadingTitle}</h3>
                           <p className="text-slate-600">{content.upload.loadingText}</p>
                         </div>
-                      ) : hasActiveCredits ? (
+                      ) : (
                         <div
                           className={`border-2 border-dashed rounded-2xl min-h-[360px] p-6 sm:p-8 text-center transition-all duration-200 flex items-center justify-center ${
                             isDragging
@@ -890,15 +943,6 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
                               {content.upload.fileHint}
                             </p>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
-                          <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
-                          <h3 className="text-lg font-semibold text-slate-900 mb-2">{content.upload.unavailableTitle}</h3>
-                          <p className="text-slate-600 mb-4">{content.upload.unavailableText}</p>
-                          <Button onClick={() => router.push(pricingHref(`upload_empty_credits_panel_${locale}`))}>
-                            {content.upload.buy}
-                          </Button>
                         </div>
                       )}
                     </div>
@@ -1083,9 +1127,33 @@ function UploadContent({ locale = 'en' }: UploadContentProps) {
                   </div>
                 </div>
 
+{!isAuthenticated && (
+                  <div className="mb-4 flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-emerald-900">
+                        <span className="mr-1.5 rounded-md bg-emerald-600 px-1.5 py-0.5 text-[11px] font-bold uppercase text-white">
+                          {content.guest.badge}
+                        </span>
+                        {content.guest.title}
+                      </p>
+                      <p className="mt-1 text-xs text-emerald-700">
+                        {formatUploadText(content.guest.text, { credits: TRIAL_CREDITS })}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="shrink-0"
+                      onClick={() => promptForAuth(true)}
+                    >
+                      {content.guest.register}
+                    </Button>
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
-                    disabled={!canGenerate && !shouldShowBuyCredits}
+                    disabled={!canProceed || selectedStyleCount === 0 || isLoadingCredits}
                     onClick={handleProceed}
                     className="w-full sm:w-auto"
                   >

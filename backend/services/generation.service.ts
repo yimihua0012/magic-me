@@ -304,6 +304,54 @@ const STYLE_CONFIGS: Record<string, StyleConfig> = {
   }
 }
 
+let cachedStyleTemplates: Map<string, string> | null = null
+let cachedStyleTemplatesAt = 0
+const STYLE_TEMPLATE_CACHE_MS = 60_000
+
+export type StyleTemplateGender = 'neutral' | 'male' | 'female'
+
+function genderFallbackOrder(gender: StyleTemplateGender): StyleTemplateGender[] {
+  if (gender === 'neutral') return ['neutral', 'male', 'female']
+  if (gender === 'male') return ['male', 'neutral', 'female']
+  return ['female', 'neutral', 'male']
+}
+
+// 加载 style_id -> 模板图URL 的映射（风格模板作为生成参考图），按性别优先取模板
+async function loadStyleTemplateMap(gender: StyleTemplateGender = 'neutral'): Promise<Map<string, string>> {
+  if (cachedStyleTemplates && Date.now() - cachedStyleTemplatesAt < STYLE_TEMPLATE_CACHE_MS) {
+    return cachedStyleTemplates
+  }
+
+  const raw = new Map<string, { gender: string; image_url: string }[]>()
+  try {
+    const { data } = await supabaseAdmin
+      .from('style_templates')
+      .select('style_id,gender,image_url')
+
+    for (const row of data || []) {
+      if (!row?.style_id || !row.image_url) continue
+      const list = raw.get(row.style_id) || []
+      list.push({ gender: row.gender || 'neutral', image_url: row.image_url })
+      raw.set(row.style_id, list)
+    }
+  } catch (error) {
+    if (!String(error).toLowerCase().includes('relation') && !String(error).toLowerCase().includes('does not exist')) {
+      console.error('[GenerationService] Failed to load style templates:', error)
+    }
+  }
+
+  const map = new Map<string, string>()
+  for (const [styleId, list] of raw) {
+    const preferred = genderFallbackOrder(gender).find((g) => list.some((entry) => entry.gender === g))
+    const match = preferred ? list.find((entry) => entry.gender === preferred) : list[0]
+    if (match?.image_url) map.set(styleId, match.image_url)
+  }
+
+  cachedStyleTemplates = map
+  cachedStyleTemplatesAt = Date.now()
+  return map
+}
+
 let cachedDbStyles: StyleConfig[] | null = null
 let cachedDbStylesAt = 0
 const STYLE_CACHE_MS = 60_000
@@ -408,6 +456,7 @@ export interface CreateGenerationRequest {
   faceImageUrls?: string[]
   styleIds?: string[]
   clientGenerationId?: string
+  gender?: StyleTemplateGender
 }
 
 export interface GenerationResponse {
@@ -547,6 +596,7 @@ export class GenerationService {
     logGenerationDebug(`[GenerationService] createAndActivateGeneration called - userId: ${input.userId}`)
     const { userId, styleIds, clientGenerationId } = input
     const inputPhotos = this.normalizeInputPhotos(input)
+    const templateGender = input.gender || 'neutral'
     const availableStyles = await getStyleMap()
     const styles = styleIds?.length
       ? styleIds.filter(id => availableStyles[id]).slice(0, 120)
@@ -589,6 +639,7 @@ export class GenerationService {
         consumedCredits: consumeResult.consumedFrom || [],
         styleIds: styles,
         clientGenerationId,
+        templateGender,
       },
     }
 
@@ -640,6 +691,7 @@ export class GenerationService {
           consumedCredits: consumeResult.consumedFrom || [],
           styleIds: styles,
           clientGenerationId,
+          templateGender,
         },
       })
       logGenerationDebug(`[GenerationService] Successfully stored in memory: ${fallbackId}`)
@@ -872,12 +924,15 @@ export class GenerationService {
 
     logGenerationDebug(`[GenerationService] Generating ${stylesToGenerate.length} styles in ${batches.length} batches`)
 
-    const outputUrls: string[] = []
+const outputUrls: string[] = []
     const photoToolOutputs: PhotoToolOutputRecord[] = []
     const baseMetadata = {
       ...(generation.metadata || {}),
       photoToolOutputs,
     }
+    const storedGender = generation.metadata?.templateGender
+    const templateGender: StyleTemplateGender =
+      storedGender === 'male' || storedGender === 'female' ? storedGender : 'neutral'
     const totalStyles = stylesToGenerate.length
     const storageFolderName = this.createStorageFolderName()
     let completedStyles = 0
@@ -891,7 +946,7 @@ export class GenerationService {
         current_step: generationStepForProgress(batchStartProgress),
       })
 
-      const batchPromises = batch.map((styleId, batchItemIndex) => 
+const batchPromises = batch.map((styleId, batchItemIndex) => 
         this.generateWithRetry(
           generation.input_photos.slice(0, MAX_INPUT_PHOTOS),
           styleId,
@@ -900,7 +955,8 @@ export class GenerationService {
             generationId,
             folderName: storageFolderName,
             index: completedStyles + batchItemIndex,
-          }
+          },
+          templateGender
         )
       )
 
@@ -997,13 +1053,14 @@ export class GenerationService {
     return false
   }
 
-  private static async generateWithRetry(
+private static async generateWithRetry(
     faceImageUrls: string[],
     styleId: string,
-    storageContext: OutputPhotoStorageContext
+    storageContext: OutputPhotoStorageContext,
+    templateGender: StyleTemplateGender = 'neutral'
   ): Promise<StyleGenerationResult> {
     try {
-      const generatedUrl = await this.generateSingleStyle(faceImageUrls, styleId, storageContext)
+      const generatedUrl = await this.generateSingleStyle(faceImageUrls, styleId, storageContext, templateGender)
       if (!isPhotoToolStyleId(styleId)) {
         return { outputUrls: [generatedUrl] }
       }
@@ -1041,10 +1098,11 @@ export class GenerationService {
     }
   }
 
-  private static async generateSingleStyle(
+private static async generateSingleStyle(
     faceImageUrls: string[],
     styleId: string,
-    storageContext: OutputPhotoStorageContext
+    storageContext: OutputPhotoStorageContext,
+    templateGender: StyleTemplateGender = 'neutral'
   ): Promise<string> {
     const availableStyles = await getStyleMap()
     const styleConfig = availableStyles[styleId]
@@ -1060,9 +1118,15 @@ export class GenerationService {
     logGenerationDebug(`[GenerationService] Generating ${styleId} with Replicate API...`)
     
     const isPhotoToolStyle = isPhotoToolStyleId(styleId)
+    const templateImageUrl = (await loadStyleTemplateMap(templateGender)).get(styleId) || null
+    // 模板图作为"风格参考图"追加到 image_input 末尾，身份仍以用户照片为准
+    const referenceImages = faceImageUrls.slice(0, MAX_INPUT_PHOTOS)
+    const templateSuffix = templateImageUrl
+      ? ` The LAST image in the input list is the target style template. Match its composition, background, wardrobe, lighting, and mood exactly, but keep the person's identity, face shape, and likeness strictly from the reference photos of the person. Critically, never copy the template person's gender, facial features, face shape, hair style, hair color, eye color, skin tone, body type, age, or any other appearance trait from the template image. Only use the template for setting, wardrobe, props, background, composition, color palette, lighting, and overall mood. The output person must look like the real person from the reference photos, with their own gender and physical appearance.`
+      : ''
     const prompt = isPhotoToolStyle
-      ? `Create a square 1:1 realistic ID photo portrait from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness, facial structure, face shape, and recognizable likeness. Front-facing head and shoulders, centered composition. Use even studio lighting and follow the chosen style's requested ID photo background color exactly. Chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
-      : `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Preserve the person's facial structure, face shape, and recognizable likeness. Make the result look naturally polished and slightly refreshed, with a subtly younger appearance, without changing identity or facial proportions. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}`
+      ? `Create a square 1:1 realistic ID photo portrait from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness, facial structure, face shape, and recognizable likeness. Front-facing head and shoulders, centered composition. Use even studio lighting and follow the chosen style's requested ID photo background color exactly. Chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}${templateSuffix}`
+      : `Create a square 1:1 professional AI headshot from 1-3 reference photos of the same person. Keep the identity consistent, natural, and realistic. Preserve facial likeness and do not soften or blur facial details. Preserve the person's facial structure, face shape, and recognizable likeness. Make the result look naturally polished and slightly refreshed, with a subtly younger appearance, without changing identity or facial proportions. Output should be a polished LinkedIn-ready 4K-quality headshot with the chosen style: ${styleConfig.prompt}, ${QUALITY_SUFFIX}${templateSuffix}`
 
     const replicateApiKey = process.env.REPLICATE_API_KEY
     const modelName = process.env.REPLICATE_MODEL_NAME || 'google/nano-banana-2'
@@ -1086,7 +1150,9 @@ export class GenerationService {
               input: {
                 prompt,
                 negative_prompt: `${styleConfig.negative}, ${DEFAULT_NEGATIVE}`,
-                image_input: faceImageUrls.slice(0, MAX_INPUT_PHOTOS),
+                image_input: templateImageUrl
+                  ? [...referenceImages, templateImageUrl]
+                  : referenceImages,
                 aspect_ratio: '1:1',
                 output_format: 'jpg',
               },

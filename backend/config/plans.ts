@@ -1,3 +1,6 @@
+export const TRIAL_CREDITS = 2
+export const TRIAL_VALIDITY_DAYS = 7
+
 export const PLANS = {
   basic: {
     id: 'basic',
