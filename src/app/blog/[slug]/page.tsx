@@ -15,6 +15,7 @@ import { getBlogEnhancement } from '@/lib/blog-enhancements'
 import { getBlogBreadcrumbLabel } from '@/lib/blog-breadcrumb'
 import { getEnglishBlogCtaContent, getEnglishBlogInternalLinks } from '@/lib/blog-internal-links'
 import { getBlogLanguageAlternates, getPublishedBlogPost, getPublishedBlogPosts, getPublishedBlogSlugs, getRelatedPublishedBlogPosts } from '@/lib/blog-store'
+import { shouldIndexBlogPost } from '@/lib/seo-index-policy'
 
 
 type BlogArticlePageProps = {
@@ -65,6 +66,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
     title: post.title,
     description: post.description,
     keywords: [...post.keywords],
+    robots: shouldIndexBlogPost(post) ? undefined : { index: false, follow: true },
     alternates: {
       canonical: `/blog/${post.slug}`,
       languages: await getBlogLanguageAlternates(post),
