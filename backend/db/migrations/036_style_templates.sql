@@ -9,4 +9,5 @@ CREATE TABLE IF NOT EXISTS style_templates (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+
 CREATE INDEX IF NOT EXISTS idx_style_templates_updated_at ON style_templates (updated_at DESC);
