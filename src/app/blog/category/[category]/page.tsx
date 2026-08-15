@@ -9,6 +9,7 @@ import {
   getPublishedBlogCategories,
   getPublishedBlogCategory,
 } from '@/lib/blog-store'
+import { shouldIndexCategory } from '@/lib/seo-index-policy'
 
 export const revalidate = 600
 
@@ -39,6 +40,7 @@ export async function generateMetadata({ params }: BlogCategoryPageProps): Promi
     title: content.title,
     description: content.description,
     keywords: content.keywords,
+    robots: shouldIndexCategory(category) ? undefined : { index: false, follow: true },
     alternates: {
       canonical: blogCategoryPath('en', category.slug),
       languages: await getBlogCategoryLanguageAlternates(category),
