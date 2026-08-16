@@ -288,10 +288,14 @@ export default async function LocalizedBlogPage({ params }: PageProps) {
                   <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
                     <CalendarDays className="h-4 w-4" />
                     {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString(routedLocale) : getBlogPublishDate(index)}
-                    <span className="text-slate-300">/</span>
-                    <Link href={categoryHref} className="text-primary-600 hover:text-primary-700">
-                      {categoryLabel}
-                    </Link>
+                    {categoryLabel && (
+                      <>
+                        <span className="text-slate-300">/</span>
+                        <Link href={categoryHref} className="text-primary-600 hover:text-primary-700">
+                          {categoryLabel}
+                        </Link>
+                      </>
+                    )}
                   </div>
                   <h2 className="break-words text-xl font-bold leading-snug text-slate-950">
                     <Link href={href} className="hover:text-primary-600">

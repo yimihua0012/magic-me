@@ -10,6 +10,7 @@ import { appConfig } from '@/lib/config'
 import { formatCurrency, getDefaultCurrencyForLocale } from '@/lib/currency'
 import { localePath, type RoutedLocale } from '@/lib/i18n'
 import { localizedPricingContent } from '@/lib/localized-pricing-content'
+import { styleShowcaseCards } from '@/lib/seo-content'
 import { withSource } from '@/lib/navigation-source'
 import type { LocalizedHomeContent } from '@/lib/localized-home-content'
 import { PLANS, type PlanType } from '@backend/config/plans'
@@ -29,13 +30,19 @@ const featureIcons = [
 ]
 
 const styleImages = [
-  '/home-pages/sample/professional%20headshots%20for%20team%20photos%20.jpeg',
-  '/home-pages/sample/headshot-executive-portrait.jpg',
-  '/home-pages/sample/high-likeness%20ai%20headshots.jpg',
-  '/home-pages/sample/Perfect%20AI%20business%20portrait.jpg',
-  '/home-pages/sample/perfect%20for%20my%20resume.jpg',
-  '/home-pages/sample/AI%20Headshot%20Clean%20Luxury%20Social.jpeg',
-]
+  styleShowcaseCards[0],
+  styleShowcaseCards[1],
+  styleShowcaseCards[2],
+  styleShowcaseCards[3],
+  styleShowcaseCards[11],
+  styleShowcaseCards[6],
+  styleShowcaseCards[7],
+  styleShowcaseCards[8],
+  styleShowcaseCards[13],
+  styleShowcaseCards[16],
+  styleShowcaseCards[20],
+  styleShowcaseCards[19],
+].map(({ src }) => src)
 
 const heroHeadshots = [
   {
@@ -56,22 +63,22 @@ const planIds: PlanType[] = ['basic', 'pro', 'premium']
 
 const galleryLabels: Record<RoutedLocale, { badge: string; previewTitle: string; viewLabel: string }> = {
   es: {
-    badge: 'Prueba 56 estilos de retrato IA',
+    badge: 'Prueba más estilos de retrato IA',
     previewTitle: 'Vista previa del retrato',
     viewLabel: 'Ver más grande',
   },
   fr: {
-    badge: 'Essayez 56 styles de portrait IA',
+    badge: 'Essayez plus de styles de portrait IA',
     previewTitle: 'Aperçu du portrait',
     viewLabel: 'Voir en grand',
   },
   de: {
-    badge: '56 KI-Headshot-Stile testen',
+    badge: 'Mehr KI-Headshot-Stile testen',
     previewTitle: 'Headshot-Vorschau',
     viewLabel: 'Größer anzeigen',
   },
   ja: {
-    badge: '56種類のAIヘッドショットスタイル',
+    badge: 'さらに多くのAIヘッドショットスタイル',
     previewTitle: 'ヘッドショットのプレビュー',
     viewLabel: '大きく表示',
   },
@@ -149,53 +156,6 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
         </div>
       </section>
 
-      <section className="content-auto bg-slate-50 py-10 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 text-center sm:mb-16">
-            <h2 className="section-heading">{content.howItWorksTitle}</h2>
-            <p className="section-subheading mx-auto mt-3 sm:mt-4">{content.howItWorksSubtitle}</p>
-          </div>
-
-          <div className="grid gap-3 sm:gap-6 md:grid-cols-3 md:gap-8">
-            {content.steps.map((step, index) => (
-              <div key={step.title} className="relative">
-                <Card className="h-full p-5 text-center sm:p-8">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-600 sm:mb-6 sm:h-16 sm:w-16">
-                    {index === 2 ? <Download className="h-8 w-8" /> : <Sparkles className="h-8 w-8" />}
-                  </div>
-                  <div className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
-                    {index + 1}
-                  </div>
-                  <h3 className="mb-2 text-lg font-bold text-slate-900 sm:mb-3 sm:text-xl">{step.title}</h3>
-                  <p className="text-sm text-slate-600 sm:text-base">{step.text}</p>
-                </Card>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="features" className="content-auto py-10 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 text-center sm:mb-16">
-            <h2 className="section-heading">{content.featuresTitle}</h2>
-            <p className="section-subheading mx-auto mt-3 sm:mt-4">{content.featuresSubtitle}</p>
-          </div>
-
-          <div className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {content.features.map((feature, index) => (
-              <Card key={feature.title} className="p-4 sm:p-6">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600 sm:mb-4 sm:h-12 sm:w-12">
-                  {featureIcons[index]}
-                </div>
-                <h3 className="mb-2 text-lg font-bold text-slate-900">{feature.title}</h3>
-                <p className="text-sm text-slate-600">{feature.text}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section id="examples" className="content-auto bg-slate-900 py-10 text-white sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center sm:mb-16">
@@ -203,19 +163,19 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
             <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400 sm:mt-4 sm:text-base">{content.examplesSubtitle}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
+<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
             {styleImages.map((src, index) => (
               <div key={src} className="group">
                 <div className="relative aspect-square overflow-hidden rounded-xl border border-slate-700 bg-slate-800 transition-colors group-hover:border-primary-500">
                   <Image
                     src={src}
-                    alt={`${content.styleNames[index]} AI headshot style example`}
+                    alt={`${styleShowcaseCards[index].name} AI headshot style example`}
                     fill
                     sizes="(min-width: 1024px) 180px, (min-width: 640px) 30vw, 45vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
-                <p className="mt-2 text-center text-xs font-medium sm:text-sm">{content.styleNames[index]}</p>
+                <p className="mt-2 text-center text-xs font-medium sm:text-sm">{styleShowcaseCards[index].name}</p>
               </div>
             ))}
           </div>
@@ -224,37 +184,6 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
             <Link href={withSource(localePath(locale, '/pricing'), `home_examples_pricing_${locale}`)} className={buttonStyles({ size: 'lg', className: 'w-full text-center sm:w-auto' })}>
               {content.examplesCta}
             </Link>
-          </div>
-        </div>
-      </section>
-
-      <section id="testimonials" className="content-auto py-10 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 text-center sm:mb-16">
-            <h2 className="section-heading">{content.testimonialsTitle}</h2>
-            <p className="section-subheading mx-auto mt-3 sm:mt-4">{content.testimonialsSubtitle}</p>
-          </div>
-
-          <div className="grid gap-3 sm:gap-6 md:grid-cols-3 md:gap-8">
-            {content.testimonials.map((testimonial) => (
-              <Card key={testimonial.name} className="p-4 sm:p-6">
-                <div className="mb-4 flex items-center gap-1">
-                  {[...Array(5)].map((_, index) => (
-                    <Star key={index} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="mb-5 text-sm text-slate-600 sm:mb-6 sm:text-base">&ldquo;{testimonial.quote}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-sm font-semibold text-white">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">{testimonial.name}</p>
-                    <p className="text-sm text-slate-500">{testimonial.role}</p>
-                  </div>
-                </div>
-              </Card>
-            ))}
           </div>
         </div>
       </section>
@@ -323,6 +252,84 @@ export default function LocalizedHomePage({ locale, content }: LocalizedHomePage
               {content.viewAllPlans}
             </Link>
           </p>
+        </div>
+      </section>
+
+      <section className="content-auto bg-slate-50 py-10 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center sm:mb-16">
+            <h2 className="section-heading">{content.howItWorksTitle}</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">{content.howItWorksSubtitle}</p>
+          </div>
+
+          <div className="grid gap-3 sm:gap-6 md:grid-cols-3 md:gap-8">
+            {content.steps.map((step, index) => (
+              <div key={step.title} className="relative">
+                <Card className="h-full p-5 text-center sm:p-8">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-600 sm:mb-6 sm:h-16 sm:w-16">
+                    {index === 2 ? <Download className="h-8 w-8" /> : <Sparkles className="h-8 w-8" />}
+                  </div>
+                  <div className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
+                    {index + 1}
+                  </div>
+                  <h3 className="mb-2 text-lg font-bold text-slate-900 sm:mb-3 sm:text-xl">{step.title}</h3>
+                  <p className="text-sm text-slate-600 sm:text-base">{step.text}</p>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="testimonials" className="content-auto py-10 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center sm:mb-16">
+            <h2 className="section-heading">{content.testimonialsTitle}</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">{content.testimonialsSubtitle}</p>
+          </div>
+
+          <div className="grid gap-3 sm:gap-6 md:grid-cols-3 md:gap-8">
+            {content.testimonials.map((testimonial) => (
+              <Card key={testimonial.name} className="p-4 sm:p-6">
+                <div className="mb-4 flex items-center gap-1">
+                  {[...Array(5)].map((_, index) => (
+                    <Star key={index} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="mb-5 text-sm text-slate-600 sm:mb-6 sm:text-base">&ldquo;{testimonial.quote}&rdquo;</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-sm font-semibold text-white">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900">{testimonial.name}</p>
+                    <p className="text-sm text-slate-500">{testimonial.role}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="content-auto py-10 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center sm:mb-16">
+            <h2 className="section-heading">{content.featuresTitle}</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">{content.featuresSubtitle}</p>
+          </div>
+
+          <div className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {content.features.map((feature, index) => (
+              <Card key={feature.title} className="p-4 sm:p-6">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600 sm:mb-4 sm:h-12 sm:w-12">
+                  {featureIcons[index]}
+                </div>
+                <h3 className="mb-2 text-lg font-bold text-slate-900">{feature.title}</h3>
+                <p className="text-sm text-slate-600">{feature.text}</p>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 

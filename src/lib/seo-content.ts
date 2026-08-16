@@ -151,7 +151,7 @@ export const styleShowcaseCards = [
   {
     name: 'Student ID Photo(White Male)',
     category: 'Student & Kids',
-    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/91d1196e-915c-4011-aebd-2c5dd5d0b4f9.jpg',
+    src: 'https://oyjtcajkjrlvtttnbhdq.supabase.co/storage/v1/object/public/style-templates/2026-08-15/2da29023-d6ea-4f9d-8655-3ce960d70493.jpg',
     href: '/sample',
   },
   {

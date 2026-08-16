@@ -115,13 +115,17 @@ export default async function BlogPage() {
                       />
                     </div>
                   )}
-                  <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
+<div className="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
                     <CalendarDays className="h-4 w-4" />
                     {getBlogPublishDate(index)}
-                    <span className="text-slate-300">/</span>
-                    <Link href={categoryHref} className="text-primary-600 hover:text-primary-700">
-                      {categoryLabel}
-                    </Link>
+                    {categoryLabel && (
+                      <>
+                        <span className="text-slate-300">/</span>
+                        <Link href={categoryHref} className="text-primary-600 hover:text-primary-700">
+                          {categoryLabel}
+                        </Link>
+                      </>
+                    )}
                   </div>
                   <h2 className="break-words text-xl font-bold leading-snug text-slate-950">
                     <Link href={`/blog/${post.slug}`} className="hover:text-primary-600">

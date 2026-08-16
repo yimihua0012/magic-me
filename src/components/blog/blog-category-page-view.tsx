@@ -42,7 +42,7 @@ export default function BlogCategoryPageView({ locale, category, content }: Blog
       />
       <main>
         <section className="bg-slate-50 py-14 sm:py-20">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <BreadcrumbNav
               className="mb-6"
               items={[
@@ -76,7 +76,7 @@ export default function BlogCategoryPageView({ locale, category, content }: Blog
         </section>
 
         <section className="content-auto py-10 sm:py-12">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8 lg:grid-cols-[1.1fr_0.9fr]">
               <div>
                 <h2 className="break-words text-2xl font-bold leading-tight text-slate-950">
@@ -164,12 +164,12 @@ export default function BlogCategoryPageView({ locale, category, content }: Blog
         />
 
         <section className="bg-slate-50 py-12 sm:py-16">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-6 flex items-center gap-3">
               <HelpCircle className="h-6 w-6 text-primary-600" />
               <h2 className="text-2xl font-bold text-slate-950">{content.faqHeading}</h2>
             </div>
-            <div className="grid gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
               {content.faqs.map((item) => (
                 <article key={item.question} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                   <h3 className="break-words text-base font-bold text-slate-950">{item.question}</h3>

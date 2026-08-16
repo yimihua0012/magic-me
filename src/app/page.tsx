@@ -246,92 +246,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="content-auto py-10 sm:py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-8 sm:mb-16">
-            <h2 className="section-heading">How It Works</h2>
-            <p className="section-subheading mx-auto mt-3 sm:mt-4">
-              Three quick steps to realistic professional headshots
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
-            {[
-              { step: '1', icon: <Sparkles className="w-8 h-8" />, title: 'Upload Your Selfies', desc: 'Take or upload 1-3 clear selfies of the same person with good lighting and a clear view of your face.' },
-              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'Portrait Model Works', desc: 'Our dedicated portrait model generates your selected realistic headshots with strong likeness in minutes.' },
-              { step: '3', icon: <Download className="w-8 h-8" />, title: 'Download & Save', desc: 'Pick your favorites and download in high resolution for any platform.' },
-            ].map((item, i) => (
-              <div key={i} className="relative">
-                <Card className="p-5 sm:p-8 text-center h-full">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 text-primary-600">
-                    {item.icon}
-                  </div>
-                  <div className="absolute top-4 right-4 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    {item.step}
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 sm:mb-3">{item.title}</h3>
-                  <p className="text-sm sm:text-base text-slate-600">{item.desc}</p>
-                </Card>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="content-auto py-10 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-16">
-            <h2 className="section-heading">Why Choose Our Professional Headshot Generator</h2>
-            <p className="section-subheading mx-auto mt-3 sm:mt-4">
-              Built for fast, high-likeness LinkedIn headshots, resume photos, business headshots, and team portraits
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-            {features.map((feature, i) => (
-              <Card key={i} className="p-4 sm:p-6">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-3 sm:mb-4 text-primary-600">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">{feature.title}</h3>
-                <p className="text-slate-600 text-sm">{feature.description}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="content-auto bg-slate-50 py-10 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 text-center sm:mb-12">
-            <h2 className="section-heading">Plan the right professional headshot</h2>
-            <p className="section-subheading mx-auto mt-3 sm:mt-4">
-              Compare examples, answer practical questions, and choose the best AI headshot workflow for your profile.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:gap-6 md:grid-cols-3">
-            {resourceLinks.map((resource) => (
-              <Card key={resource.href} className="flex h-full flex-col p-5 sm:p-6">
-                <h3 className="text-lg font-bold text-slate-900">{resource.title}</h3>
-                <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">{resource.description}</p>
-                <TrackedLink
-                  href={resource.href}
-                  className="mt-5 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700"
-                  buttonType="resource_link"
-                  source={resource.source}
-                >
-                  Open resource
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </TrackedLink>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Style Examples */}
       <section id="examples" className="content-auto py-10 sm:py-20 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -368,40 +282,6 @@ export default function HomePage() {
             >
               Generate Headshots — 2 Free for New Users
             </TrackedLink>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="content-auto py-10 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-16">
-            <h2 className="section-heading">Loved by LinkedIn Professionals</h2>
-            <p className="section-subheading mx-auto mt-3 sm:mt-4">
-              Trusted for fast profile upgrades and better likeness
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
-            {testimonials.map((testimonial, i) => (
-              <Card key={i} className="p-4 sm:p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-sm sm:text-base text-slate-600 mb-5 sm:mb-6">&ldquo;{testimonial.content}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">{testimonial.name}</p>
-                    <p className="text-sm text-slate-500">{testimonial.role}</p>
-                  </div>
-                </div>
-              </Card>
-            ))}
           </div>
         </div>
       </section>
@@ -555,6 +435,97 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* How It Works */}
+      <section className="content-auto py-10 sm:py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-8 sm:mb-16">
+            <h2 className="section-heading">How It Works</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">
+              Sign up free for 2 free headshots, then generate more anytime
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
+            {[
+              { step: '1', icon: <Sparkles className="w-8 h-8" />, title: 'Create Your Free Account', desc: 'Sign up free and get 2 headshot generations on us. No credit card required.' },
+              { step: '2', icon: <Sparkles className="w-8 h-8" />, title: 'Upload a Photo & Pick a Style', desc: 'Upload one clear selfie and pick a look. Each style brings a new outfit, background, and lighting — but the person in the picture is still you. Each style uses 1 credit.' },
+              { step: '3', icon: <Download className="w-8 h-8" />, title: 'Generate & Download', desc: 'Your high-resolution headshots are ready in minutes. Download for LinkedIn, resumes, and more.' },
+            ].map((item, i) => (
+              <div key={i} className="relative">
+                <Card className="p-5 sm:p-8 text-center h-full">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 text-primary-600">
+                    {item.icon}
+                  </div>
+                  <div className="absolute top-4 right-4 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    {item.step}
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 sm:mb-3">{item.title}</h3>
+                  <p className="text-sm sm:text-base text-slate-600">{item.desc}</p>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="testimonials" className="content-auto py-10 sm:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-16">
+            <h2 className="section-heading">Loved by LinkedIn Professionals</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">
+              Trusted for fast profile upgrades and better likeness
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
+            {testimonials.map((testimonial, i) => (
+              <Card key={i} className="p-4 sm:p-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-sm sm:text-base text-slate-600 mb-5 sm:mb-6">&ldquo;{testimonial.content}&rdquo;</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900">{testimonial.name}</p>
+                    <p className="text-sm text-slate-500">{testimonial.role}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="content-auto py-10 sm:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-16">
+            <h2 className="section-heading">Why Choose Our Professional Headshot Generator</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">
+              Built for fast, high-likeness LinkedIn headshots, resume photos, business headshots, and team portraits
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+            {features.map((feature, i) => (
+              <Card key={i} className="p-4 sm:p-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-3 sm:mb-4 text-primary-600">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{feature.title}</h3>
+                <p className="text-slate-600 text-sm">{feature.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="content-auto py-10 sm:py-20 bg-gradient-to-br from-primary-600 to-primary-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -582,6 +553,35 @@ export default function HomePage() {
             >
               View Pricing
             </TrackedLink>
+          </div>
+        </div>
+      </section>
+
+      <section className="content-auto bg-slate-50 py-10 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center sm:mb-12">
+            <h2 className="section-heading">Plan the right professional headshot</h2>
+            <p className="section-subheading mx-auto mt-3 sm:mt-4">
+              Compare examples, answer practical questions, and choose the best AI headshot workflow for your profile.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:gap-6 md:grid-cols-3">
+            {resourceLinks.map((resource) => (
+              <Card key={resource.href} className="flex h-full flex-col p-5 sm:p-6">
+                <h3 className="text-lg font-bold text-slate-900">{resource.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">{resource.description}</p>
+                <TrackedLink
+                  href={resource.href}
+                  className="mt-5 inline-flex items-center text-sm font-bold text-primary-600 hover:text-primary-700"
+                  buttonType="resource_link"
+                  source={resource.source}
+                >
+                  Open resource
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </TrackedLink>
+              </Card>
+            ))}
           </div>
         </div>
       </section>

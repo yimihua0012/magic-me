@@ -459,12 +459,99 @@ export function blogCategoryPath(locale: Locale, categorySlug: string) {
   return localePath(locale, `/blog/category/${categorySlug}`)
 }
 
+// Canonical blog category buckets. Every article is grouped into one of these
+// themes by matching keywords against its title and original category label.
+export const BLOG_CATEGORY_BUCKETS = [
+  {
+    label: 'ID & Document Photos',
+    keywords: [
+      'passport', 'passfoto', 'passbild', 'ausweis', 'id photo', 'id-photo', 'photo id',
+      'photo-id', 'photo d identite', 'photodidentite', 'carnet', 'identite', 'identitat',
+      'document photo', 'document-photo', 'documento', 'student id', 'student id card',
+      'student card', 'exam', '证明', '证件照', '證明', '証明写真', 'パスポート',
+    ],
+  },
+  {
+    label: 'Resume & Job Photos',
+    keywords: [
+      'resume', 'resume photo', 'resume-picture', 'cv', 'curriculum vitae', 'lebenslauf',
+      'bewerbung', 'bewerbungsfoto', '履歴書', '求職', '求职', '简历', 'job application',
+      'job-search', 'candidature', 'career advice', 'career tips', 'career development',
+      'job seekers', 'recruit', '招聘',
+    ],
+  },
+  {
+    label: 'LinkedIn Headshots',
+    keywords: ['linkedin', 'linkedin photo', 'profilbild', 'profilbilder', 'profil photo'],
+  },
+  {
+    label: 'Print & Layout',
+    keywords: [
+      'print', 'printable', 'printout', 'print sheet', 'layout', 'photo sheet', 'picture layout',
+      'a4', '印刷', 'レイアウト', 'imprimir', 'impresion', 'impression', 'mettre en page',
+      'maquetar', 'drucklayout', 'drucken', 'seite', 'page layout',
+    ],
+  },
+  {
+    label: 'Crop & Shape',
+    keywords: [
+      'crop', 'cropping', 'recrop', 'circle crop', 'shape crop', 'circle', 'shape',
+      '切り抜き', 'トリミング', 'recortar', 'recorte', 'recadrer', 'zuschneiden', 'zuschnitt',
+    ],
+  },
+  {
+    label: 'Background Editing',
+    keywords: [
+      'background', 'background color', 'background-color', 'remove background',
+      'change background', 'background remover', 'transparent', '透过', '透明',
+      '背景', 'fondo', 'arriere-plan', 'hintergrund', 'remover', 'erase', 'eraser',
+    ],
+  },
+  {
+    label: 'Resize & Compress',
+    keywords: [
+      'resize', 'compress', 'compression', 'reduce', 'file size', 'image size', 'size',
+      'kb', 'mb', 'pixels', '尺寸', 'サイズ', '圧縮', '压缩', '图片大小',
+      'redimensionner', 'comprimir', 'verkleinern', 'komprimieren', 'redimensionar',
+    ],
+  },
+  {
+    label: 'Team & Business Photos',
+    keywords: [
+      'team', 'corporate', 'company', 'employee', 'founder', 'staff', 'business headshot',
+      'business portrait', 'company page', 'チーム', '企業', 'equipo', 'entreprise',
+      'firma', 'unternehmen', 'bureau',
+    ],
+  },
+] as const
+
+const BLOG_CATEGORY_BUCKET_LABELS = BLOG_CATEGORY_BUCKETS.map((bucket) => bucket.label)
+
+export function mergeBlogCategoryLabel(label: string, title: string): string {
+  const source = `${label} ${title}`.toLowerCase()
+
+  for (const bucket of BLOG_CATEGORY_BUCKETS) {
+    if (bucket.keywords.some((keyword) => source.includes(keyword.toLowerCase()))) {
+      return bucket.label
+    }
+  }
+
+  return ''
+}
+
 export function blogPostCategoryLabel(post: BlogPostWithMeta) {
-  return post.category?.trim() || post.enhancement?.category?.trim() || 'General'
+  const rawLabel = post.category?.trim() || post.enhancement?.category?.trim() || ''
+  if (!rawLabel) return ''
+  return mergeBlogCategoryLabel(rawLabel, post.title)
+}
+
+export function isCanonicalBlogCategoryLabel(label: string) {
+  return (BLOG_CATEGORY_BUCKET_LABELS as readonly string[]).includes(label)
 }
 
 export function slugifyBlogCategory(value: string) {
   const normalizedValue = value.trim()
+  if (!normalizedValue) return ''
   const slug = slugifySlug(normalizedValue)
   const hash = stableSlugHash(normalizedValue)
 
@@ -478,6 +565,7 @@ export function getBlogCategoriesFromPosts(posts: BlogPostWithMeta[], locale: Lo
 
   for (const post of posts) {
     const label = blogPostCategoryLabel(post)
+    if (!label) continue
     const slug = slugifyBlogCategory(label)
     const current = groups.get(slug)
 

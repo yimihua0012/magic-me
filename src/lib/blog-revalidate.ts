@@ -14,6 +14,8 @@ export function revalidateBlogPaths(locale: Locale, slug?: string, categorySlugs
   }
   const uniqueCategorySlugs = Array.from(new Set(Array.isArray(categorySlugs) ? categorySlugs : categorySlugs ? [categorySlugs] : []))
   for (const categorySlug of uniqueCategorySlugs) {
-    revalidatePath(localePath(locale, `/blog/category/${categorySlug}`))
+    if (categorySlug) {
+      revalidatePath(localePath(locale, `/blog/category/${categorySlug}`))
+    }
   }
 }
