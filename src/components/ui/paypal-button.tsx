@@ -218,6 +218,20 @@ export default function PayPalButton({
                 throw new Error(data.error || 'Failed to finish PayPal payment.')
               }
 
+              void trackButtonClick({
+                buttonType: 'paypal_payment_success',
+                source: source || window.location.pathname,
+                metadata: {
+                  buttonId,
+                  label,
+                  plan: planType,
+                  currency,
+                  locale,
+                  orderId: orderID,
+                  ...metadata,
+                },
+              })
+
               router.push(withSource(`${localePath(locale, '/upload')}?payment=success`, `paypal_success_${planType}_${currency}_${locale}`))
             } catch (captureError) {
               setError(captureError instanceof Error ? captureError.message : 'Failed to finish PayPal payment.')
@@ -273,3 +287,5 @@ export default function PayPalButton({
     </div>
   )
 }
+
+

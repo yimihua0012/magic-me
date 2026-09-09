@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth/server'
 
 export const dynamic = 'force-dynamic'
 
-const recordTypes = ['generation-logs', 'payment-audit', 'conversion-events'] as const
+const recordTypes = ['generation-logs', 'payment-audit', 'conversion-events', 'page-view-stats', 'payment-button-stats'] as const
 type AdminRecordType = (typeof recordTypes)[number]
 
 type TableColumn = {
@@ -109,6 +109,14 @@ export async function GET(request: Request) {
 
     if (type === 'payment-audit') {
       return NextResponse.json(await paymentRecords(page, pageSize, query || '', limit))
+    }
+
+    if (type === 'page-view-stats') {
+      return NextResponse.json(await pageViewStats(page, pageSize, query || ''))
+    }
+
+    if (type === 'payment-button-stats') {
+      return NextResponse.json(await paymentButtonStats(page, pageSize, query || ''))
     }
 
     return NextResponse.json(await conversionEventRecords(page, pageSize, query || '', limit))
@@ -316,6 +324,210 @@ async function conversionEventRecords(page: number, pageSize: number, query: str
   }
 }
 
+async function paymentButtonStats(page: number, pageSize: number, query: string): Promise<AdminRecordResponse> {
+  const paymentEventTypes = ['checkout_prepare', 'paypal_basic', 'paypal_pro', 'paypal_premium', 'paypal_payment_success']
+  let paymentQuery = supabaseAdmin
+    .from('button_click_logs')
+    .select('id,clicked_at,button_type,source,user_id,metadata', { count: 'exact' })
+    .in('button_type', paymentEventTypes)
+    .order('clicked_at', { ascending: false })
+    .range(0, 4999)
+
+  if (query) {
+    paymentQuery = paymentQuery.or(`button_type.ilike.%${escapeLike(query)}%,source.ilike.%${escapeLike(query)}%`)
+  }
+
+  const { data, error, count } = await paymentQuery
+  if (error) throw error
+
+  const grouped = new Map<string, {
+    plan: string
+    source: string
+    checkoutPrepares: number
+    paymentButtonClicks: number
+    successfulPayments: number
+    signedInUsers: Set<string>
+    lastEventAt: string
+  }>()
+
+  for (const record of (data || []) as ButtonClickLogRow[]) {
+    const plan = metadataString(record.metadata, 'plan') || planFromEvent(record.button_type) || '-'
+    const key = `${plan}|${record.source}`
+    const current = grouped.get(key) || {
+      plan,
+      source: record.source,
+      checkoutPrepares: 0,
+      paymentButtonClicks: 0,
+      successfulPayments: 0,
+      signedInUsers: new Set<string>(),
+      lastEventAt: record.clicked_at,
+    }
+
+    if (record.button_type === 'checkout_prepare') current.checkoutPrepares += 1
+    if (record.button_type.startsWith('paypal_') && record.button_type !== 'paypal_payment_success') current.paymentButtonClicks += 1
+    if (record.button_type === 'paypal_payment_success') current.successfulPayments += 1
+    if (record.user_id) current.signedInUsers.add(record.user_id)
+    if (new Date(record.clicked_at).getTime() > new Date(current.lastEventAt).getTime()) current.lastEventAt = record.clicked_at
+    grouped.set(key, current)
+  }
+
+  const allRows = Array.from(grouped.values())
+    .sort((a, b) => b.successfulPayments - a.successfulPayments || b.paymentButtonClicks - a.paymentButtonClicks || b.checkoutPrepares - a.checkoutPrepares)
+    .map((item) => ({
+      plan: item.plan,
+      source: item.source,
+      checkoutPrepares: item.checkoutPrepares,
+      paymentButtonClicks: item.paymentButtonClicks,
+      successfulPayments: item.successfulPayments,
+      signedInUsers: item.signedInUsers.size,
+      checkoutToPaymentClickRate: item.checkoutPrepares ? `${((item.paymentButtonClicks / item.checkoutPrepares) * 100).toFixed(1)}%` : '-',
+      paymentClickToSuccessRate: item.paymentButtonClicks ? `${((item.successfulPayments / item.paymentButtonClicks) * 100).toFixed(1)}%` : '-',
+      lastEventAt: formatDateTime(item.lastEventAt),
+    }))
+
+  const { from, to } = pageRange(page, pageSize)
+  return {
+    type: 'payment-button-stats',
+    title: 'Payment Button Stats',
+    subtitle: 'Compare checkout intent, PayPal button clicks, successful payments, plans, sources, and signed-in users.',
+    columns: [
+      { key: 'plan', label: 'Plan' },
+      { key: 'source', label: 'Source' },
+      { key: 'checkoutPrepares', label: 'Checkout Prepares' },
+      { key: 'paymentButtonClicks', label: 'Payment Button Clicks' },
+      { key: 'successfulPayments', label: 'Successful Payments' },
+      { key: 'signedInUsers', label: 'Signed-in Users' },
+      { key: 'checkoutToPaymentClickRate', label: 'Prepare to Click' },
+      { key: 'paymentClickToSuccessRate', label: 'Click to Success' },
+      { key: 'lastEventAt', label: 'Last Event' },
+    ],
+    rows: allRows.slice(from, to + 1),
+    notes: [
+      `Source: button_click_logs for ${paymentEventTypes.join(', ')}. Aggregated from ${data?.length || 0} matching records${count && count > (data?.length || 0) ? ` out of ${count}` : ''}.`,
+      'Successful payments are recorded after the PayPal capture API returns successfully; they are not the same as button clicks.',
+    ],
+    pagination: makePagination(page, pageSize, allRows.length),
+  }
+}
+
+function planFromEvent(buttonType: string) {
+  const match = buttonType.match(/^paypal_(basic|pro|premium)$/)
+  return match?.[1] || ''
+}
+async function pageViewStats(page: number, pageSize: number, query: string): Promise<AdminRecordResponse> {
+  let pageViewQuery = supabaseAdmin
+    .from('button_click_logs')
+    .select('id,clicked_at,button_type,source,user_id,metadata', { count: 'exact' })
+    .eq('button_type', 'page_view')
+    .order('clicked_at', { ascending: false })
+    .range(0, 4999)
+
+  if (query) {
+    pageViewQuery = pageViewQuery.ilike('source', `%${escapeLike(query)}%`)
+  }
+
+  const { data, error, count } = await pageViewQuery
+
+  if (error) {
+    throw error
+  }
+
+  const records = (data || []) as ButtonClickLogRow[]
+  const grouped = new Map<string, {
+    source: string
+    views: number
+    signedInUsers: Set<string>
+    signedInViews: number
+    anonymousViews: number
+    firstViewedAt: string
+    lastViewedAt: string
+    locales: Set<string>
+    referrers: Map<string, number>
+    sourceParams: Map<string, number>
+  }>()
+
+  for (const record of records) {
+    const source = record.source || '/'
+    const current = grouped.get(source) || {
+      source,
+      views: 0,
+      signedInUsers: new Set<string>(),
+      signedInViews: 0,
+      anonymousViews: 0,
+      firstViewedAt: record.clicked_at,
+      lastViewedAt: record.clicked_at,
+      locales: new Set<string>(),
+      referrers: new Map<string, number>(),
+      sourceParams: new Map<string, number>(),
+    }
+
+    current.views += 1
+
+    if (record.user_id) {
+      current.signedInUsers.add(record.user_id)
+      current.signedInViews += 1
+    } else {
+      current.anonymousViews += 1
+    }
+
+    if (new Date(record.clicked_at).getTime() > new Date(current.lastViewedAt).getTime()) {
+      current.lastViewedAt = record.clicked_at
+    }
+    if (new Date(record.clicked_at).getTime() < new Date(current.firstViewedAt).getTime()) {
+      current.firstViewedAt = record.clicked_at
+    }
+
+    const locale = metadataString(record.metadata, 'locale')
+    const referrerPath = metadataString(record.metadata, 'referrerPath')
+    const sourceParam = metadataString(record.metadata, 'source')
+    if (locale) current.locales.add(locale)
+    if (referrerPath) incrementMap(current.referrers, referrerPath)
+    if (sourceParam) incrementMap(current.sourceParams, sourceParam)
+
+    grouped.set(source, current)
+  }
+
+  const allRows = Array.from(grouped.values())
+    .sort((a, b) => b.views - a.views || new Date(b.lastViewedAt).getTime() - new Date(a.lastViewedAt).getTime())
+    .map((item) => ({
+      source: item.source,
+      views: item.views,
+      signedInUsers: item.signedInUsers.size,
+      signedInViews: item.signedInViews,
+      anonymousViews: item.anonymousViews,
+      locales: Array.from(item.locales).sort().join(', ') || '-',
+      topReferrers: topMapEntries(item.referrers),
+      sourceParams: topMapEntries(item.sourceParams),
+      firstViewedAt: formatDateTime(item.firstViewedAt),
+      lastViewedAt: formatDateTime(item.lastViewedAt),
+    }))
+
+  const { from, to } = pageRange(page, pageSize)
+
+  return {
+    type: 'page-view-stats',
+    title: 'Page View Stats',
+    subtitle: 'Review aggregated page opens by path, signed-in users, anonymous traffic, locale, referrer, and campaign source.',
+    columns: [
+      { key: 'source', label: 'Page' },
+      { key: 'views', label: 'Views' },
+      { key: 'signedInUsers', label: 'Signed-in Users' },
+      { key: 'signedInViews', label: 'Signed-in Views' },
+      { key: 'anonymousViews', label: 'Anonymous Views' },
+      { key: 'locales', label: 'Locales' },
+      { key: 'topReferrers', label: 'Top Referrers' },
+      { key: 'sourceParams', label: 'Source Params' },
+      { key: 'firstViewedAt', label: 'First Seen' },
+      { key: 'lastViewedAt', label: 'Last Seen' },
+    ],
+    rows: allRows.slice(from, to + 1),
+    notes: [
+      `Source: button_click_logs where button_type = page_view. Aggregated from the latest ${records.length} matching records${count && count > records.length ? ` out of ${count}` : ''}.`,
+      'Views are event counts, not unique visitors. Refreshes and repeat visits can create multiple records.',
+    ],
+    pagination: makePagination(page, pageSize, allRows.length),
+  }
+}
 async function profilesByUserId(userIds: string[]) {
   const ids = [...new Set(userIds.filter(Boolean))]
   const profiles = new Map<string, string>()
@@ -477,6 +689,23 @@ function metadataSummary(metadata: Record<string, unknown> | null) {
   return JSON.stringify(metadata)
 }
 
+function metadataString(metadata: Record<string, unknown> | null, key: string) {
+  const value = metadata?.[key]
+  return typeof value === 'string' && value.trim() ? value.trim() : ''
+}
+
+function incrementMap(map: Map<string, number>, key: string) {
+  map.set(key, (map.get(key) || 0) + 1)
+}
+
+function topMapEntries(map: Map<string, number>) {
+  const entries = Array.from(map.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([key, value]) => `${key} (${value})`)
+
+  return entries.join(', ') || '-'
+}
 function escapeLike(value: string) {
   return value.replaceAll('%', '\\%').replaceAll('_', '\\_')
 }
@@ -484,3 +713,6 @@ function escapeLike(value: string) {
 function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
 }
+
+
+

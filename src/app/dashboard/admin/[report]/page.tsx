@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import AdminReportPageView, { type AdminReport } from '@/components/admin/admin-report-page-view'
 import AdminMaintenancePageView, { type AdminMaintenanceSection } from '@/components/admin/admin-maintenance-page-view'
 
-const reports = ['generation-logs', 'payment-audit', 'conversion-events'] as const
+const reports = ['generation-logs', 'payment-audit', 'conversion-events', 'page-view-stats', 'payment-button-stats'] as const
 const maintenanceSections = ['styles', 'users', 'generations', 'orders'] as const
 
 interface PageProps {
@@ -38,3 +38,6 @@ export default async function AdminReportPage({ params }: PageProps) {
 
   notFound()
 }
+
+
+

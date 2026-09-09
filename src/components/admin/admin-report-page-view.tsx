@@ -9,7 +9,7 @@ import Input from '@/components/ui/input'
 import { type Locale } from '@/lib/i18n'
 import { AlertCircle, CheckCircle2, Edit3, RefreshCw, RotateCw, Save, Search } from 'lucide-react'
 
-export type AdminReport = 'generation-logs' | 'payment-audit' | 'conversion-events'
+export type AdminReport = 'generation-logs' | 'payment-audit' | 'conversion-events' | 'page-view-stats' | 'payment-button-stats'
 
 type TableColumn = {
   key: string
@@ -64,6 +64,14 @@ const reportFallback: Record<AdminReport, { title: string; subtitle: string }> =
   'conversion-events': {
     title: 'Conversion Event Records',
     subtitle: 'Review page views, CTA clicks, checkout intent, and related events.',
+  },
+  'page-view-stats': {
+    title: 'Page View Stats',
+    subtitle: 'Review aggregated page opens by path, locale, referrer, and campaign source.',
+  },
+  'payment-button-stats': {
+    title: 'Payment Button Stats',
+    subtitle: 'Compare checkout intent, payment button clicks, and successful payments by plan and source.',
   },
 }
 
@@ -309,7 +317,7 @@ export default function AdminReportPageView({ locale = 'en', report }: AdminRepo
 
             <Card className="overflow-hidden">
               <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
-                <h2 className="font-bold text-slate-900">Recent Records</h2>
+                <h2 className="font-bold text-slate-900">{report === 'page-view-stats' ? 'Page View Summary' : report === 'payment-button-stats' ? 'Payment Summary' : 'Recent Records'}</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-100 text-sm">
@@ -414,3 +422,9 @@ function toDateTimeLocal(value: string) {
   const localDate = new Date(date.getTime() - offset * 60 * 1000)
   return localDate.toISOString().slice(0, 16)
 }
+
+
+
+
+
+

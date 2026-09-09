@@ -63,6 +63,8 @@ const menuItems: AdminMenuItem[] = [
   { label: 'Generation Records', href: '/dashboard/admin/generation-logs', icon: Activity },
   { label: 'Payment Audit', href: '/dashboard/admin/payment-audit', icon: CreditCard },
   { label: 'Conversion Events', href: '/dashboard/admin/conversion-events', icon: MousePointerClick },
+  { label: 'Page View Stats', href: '/dashboard/admin/page-view-stats', icon: Activity },
+  { label: 'Payment Button Stats', href: '/dashboard/admin/payment-button-stats', icon: CreditCard },
 ]
 
 export default function AdminPageFrame({
@@ -158,3 +160,5 @@ export default function AdminPageFrame({
     </div>
   )
 }
+
+

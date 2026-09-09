@@ -127,7 +127,20 @@ const entries: AdminHomeEntry[] = [
     icon: MousePointerClick,
     tone: 'text-rose-600 bg-rose-50',
   },
-]
+  {
+    title: 'Page View Stats',
+    description: 'See aggregated page opens by path, locale, referrer, and campaign source.',
+    href: '/dashboard/admin/page-view-stats',
+    icon: Activity,
+    tone: 'text-sky-600 bg-sky-50',
+  },
+  {
+    title: 'Payment Button Stats',
+    description: 'Compare payment button clicks, checkout intent, and successful payments by plan.',
+    href: '/dashboard/admin/payment-button-stats',
+    icon: CreditCard,
+    tone: 'text-emerald-600 bg-emerald-50',
+  },]
 
 export default function AdminHomePageView({ locale = 'en' }: AdminHomePageViewProps) {
   const { isAuthorized, isCheckingAuth } = useAdminAuth(locale)
@@ -166,3 +179,8 @@ export default function AdminHomePageView({ locale = 'en' }: AdminHomePageViewPr
     </AdminPageFrame>
   )
 }
+
+
+
+
+
