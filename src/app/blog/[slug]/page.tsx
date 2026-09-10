@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarDays, CheckCircle2, Compass, TriangleAlert } from 'l
 import BlogSectionBody from '@/components/blog/blog-section-body'
 import BlogCoverImage from '@/components/blog/blog-cover-image'
 import BlogPhotoToolsCta from '@/components/blog/blog-photo-tools-cta'
+import BlogAiIndexBlock from '@/components/blog/blog-ai-index-block'
 import StaticMarketingShell from '@/components/seo/static-marketing-shell'
 import KeywordStrip from '@/components/seo/keyword-strip'
 import BlogPostJsonLd from '@/components/seo/blog-post-json-ld'
@@ -145,6 +146,8 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <div className="mt-10 rounded-lg bg-slate-50 p-5 text-base leading-8 text-slate-700 sm:p-6">
             <p>{post.intro}</p>
           </div>
+
+          <BlogAiIndexBlock slug={post.slug} />
 
           {enhancement && (
             <section className="content-auto mt-10 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
