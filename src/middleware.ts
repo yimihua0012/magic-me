@@ -31,6 +31,8 @@ const rootPageRoutes = new Set([
   'dashboard/admin/generation-logs',
   'dashboard/admin/payment-audit',
   'dashboard/admin/conversion-events',
+  'dashboard/admin/page-view-stats',
+  'dashboard/admin/payment-button-stats',
   'dashboard/bing-url-submit',
   'free-id-photo-tool',
   'landing',
@@ -82,6 +84,8 @@ const localizedRoutes = new Set([
   'dashboard/admin/generation-logs',
   'dashboard/admin/payment-audit',
   'dashboard/admin/conversion-events',
+  'dashboard/admin/page-view-stats',
+  'dashboard/admin/payment-button-stats',
   'dashboard/bing-url-submit',
   'free-id-photo-tool',
 ])

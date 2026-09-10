@@ -341,6 +341,7 @@ async function paymentButtonStats(page: number, pageSize: number, query: string)
   if (error) throw error
 
   const grouped = new Map<string, {
+    date: string
     plan: string
     source: string
     checkoutPrepares: number
@@ -351,9 +352,11 @@ async function paymentButtonStats(page: number, pageSize: number, query: string)
   }>()
 
   for (const record of (data || []) as ButtonClickLogRow[]) {
+    const date = reportDate(record.clicked_at)
     const plan = metadataString(record.metadata, 'plan') || planFromEvent(record.button_type) || '-'
-    const key = `${plan}|${record.source}`
+    const key = `${date}|${plan}|${record.source}`
     const current = grouped.get(key) || {
+      date,
       plan,
       source: record.source,
       checkoutPrepares: 0,
@@ -372,8 +375,9 @@ async function paymentButtonStats(page: number, pageSize: number, query: string)
   }
 
   const allRows = Array.from(grouped.values())
-    .sort((a, b) => b.successfulPayments - a.successfulPayments || b.paymentButtonClicks - a.paymentButtonClicks || b.checkoutPrepares - a.checkoutPrepares)
+    .sort((a, b) => b.date.localeCompare(a.date) || b.successfulPayments - a.successfulPayments || b.paymentButtonClicks - a.paymentButtonClicks || b.checkoutPrepares - a.checkoutPrepares)
     .map((item) => ({
+      date: item.date,
       plan: item.plan,
       source: item.source,
       checkoutPrepares: item.checkoutPrepares,
@@ -391,6 +395,7 @@ async function paymentButtonStats(page: number, pageSize: number, query: string)
     title: 'Payment Button Stats',
     subtitle: 'Compare checkout intent, PayPal button clicks, successful payments, plans, sources, and signed-in users.',
     columns: [
+      { key: 'date', label: 'Date' },
       { key: 'plan', label: 'Plan' },
       { key: 'source', label: 'Source' },
       { key: 'checkoutPrepares', label: 'Checkout Prepares' },
@@ -434,6 +439,7 @@ async function pageViewStats(page: number, pageSize: number, query: string): Pro
 
   const records = (data || []) as ButtonClickLogRow[]
   const grouped = new Map<string, {
+    date: string
     source: string
     views: number
     signedInUsers: Set<string>
@@ -447,8 +453,11 @@ async function pageViewStats(page: number, pageSize: number, query: string): Pro
   }>()
 
   for (const record of records) {
+    const date = reportDate(record.clicked_at)
     const source = record.source || '/'
-    const current = grouped.get(source) || {
+    const key = `${date}|${source}`
+    const current = grouped.get(key) || {
+      date,
       source,
       views: 0,
       signedInUsers: new Set<string>(),
@@ -484,12 +493,13 @@ async function pageViewStats(page: number, pageSize: number, query: string): Pro
     if (referrerPath) incrementMap(current.referrers, referrerPath)
     if (sourceParam) incrementMap(current.sourceParams, sourceParam)
 
-    grouped.set(source, current)
+    grouped.set(key, current)
   }
 
   const allRows = Array.from(grouped.values())
-    .sort((a, b) => b.views - a.views || new Date(b.lastViewedAt).getTime() - new Date(a.lastViewedAt).getTime())
+    .sort((a, b) => b.date.localeCompare(a.date) || b.views - a.views || new Date(b.lastViewedAt).getTime() - new Date(a.lastViewedAt).getTime())
     .map((item) => ({
+      date: item.date,
       source: item.source,
       views: item.views,
       signedInUsers: item.signedInUsers.size,
@@ -509,6 +519,7 @@ async function pageViewStats(page: number, pageSize: number, query: string): Pro
     title: 'Page View Stats',
     subtitle: 'Review aggregated page opens by path, signed-in users, anonymous traffic, locale, referrer, and campaign source.',
     columns: [
+      { key: 'date', label: 'Date' },
       { key: 'source', label: 'Page' },
       { key: 'views', label: 'Views' },
       { key: 'signedInUsers', label: 'Signed-in Users' },
@@ -607,6 +618,18 @@ function makePagination(page: number, pageSize: number, total: number) {
 
 function userLabel(userId: string, profiles: Map<string, string>) {
   return profiles.get(userId) || userId
+}
+
+function reportDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date)
 }
 
 function formatDateTime(value: string | null | undefined) {
@@ -713,6 +736,3 @@ function escapeLike(value: string) {
 function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
 }
-
-
-
