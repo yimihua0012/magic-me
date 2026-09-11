@@ -193,7 +193,102 @@ const englishEnhancements: Record<string, BlogAiIndexEnhancement> = {
   },
 }
 
-export function getBlogAiIndexEnhancement(slug: string) {
-  return englishEnhancements[slug]
+
+export type BlogAiIndexSource = {
+  title: string
+  description: string
+  intro: string
+  category?: string
+  keywords?: readonly string[]
+  sections?: readonly { heading: string; body: string }[]
+  enhancement?: {
+    audience?: string
+    searchIntent?: string
+    uniqueAngle?: string
+    actionSteps?: string[]
+    internalLinks?: { href: string; label: string; reason: string }[]
+  }
 }
 
+function buildGenericEnhancement(source: BlogAiIndexSource): BlogAiIndexEnhancement {
+  const title = source.title.trim()
+  const description = source.description.trim()
+  const intro = source.intro.trim()
+  const details = source.enhancement || {}
+  const audience = details.audience || 'readers looking for a practical answer to this topic'
+  const searchIntent = details.searchIntent || description
+  const uniqueAngle = details.uniqueAngle || intro.split(/(?<=[.!?])\s+/)[0] || description
+  const actionStep = details.actionSteps?.[0] || 'Use the guidance in this article and check the final result in its real destination.'
+  const sectionFacts = (source.sections || [])
+    .map((section) => ({ heading: section.heading.trim(), summary: shortenFact(section.body) }))
+    .filter((section) => section.heading && section.summary)
+    .slice(0, 4)
+  const photoTopic = /photo|headshot|portrait|resume|linkedin|background|image|crop|size/i.test(title + ' ' + description + ' ' + (source.keywords || []).join(' '))
+  const links = (details.internalLinks || [])
+    .filter((link) => /^\/(?!api(?:\/|$)|dashboard(?:\/|$)|upload(?:\/|$)|generate(?:\/|$)|generations(?:\/|$)|login(?:\/|$)|auth(?:\/|$))/.test(link.href))
+    .slice(0, 3)
+    .map((link) => ({ label: link.label, href: link.href }))
+  const fallbackLinks = photoTopic
+    ? [
+        { label: 'Explore photo tools', href: '/photo-tools' },
+        { label: 'Compare professional photo examples', href: '/sample' },
+        { label: 'Create a professional image', href: '/upload' },
+      ]
+    : [
+        { label: 'Read more guides', href: '/blog' },
+        { label: 'Compare examples', href: '/sample' },
+        { label: 'View Magic-Headshot options', href: '/pricing' },
+      ]
+  const nextHref = photoTopic ? '/photo-tools' : '/pricing'
+  const nextLabel = photoTopic ? 'Open photo tools' : 'Explore Magic-Headshot'
+
+  return {
+    answerLabel: 'Direct answer',
+    answerHeading: 'The short answer',
+    directAnswer: description || intro,
+    quickFacts: [
+      { label: 'Topic', value: source.category || title },
+      { label: 'Best for', value: audience },
+      { label: 'Search intent', value: searchIntent },
+      { label: 'Format', value: 'Practical guide with examples' },
+    ],
+    table: {
+      title: 'Article quick reference',
+      headers: ['Topic', 'What to know'],
+      rows: (sectionFacts.length >= 2 ? sectionFacts : [
+        { heading: 'What this guide covers', summary: title },
+        { heading: 'Who it is for', summary: audience },
+        { heading: 'Main takeaway', summary: uniqueAngle },
+        { heading: 'Next step', summary: actionStep },
+      ]).map((item) => [item.heading, item.summary]),
+      note: 'Use the detailed sections below for context, examples, and exceptions that may affect your situation.',
+    },
+    faqTitle: 'Frequently asked questions',
+    faq: [
+      { question: 'What is this guide about?', answer: description || intro },
+      ...(sectionFacts.slice(0, 2).map((section) => ({
+        question: 'What should I know about ' + section.heading.toLowerCase() + '?',
+        answer: section.summary,
+      }))),
+      { question: 'What should I check before using this advice?', answer: 'Requirements can vary by platform, employer, country, or use case. Review the specific instructions that apply to your final submission.' },
+    ].slice(0, 4),
+    cta: {
+      heading: photoTopic ? 'Continue with your photo workflow' : 'Continue exploring the topic',
+      description: photoTopic ? 'Use a focused photo tool or create a professional image after reviewing the guidance above.' : 'Use the related guides and examples to turn this article into a practical next step.',
+      label: nextLabel,
+      href: nextHref,
+    },
+    links: links.length > 0 ? links : fallbackLinks,
+  }
+}
+
+function shortenFact(value: string) {
+  const clean = value.replace(/\s+/g, ' ').replace(/^[-*]\s*/, '').trim()
+  if (clean.length <= 220) return clean
+  const sentence = clean.match(/^.{80,220}?[.!?](?:\s|$)/)?.[0]?.trim()
+  return sentence || clean.slice(0, 217).trimEnd() + '...'
+}
+
+export function getBlogAiIndexEnhancement(slug: string, source?: BlogAiIndexSource) {
+  return englishEnhancements[slug] || (source ? buildGenericEnhancement(source) : undefined)
+}

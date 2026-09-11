@@ -147,7 +147,18 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             <p>{post.intro}</p>
           </div>
 
-          <BlogAiIndexBlock slug={post.slug} />
+          <BlogAiIndexBlock
+            slug={post.slug}
+            source={{
+              title: post.title,
+              description: post.description,
+              intro: post.intro,
+              category: post.category,
+              keywords: post.keywords,
+              sections: post.sections,
+              enhancement: post.enhancement,
+            }}
+          />
 
           {enhancement && (
             <section className="content-auto mt-10 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">

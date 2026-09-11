@@ -1,13 +1,14 @@
 ﻿import Link from 'next/link'
 import { CheckCircle2, HelpCircle, Table2 } from 'lucide-react'
-import { getBlogAiIndexEnhancement } from '@/lib/blog-ai-index-enhancements'
+import { getBlogAiIndexEnhancement, type BlogAiIndexSource } from '@/lib/blog-ai-index-enhancements'
 
 type BlogAiIndexBlockProps = {
   slug: string
+  source: BlogAiIndexSource
 }
 
-export default function BlogAiIndexBlock({ slug }: BlogAiIndexBlockProps) {
-  const enhancement = getBlogAiIndexEnhancement(slug)
+export default function BlogAiIndexBlock({ slug, source }: BlogAiIndexBlockProps) {
+  const enhancement = getBlogAiIndexEnhancement(slug, source)
   if (!enhancement) return null
 
   const faqJsonLd = {
