@@ -34,8 +34,8 @@ const aiWorkflowContent: Record<Locale, {
   },
   de: {
     title: 'Brauchst du ein staerkeres KI-Ergebnis?',
-    description: 'Die lokalen Fototools eignen sich fuer schnelle Anpassungen. Wenn Zuschnitt, Hintergrund oder finaler Stil noch professioneller wirken sollen, nutze den KI-Fotoworkflow.',
-    action: 'KI-Fotoworkflow oeffnen',
+    description: 'Die lokalen Fototools eignen sich für schnelle Anpassungen. Wenn Zuschnitt, Hintergrund oder finaler Stil noch professioneller wirken sollen, nutze den KI-Fotoworkflow.',
+    action: 'KI-Fotoworkflow öffnen',
   },
   ja: {
     title: 'AIでさらに整えますか？',

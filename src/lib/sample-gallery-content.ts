@@ -89,11 +89,11 @@ export const sampleGalleryContent: Record<Locale, SampleGalleryContent> = {
   de: {
     title: 'Professionelle KI Headshot Beispiele und Passfotos',
     description:
-      'Sieh dir professionelle KI Headshots und Passfotos an: Business-Portraits, Executive Looks, Business Casual und Passfoto-Hintergruende in Weiss, Blau und Rot.',
+      'Sieh dir professionelle KI Headshots und Passfotos an: Business-Portraits, Executive Looks, Business Casual und Passfoto-Hintergruende in Weiß, Blau und Rot.',
     h1: 'Professionelle KI Headshots und Passfoto Galerie',
     eyebrow: 'Style Beispiele',
     intro:
-      'Sieh dir an, wie aus ein paar Selfies professionelle Headshots und Passfotos entstehen: Unternehmensportraits, Executive Looks, Business Casual, klare Studio-Hintergruende und dokumenttaugliche Passfoto-Hintergruende. Nutze die Beispiele, um Aehnlichkeit, Licht, Kleidung, Hintergrund und passende Ergebnisse fuer LinkedIn, Lebenslauf, Firmenprofil oder Dokumentfoto zu vergleichen.',
+      'Sieh dir an, wie aus ein paar Selfies professionelle Headshots und Passfotos entstehen: Unternehmensportraits, Executive Looks, Business Casual, klare Studio-Hintergruende und dokumenttaugliche Passfoto-Hintergruende. Nutze die Beispiele, um Ähnlichkeit, Licht, Kleidung, Hintergrund und passende Ergebnisse für LinkedIn, Lebenslauf, Firmenprofil oder Dokumentfoto zu vergleichen.',
     emptyTitle: 'Weitere Beispiele kommen bald',
     emptyText: 'Wir bereiten mehr professionelle KI Portrait Styles vor, damit du elegante, arbeitsbereite Ergebnisse vergleichen kannst.',
     ctaTitle: 'Wahle vor dem Generieren einen Stil',
@@ -101,7 +101,7 @@ export const sampleGalleryContent: Record<Locale, SampleGalleryContent> = {
       'Nutze die Galerie, um professionelle und dokumenttaugliche Portrait Richtungen zu vergleichen und KI Headshots passend zu deinem Ziel zu erstellen.',
     ctaLabel: 'Headshots generieren',
     secondaryLink: 'Fragen zu KI Headshots lesen',
-    keywords: ['KI Headshot Beispiele', 'professionelle KI Portraits', 'Passfoto Hintergruende'],
+    keywords: ['KI Headshot Beispiele', 'professionelle KI Portraits', 'Passfoto Hintergründe'],
   },
   ja: {
     title: 'AIヘッドショット事例: ビジネスポートレートと証明写真',

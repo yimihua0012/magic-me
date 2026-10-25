@@ -83,7 +83,7 @@ const cropText: Record<Locale, {
     sourcePhoto: 'Ausgangsfoto',
     preview: 'Vorschau',
     cropSettings: 'Zuschnitt',
-    photoSize: 'Fotogroesse',
+    photoSize: 'Fotogröße',
     zoom: 'Zoom',
     horizontal: 'Horizontale Position',
     vertical: 'Vertikale Position',

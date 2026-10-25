@@ -42,7 +42,7 @@ export const localizedHomeUseCases: Record<RoutedLocale, LocalizedHomeUseCaseCon
   es: {
     title: 'Retratos IA para LinkedIn, CV y perfiles profesionales',
     subtitle:
-      'Elige el flujo segun tu objetivo: foto de LinkedIn, foto para CV o retrato profesional sin fotografo.',
+      'Elige el flujo según tu objetivo: foto de LinkedIn, foto para CV o retrato profesional sin fotografo.',
     items: [
       {
         title: 'Foto profesional para LinkedIn',
@@ -58,7 +58,7 @@ export const localizedHomeUseCases: Record<RoutedLocale, LocalizedHomeUseCaseCon
       },
       {
         title: 'Sin fotografo ni estudio',
-        text: 'Convierte selfies en fotos profesionales sin coordinar una sesion de fotos.',
+        text: 'Convierte selfies en fotos profesionales sin coordinar una sesión de fotos.',
         cta: 'Leer preguntas',
         href: '/questions',
       },
@@ -90,9 +90,9 @@ export const localizedHomeUseCases: Record<RoutedLocale, LocalizedHomeUseCaseCon
     ],
   },
   de: {
-    title: 'KI-Headshots fur LinkedIn, Lebenslauf und professionelle Profile',
+    title: 'KI-Headshots für LinkedIn, Lebenslauf und professionelle Profile',
     subtitle:
-      'Wahle den passenden Ablauf fur dein Ziel: LinkedIn Profilbild, KI Bewerbungsfoto oder professionelles Profilbild ohne Fotograf.',
+      'Wahle den passenden Ablauf für dein Ziel: LinkedIn Profilbild, KI Bewerbungsfoto oder professionelles Profilbild ohne Fotograf.',
     items: [
       {
         title: 'Professionelles LinkedIn Profilbild',
@@ -102,7 +102,7 @@ export const localizedHomeUseCases: Record<RoutedLocale, LocalizedHomeUseCaseCon
       },
       {
         title: 'KI Bewerbungsfoto',
-        text: 'Generiere ruhige Portraits fur Lebenslauf, Bewerbung und Business-Profile.',
+        text: 'Generiere ruhige Portraits für Lebenslauf, Bewerbung und Business-Profile.',
         cta: 'Beispiele ansehen',
         href: '/sample',
       },
@@ -143,7 +143,7 @@ export const localizedHomeUseCases: Record<RoutedLocale, LocalizedHomeUseCaseCon
 
 Object.assign(localizedHomeUseCases, {
   es: {
-    title: 'Elige el retrato segun donde lo vas a usar',
+    title: 'Elige el retrato según donde lo vas a usar',
     subtitle:
       'No todos los perfiles necesitan la misma imagen. Prepara una version sobria para trabajo, otra mas cercana para redes y una opcion clara para documentos o presentaciones.',
     items: [
@@ -155,7 +155,7 @@ Object.assign(localizedHomeUseCases, {
       },
       {
         title: 'CV, bio y presentaciones',
-        text: 'Para candidaturas, ponencias o paginas personales, conviene una imagen natural que se vea seria sin parecer una foto de documento.',
+        text: 'Para candidaturas, ponencias o páginas personales, conviene una imagen natural que se vea seria sin parecer una foto de documento.',
         cta: 'Preparar foto para CV',
         href: '/questions',
       },
@@ -168,20 +168,20 @@ Object.assign(localizedHomeUseCases, {
     ],
   },
   de: {
-    title: 'Waehle dein Portrat nach dem echten Einsatz',
+    title: 'Wähle dein Porträt nach dem echten Einsatz',
     subtitle:
-      'Ein LinkedIn-Bild, eine Bewerbungsseite und ein Teamprofil brauchen nicht exakt denselben Look. Nutze klare Varianten fuer Beruf, Marke und Alltag.',
+      'Ein LinkedIn-Bild, eine Bewerbungsseite und ein Teamprofil brauchen nicht exakt denselben Look. Nutze klare Varianten für Beruf, Marke und Alltag.',
     items: [
       {
         title: 'LinkedIn und berufliche Profile',
-        text: 'Ein ruhiges Portrat mit gutem Licht und aufgeraeumtem Hintergrund macht dein Profil schneller einordenbar fuer Recruiter, Kunden und Kontakte.',
+        text: 'Ein ruhiges Porträt mit gutem Licht und aufgeraeumtem Hintergrund macht dein Profil schneller einordenbar für Recruiter, Kunden und Kontakte.',
         cta: 'LinkedIn-Optionen ansehen',
         href: '/sample',
       },
       {
         title: 'Bewerbung, Bio und Vortraege',
-        text: 'Fuer Lebenslauf, Speaker-Profil oder persoenliche Website wirkt ein natuerliches Bild oft besser als ein zu steifes Passfoto.',
-        cta: 'Foto fuer Bewerbung planen',
+        text: 'Für Lebenslauf, Speaker-Profil oder persönliche Website wirkt ein natuerliches Bild oft besser als ein zu steifes Passfoto.',
+        cta: 'Foto für Bewerbung planen',
         href: '/questions',
       },
       {

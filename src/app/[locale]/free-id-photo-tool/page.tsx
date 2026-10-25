@@ -37,7 +37,7 @@ const localizedContent: Record<RoutedLocale, {
       "hoja imprimible foto carnet",
       "cambiar fondo foto carnet",
     ],
-    name: 'Herramienta gratis para foto de carnet, recorte e impresion',
+    name: 'Herramienta gratis para foto de carnet, recorte e impresión',
     features: [
       'Recorte gratis de foto de carnet',
       'Hoja imprimible con varias copias',
@@ -69,20 +69,20 @@ const localizedContent: Record<RoutedLocale, {
   },
   de: {
     title: "Ausweisfoto kostenlos zuschneiden und drucken | Magic-Headshot",
-    description: "Kostenloses Tool fuer alltaegliche Ausweisfotos: zuschneiden, transparentes PNG mit Hintergrundfarbe vorbereiten und Druckbogen speichern.",
+    description: "Kostenloses Tool für alltägliche Ausweisfotos: zuschneiden, transparentes PNG mit Hintergrundfarbe vorbereiten und Druckbogen speichern.",
     keywords: [
       "Ausweisfoto zuschneiden kostenlos",
       "Passfoto Druckbogen",
       "Bewerbungsfoto drucken",
-      "Ausweisfoto Hintergrund aendern",
+      "Ausweisfoto Hintergrund ändern",
     ],
     name: 'Kostenloses Ausweisfoto Tool zum Zuschneiden und Drucken',
     features: [
       'Kostenloses Zuschneiden von Ausweisfotos',
       'Druckbogen mit mehreren Kopien',
       'Lebenslauf Foto zuschneiden',
-      'Foto fur Prufungen',
-      'Foto fur Mitarbeiterausweis und Studentenausweis',
+      'Foto für Prufungen',
+      'Foto für Mitarbeiterausweis und Studentenausweis',
     ],
     imageAlt: 'Kostenloses Tool zum Zuschneiden und Drucken von Ausweisfotos',
   },

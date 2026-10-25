@@ -496,7 +496,7 @@ export const localizedLegalContent: LocalizedLegalContent = {
   },
   de: {
     terms: {
-      title: 'Magic-Headshot Bedingungen fur KI-Headshots und professionelle Fotos',
+      title: 'Magic-Headshot Bedingungen für KI-Headshots und professionelle Fotos',
       description:
         'Lies die Magic-Headshot Bedingungen zu KI-Headshot-Erstellung, hochgeladenen Fotos, Zahlungen, Erstattungen, kommerziellen Nutzungsrechten und Kontoregeln.',
       keywords: ['Magic-Headshot Bedingungen', 'KI Headshot Bedingungen', 'kommerzielle Nutzungsrechte'],
@@ -524,7 +524,7 @@ export const localizedLegalContent: LocalizedLegalContent = {
             'Mindestens 18 Jahre alt sein.',
             'Richtige und vollstandige Angaben machen.',
             'Die Sicherheit deines Kontos wahren.',
-            'Uns uber jede unbefugte Nutzung informieren.',
+            'Uns über jede unbefugte Nutzung informieren.',
           ],
         },
         {
@@ -532,7 +532,7 @@ export const localizedLegalContent: LocalizedLegalContent = {
           body: ['Du verpflichtest dich, Folgendes nicht zu tun:'],
           bullets: [
             'Fotos anderer Personen ohne deren Zustimmung hochladen.',
-            'Den Dienst fur illegale Zwecke nutzen.',
+            'Den Dienst für illegale Zwecke nutzen.',
             'Schadliche, beleidigende oder unangemessene Inhalte erzeugen.',
             'Unsere KI-Systeme zu kompromittieren versuchen.',
             'Generierte Inhalte weiterverkaufen oder weiterverbreiten.',
@@ -548,8 +548,8 @@ export const localizedLegalContent: LocalizedLegalContent = {
         {
           title: '6. Zahlungen',
           bullets: [
-            'Preise werden in der ausgewahlten oder fur deine Sprache voreingestellten Wahrung angezeigt.',
-            'Zahlungen werden sicher uber PayPal verarbeitet.',
+            'Preise werden in der ausgewahlten oder für deine Sprache voreingestellten Wahrung angezeigt.',
+            'Zahlungen werden sicher über PayPal verarbeitet.',
             'Einmalzahlungen fugen deinem Konto Credits hinzu.',
             'Verkaufe unterliegen unserer Erstattungsrichtlinie.',
           ],
@@ -567,7 +567,7 @@ export const localizedLegalContent: LocalizedLegalContent = {
       ],
     },
     privacy: {
-      title: 'Magic-Headshot Datenschutzrichtlinie fur KI-Headshots',
+      title: 'Magic-Headshot Datenschutzrichtlinie für KI-Headshots',
       description:
         'Erfahre, wie Magic-Headshot Kontodaten, hochgeladene Fotos, generierte KI-Headshots, Zahlungsmetadaten und Supportanfragen erhebt, nutzt, speichert und schutzt.',
       keywords: ['Magic-Headshot Datenschutz', 'KI Headshot Datenschutz', 'Datenschutz hochgeladene Fotos'],
@@ -603,7 +603,7 @@ export const localizedLegalContent: LocalizedLegalContent = {
             'Deine hochgeladenen Fotos und generierten Headshots bleiben deine Inhalte. Wir verwenden hochgeladene Fotos nur zur Bereitstellung des von dir angeforderten Dienstes.',
           ],
           bullets: [
-            'Eingabefotos konnen privat fur Verarbeitung, Support und Missbrauchspravention gespeichert werden.',
+            'Eingabefotos können privat für Verarbeitung, Support und Missbrauchspravention gespeichert werden.',
             'Generierte Headshots werden gespeichert, damit du sie ansehen und herunterladen kannst.',
             'Wir verkaufen deine hochgeladenen Fotos oder generierten Headshots nicht.',
             'Wir verwenden deine Fotos oder Headshots nicht zum Training eigener KI-Modelle.',
@@ -612,9 +612,9 @@ export const localizedLegalContent: LocalizedLegalContent = {
         {
           title: '4. Drittanbieter',
           bullets: [
-            'Vertrauenswurdige Infrastruktur-Anbieter fur Authentifizierung, Datenbank und Dateispeicherung.',
-            'PayPal, Stripe oder andere Zahlungsdienstleister fur Zahlungen und Erstattungen.',
-            'Resend fur transaktionale E-Mails.',
+            'Vertrauenswurdige Infrastruktur-Anbieter für Authentifizierung, Datenbank und Dateispeicherung.',
+            'PayPal, Stripe oder andere Zahlungsdienstleister für Zahlungen und Erstattungen.',
+            'Resend für transaktionale E-Mails.',
             'Hosting-, Analyse-, Logging- und Sicherheitsanbieter.',
           ],
         },
@@ -643,12 +643,12 @@ export const localizedLegalContent: LocalizedLegalContent = {
         {
           title: '30-tagige Zufriedenheitsgarantie',
           body: [
-            'Wir mochten, dass du mit deinen KI-Headshots zufrieden bist. Du kannst innerhalb von 30 Tagen nach dem Kauf eine Erstattung beantragen, vorbehaltlich der Berechtigungskriterien.',
+            'Wir möchten, dass du mit deinen KI-Headshots zufrieden bist. Du kannst innerhalb von 30 Tagen nach dem Kauf eine Erstattung beantragen, vorbehaltlich der Berechtigungskriterien.',
           ],
         },
         {
           title: 'So beantragst du eine Erstattung',
-          body: [`Sende uns fur eine Erstattung eine E-Mail an ${supportEmail} mit:`],
+          body: [`Sende uns für eine Erstattung eine E-Mail an ${supportEmail} mit:`],
           ordered: [
             'Der E-Mail-Adresse deines Magic-Headshot Kontos.',
             'Deiner Bestell-ID, PayPal-Transaktions-ID, Stripe-Quittung oder sonstigen Zahlungsreferenz.',
@@ -668,13 +668,13 @@ export const localizedLegalContent: LocalizedLegalContent = {
         {
           title: 'Nach der Erstattung',
           body: [
-            'Wenn eine Erstattung genehmigt wird, konnen ungenutzte Credits aus diesem Kauf entfernt werden. Wir konnen gegebenenfalls auch den Zugriff auf Ergebnisse deaktivieren, die mit der erstatteten Zahlung verbunden sind.',
+            'Wenn eine Erstattung genehmigt wird, können ungenutzte Credits aus diesem Kauf entfernt werden. Wir können gegebenenfalls auch den Zugriff auf Ergebnisse deaktivieren, die mit der erstatteten Zahlung verbunden sind.',
           ],
         },
         {
           title: 'Bearbeitungszeit',
           body: [
-            'Genehmigte Erstattungen werden nach Moglichkeit an die ursprungliche Zahlungsmethode gesendet. Sie dauern normalerweise 5-10 Werktage nach Genehmigung, wobei Bank oder Zahlungsanbieter mehr Zeit benotigen konnen.',
+            'Genehmigte Erstattungen werden nach Moglichkeit an die ursprungliche Zahlungsmethode gesendet. Sie dauern normalerweise 5-10 Werktage nach Genehmigung, wobei Bank oder Zahlungsanbieter mehr Zeit benotigen können.',
           ],
         },
       ],
@@ -875,10 +875,10 @@ Object.assign(localizedLegalContent, {
       ...localizedLegalContent.es.terms,
       title: 'Condiciones de uso de Magic Headshot',
       description:
-        'Consulta las condiciones de uso de Magic Headshot: cuenta, creditos, pagos, generacion de retratos IA, uso permitido y soporte.',
+        'Consulta las condiciones de uso de Magic Headshot: cuenta, créditos, pagos, generación de retratos IA, uso permitido y soporte.',
       heading: 'Condiciones de uso',
       notice:
-        'Lee estas condiciones antes de comprar creditos o generar imagenes. Explican como funciona el servicio y que responsabilidades mantiene cada parte.',
+        'Lee estas condiciones antes de comprar créditos o generar imágenes. Explican como funciona el servicio y que responsabilidades mantiene cada parte.',
     },
     privacy: {
       ...localizedLegalContent.es.privacy,
@@ -887,13 +887,13 @@ Object.assign(localizedLegalContent, {
         'Informacion sobre los datos que usamos para operar Magic Headshot, procesar compras, generar retratos IA y responder solicitudes de soporte.',
       heading: 'Politica de privacidad',
       notice:
-        'Esta politica resume que datos necesitamos para prestar el servicio, como se procesan las imagenes y como puedes contactarnos sobre privacidad.',
+        'Esta politica resume que datos necesitamos para prestar el servicio, como se procesan las imágenes y como puedes contactarnos sobre privacidad.',
     },
     refund: {
       ...localizedLegalContent.es.refund,
       title: 'Politica de reembolsos de Magic Headshot',
       description:
-        'Revisa cuando puede solicitarse un reembolso, como se revisan los creditos no usados y que informacion debes enviar al soporte.',
+        'Revisa cuando puede solicitarse un reembolso, como se revisan los créditos no usados y que información debes enviar al soporte.',
       heading: 'Politica de reembolsos',
       notice:
         'Los reembolsos se revisan caso por caso. Incluye el email de tu cuenta y el contexto de la compra para que podamos comprobarlo con rapidez.',
@@ -903,9 +903,9 @@ Object.assign(localizedLegalContent, {
     ...localizedLegalContent.de,
     terms: {
       ...localizedLegalContent.de.terms,
-      title: 'Nutzungsbedingungen fur Magic Headshot',
+      title: 'Nutzungsbedingungen für Magic Headshot',
       description:
-        'Lies die Nutzungsbedingungen zu Konto, Credits, Zahlungen, KI-Portrats, erlaubter Nutzung und Support bei Magic Headshot.',
+        'Lies die Nutzungsbedingungen zu Konto, Credits, Zahlungen, KI-Porträts, erlaubter Nutzung und Support bei Magic Headshot.',
       heading: 'Nutzungsbedingungen',
       notice:
         'Bitte lies diese Bedingungen, bevor du Credits kaufst oder Bilder generierst. Sie erklaeren, wie der Service funktioniert und welche Pflichten gelten.',
@@ -914,19 +914,19 @@ Object.assign(localizedLegalContent, {
       ...localizedLegalContent.de.privacy,
       title: 'Datenschutz bei Magic Headshot',
       description:
-        'Informationen dazu, welche Daten Magic Headshot fuer Konto, Zahlung, KI-Portrat-Erstellung und Support verarbeitet.',
+        'Informationen dazu, welche Daten Magic Headshot für Konto, Zahlung, KI-Porträt-Erstellung und Support verarbeitet.',
       heading: 'Datenschutzerklaerung',
       notice:
-        'Diese Hinweise fassen zusammen, welche Daten fuer den Dienst benoetigt werden, wie Bilder verarbeitet werden und wie du uns zu Datenschutzfragen erreichst.',
+        'Diese Hinweise fassen zusammen, welche Daten für den Dienst benötigt werden, wie Bilder verarbeitet werden und wie du uns zu Datenschutzfragen erreichst.',
     },
     refund: {
       ...localizedLegalContent.de.refund,
       title: 'Rueckerstattungsrichtlinie von Magic Headshot',
       description:
-        'Erfahre, wann eine Rueckerstattung geprueft werden kann, wie ungenutzte Credits behandelt werden und welche Angaben der Support benoetigt.',
+        'Erfahre, wann eine Rueckerstattung geprüft werden kann, wie ungenutzte Credits behandelt werden und welche Angaben der Support benötigt.',
       heading: 'Rueckerstattungsrichtlinie',
       notice:
-        'Rueckerstattungen werden einzeln geprueft. Nenne die E-Mail deines Kontos und den Kaufkontext, damit wir den Fall schneller zuordnen koennen.',
+        'Rueckerstattungen werden einzeln geprüft. Nenne die E-Mail deines Kontos und den Kaufkontext, damit wir den Fall schneller zuordnen koennen.',
     },
   },
   ja: {

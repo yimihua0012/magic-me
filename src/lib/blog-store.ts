@@ -488,7 +488,7 @@ export const BLOG_CATEGORY_BUCKETS = [
     label: 'Print & Layout',
     keywords: [
       'print', 'printable', 'printout', 'print sheet', 'layout', 'photo sheet', 'picture layout',
-      'a4', '印刷', 'レイアウト', 'imprimir', 'impresion', 'impression', 'mettre en page',
+      'a4', '印刷', 'レイアウト', 'imprimir', 'impresión', 'impression', 'mettre en page',
       'maquetar', 'drucklayout', 'drucken', 'seite', 'page layout',
     ],
   },
@@ -751,7 +751,7 @@ const seoStopWords = new Set([
   'eine',
   'for',
   'from',
-  'fur',
+  'für',
   'guide',
   'how',
   'les',

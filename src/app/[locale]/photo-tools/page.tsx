@@ -22,8 +22,8 @@ const localizedIndexContent: Record<RoutedLocale, {
   keywords: string[]
 }> = {
   es: {
-    title: 'Photo tools online para fondo, foto ID, tamano y recorte',
-    description: 'Usa photo tools para quitar fondo, recortar foto ID, cambiar tamano, comprimir imagen a KB y preparar hojas de impresion.',
+    title: 'Photo tools online para fondo, foto ID, tamaño y recorte',
+    description: 'Usa photo tools para quitar fondo, recortar foto ID, cambiar tamaño, comprimir imagen a KB y preparar hojas de impresión.',
     keywords: ['photo tools', 'quitar fondo online', 'recortar foto ID'],
   },
   fr: {
@@ -32,8 +32,8 @@ const localizedIndexContent: Record<RoutedLocale, {
     keywords: ['photo tools', 'remove background', 'photo ID'],
   },
   de: {
-    title: 'Photo tools online fuer Hintergrund, ID-Foto, Groesse und Zuschnitt',
-    description: 'Nutze photo tools, um Hintergruende zu entfernen, ID-Fotos zuzuschneiden, Bilder zu skalieren, KB zu reduzieren und Druckbogen zu bauen.',
+    title: 'Photo tools online für Hintergrund, ID-Foto, Größe und Zuschnitt',
+    description: 'Nutze photo tools, um Hintergründe zu entfernen, ID-Fotos zuzuschneiden, Bilder zu skalieren, KB zu reduzieren und Druckbogen zu bauen.',
     keywords: ['photo tools', 'remove background', 'ID-Foto zuschneiden'],
   },
   zh: {

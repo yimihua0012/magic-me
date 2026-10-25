@@ -98,7 +98,7 @@ const useCaseSeoContent: Record<RoutedLocale, Record<UseCaseSeoPage, LocalizedSe
   },
   de: {
     aiHeadshotLinkedIn: {
-      keywords: [...coreKeywords.de, 'LinkedIn Profilbild KI fur Recruiter', 'KI Headshot LinkedIn'],
+      keywords: [...coreKeywords.de, 'LinkedIn Profilbild KI für Recruiter', 'KI Headshot LinkedIn'],
     },
     aiHeadshotCorporate: {
       keywords: [...coreKeywords.de, 'Corporate Headshots KI', 'Team Headshot Generator'],
@@ -219,10 +219,10 @@ export const localizedSeoContent: Record<RoutedLocale, Record<LocalizedSeoPage, 
       keywords: [...coreKeywords.de, 'KI Bewerbungsfoto Beispiele'],
     },
     upload: {
-      title: 'Fotos fur KI-Headshots hochladen',
+      title: 'Fotos für KI-Headshots hochladen',
       description:
-        'Lade klare Selfies hoch, um realistische professionelle KI-Headshots fur LinkedIn, Lebenslauf und Business-Profile zu erstellen.',
-      keywords: [...coreKeywords.de, 'Selfies fur KI Bewerbungsfoto hochladen'],
+        'Lade klare Selfies hoch, um realistische professionelle KI-Headshots für LinkedIn, Lebenslauf und Business-Profile zu erstellen.',
+      keywords: [...coreKeywords.de, 'Selfies für KI Bewerbungsfoto hochladen'],
     },
   },
   ja: {
@@ -307,30 +307,30 @@ Object.assign(localizedSeoContent.es, {
   landing: {
     ...localizedSeoContent.es.landing,
     title: 'Convierte selfies en fotos profesionales con IA | Magic-Headshot',
-    description: 'Genera fotos profesionales para perfiles, webs, propuestas y equipos sin sesion de estudio, con estilos naturales y reutilizables.',
+    description: 'Genera fotos profesionales para perfiles, webs, propuestas y equipos sin sesión de estudio, con estilos naturales y reutilizables.',
   },
   questions: {
     ...localizedSeoContent.es.questions,
     title: 'Preguntas sobre fotos profesionales con IA | Magic-Headshot',
-    description: 'Respuestas sobre subida de fotos, parecido, estilos, privacidad, creditos y uso practico de retratos profesionales generados con IA.',
+    description: 'Respuestas sobre subida de fotos, parecido, estilos, privacidad, créditos y uso practico de retratos profesionales generados con IA.',
   },
   sample: {
     ...localizedSeoContent.es.sample,
     title: 'Ejemplos de fotos profesionales con IA | Magic-Headshot',
-    description: 'Compara ejemplos antes y despues para elegir luz, fondo, encuadre y estilo segun tu perfil, sector y canal de uso.',
+    description: 'Compara ejemplos antes y después para elegir luz, fondo, encuadre y estilo según tu perfil, sector y canal de uso.',
   },
 })
 
 Object.assign(localizedSeoContent.de, {
   home: {
     ...localizedSeoContent.de.home,
-    title: 'Professionelle KI Fotos fuer Profile und Teams | Magic-Headshot',
-    description: 'Erstelle realistische berufliche Portraits aus eigenen Fotos fuer LinkedIn, Lebenslauf, Website, Teamseite und oeffentliche Profile.',
+    title: 'Professionelle KI Fotos für Profile und Teams | Magic-Headshot',
+    description: 'Erstelle realistische berufliche Portraits aus eigenen Fotos für LinkedIn, Lebenslauf, Website, Teamseite und öffentliche Profile.',
   },
   landing: {
     ...localizedSeoContent.de.landing,
     title: 'Aus Selfies professionelle KI Fotos erstellen | Magic-Headshot',
-    description: 'Erzeuge berufliche Portraits fuer Profile, Websites, Angebote und Teams ohne Studio-Termin, mit natuerlichen und wiederverwendbaren Stilen.',
+    description: 'Erzeuge berufliche Portraits für Profile, Websites, Angebote und Teams ohne Studio-Termin, mit natuerlichen und wiederverwendbaren Stilen.',
   },
   questions: {
     ...localizedSeoContent.de.questions,
@@ -339,8 +339,8 @@ Object.assign(localizedSeoContent.de, {
   },
   sample: {
     ...localizedSeoContent.de.sample,
-    title: 'Beispiele fuer professionelle KI Fotos | Magic-Headshot',
-    description: 'Vergleiche Vorher-Nachher Beispiele und waehle Licht, Hintergrund, Ausschnitt und Stil passend zu Rolle und Einsatzort.',
+    title: 'Beispiele für professionelle KI Fotos | Magic-Headshot',
+    description: 'Vergleiche Vorher-Nachher Beispiele und wähle Licht, Hintergrund, Ausschnitt und Stil passend zu Rolle und Einsatzort.',
   },
 })
 
@@ -372,13 +372,13 @@ Object.assign(localizedSeoContent.es, {
     ...localizedSeoContent.es.pricing,
     title: 'Precios de AI headshots y retratos profesionales | Magic Headshot',
     description:
-      'Compara paquetes de creditos para crear AI headshots, retratos profesionales y fotos de perfil para LinkedIn, CV, web personal, equipos y redes.',
+      'Compara paquetes de créditos para crear AI headshots, retratos profesionales y fotos de perfil para LinkedIn, CV, web personal, equipos y redes.',
   },
   contact: {
     ...localizedSeoContent.es.contact,
     title: 'Contacto y soporte para AI headshots | Magic Headshot',
     description:
-      'Contacta con Magic Headshot para dudas sobre creditos, pagos, calidad de retratos IA, estilos profesionales, cuenta o uso en equipo.',
+      'Contacta con Magic Headshot para dudas sobre créditos, pagos, calidad de retratos IA, estilos profesionales, cuenta o uso en equipo.',
   },
   upload: {
     ...localizedSeoContent.es.upload,
@@ -391,13 +391,13 @@ Object.assign(localizedSeoContent.es, {
 Object.assign(localizedSeoContent.de, {
   pricing: {
     ...localizedSeoContent.de.pricing,
-    title: 'Preise fur KI-Headshots und professionelle Portrats | Magic Headshot',
+    title: 'Preise für KI-Headshots und professionelle Porträts | Magic Headshot',
     description:
-      'Vergleiche Credit-Pakete fur KI-Headshots, professionelle Profilbilder, LinkedIn, Bewerbungen, Teamseiten, Personal Branding und Social Media.',
+      'Vergleiche Credit-Pakete für KI-Headshots, professionelle Profilbilder, LinkedIn, Bewerbungen, Teamseiten, Personal Branding und Social Media.',
   },
   contact: {
     ...localizedSeoContent.de.contact,
-    title: 'Kontakt und Support fur KI-Headshots | Magic Headshot',
+    title: 'Kontakt und Support für KI-Headshots | Magic Headshot',
     description:
       'Kontaktiere Magic Headshot bei Fragen zu Credits, Zahlung, Bildqualitaet, beruflichen Styles, Konto oder Teamnutzung.',
   },
@@ -405,7 +405,7 @@ Object.assign(localizedSeoContent.de, {
     ...localizedSeoContent.de.upload,
     title: 'Fotos hochladen und professionelle KI-Headshots erstellen | Magic Headshot',
     description:
-      'Lade klare Selfies hoch, waehle passende Styles und erstelle KI-Headshots fur LinkedIn, Bewerbung, Firmenprofil, Personal Branding und kreative Profile.',
+      'Lade klare Selfies hoch, wähle passende Styles und erstelle KI-Headshots für LinkedIn, Bewerbung, Firmenprofil, Personal Branding und kreative Profile.',
   },
 })
 

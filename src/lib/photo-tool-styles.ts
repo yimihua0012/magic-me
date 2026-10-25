@@ -32,7 +32,7 @@ export const PHOTO_TOOL_STYLE_CONFIGS = [
       en: 'Professional ID Photo(White)',
       es: 'Foto ID profesional(fondo blanco)',
       fr: 'Photo ID professionnelle(fond blanc)',
-      de: 'Professionelles ID-Foto(weisser Hintergrund)',
+      de: 'Professionelles ID-Foto(weißer Hintergrund)',
       ja: 'プロ向け証明写真(白)',
     },
     localized_category_labels: {
@@ -110,7 +110,7 @@ export const PHOTO_TOOL_STYLE_CONFIGS = [
       en: 'Student ID Photo(White Female)',
       es: 'Foto ID estudiante(fondo blanco femenino)',
       fr: 'Photo ID etudiant(fond blanc femme)',
-      de: 'Studenten-ID-Foto(weisser Hintergrund Damen)',
+      de: 'Studenten-ID-Foto(weißer Hintergrund Damen)',
       ja: '学生証明写真(白・女性)',
     },
     localized_category_labels: {
@@ -136,7 +136,7 @@ export const PHOTO_TOOL_STYLE_CONFIGS = [
       en: 'Student ID Photo(White Male)',
       es: 'Foto ID estudiante(fondo blanco masculino)',
       fr: 'Photo ID etudiant(fond blanc homme)',
-      de: 'Studenten-ID-Foto(weisser Hintergrund Herren)',
+      de: 'Studenten-ID-Foto(weißer Hintergrund Herren)',
       ja: '学生証明写真(白・男性)',
     },
     localized_category_labels: {
@@ -214,7 +214,7 @@ export const PHOTO_TOOL_STYLE_CONFIGS = [
       en: 'Men Suit ID Photo(White)',
       es: 'Foto ID hombre con traje(fondo blanco)',
       fr: 'Photo ID homme en costume(fond blanc)',
-      de: 'Herren-ID-Foto im Anzug(weisser Hintergrund)',
+      de: 'Herren-ID-Foto im Anzug(weißer Hintergrund)',
       ja: '男性スーツ証明写真(白)',
     },
     localized_category_labels: {
@@ -240,7 +240,7 @@ export const PHOTO_TOOL_STYLE_CONFIGS = [
       en: 'Men Shirt ID Photo(White)',
       es: 'Foto ID hombre con camisa(fondo blanco)',
       fr: 'Photo ID homme en chemise(fond blanc)',
-      de: 'Herren-ID-Foto im Hemd(weisser Hintergrund)',
+      de: 'Herren-ID-Foto im Hemd(weißer Hintergrund)',
       ja: '男性シャツ証明写真(白)',
     },
     localized_category_labels: {
@@ -266,7 +266,7 @@ export const PHOTO_TOOL_STYLE_CONFIGS = [
       en: 'Women Suit ID Photo(White)',
       es: 'Foto ID mujer con traje(fondo blanco)',
       fr: 'Photo ID femme en tailleur(fond blanc)',
-      de: 'Damen-ID-Foto im Kostum(weisser Hintergrund)',
+      de: 'Damen-ID-Foto im Kostüm(weißer Hintergrund)',
       ja: '女性スーツ証明写真(白)',
     },
     localized_category_labels: {
@@ -292,7 +292,7 @@ export const PHOTO_TOOL_STYLE_CONFIGS = [
       en: 'Women Shirt ID Photo(White)',
       es: 'Foto ID mujer con camisa(fondo blanco)',
       fr: 'Photo ID femme en chemisier(fond blanc)',
-      de: 'Damen-ID-Foto im Blusenhemd(weisser Hintergrund)',
+      de: 'Damen-ID-Foto im Blusenhemd(weißer Hintergrund)',
       ja: '女性シャツ証明写真(白)',
     },
     localized_category_labels: {
@@ -318,7 +318,7 @@ export const PHOTO_TOOL_STYLE_CONFIGS = [
       en: 'Boy ID Photo(White)',
       es: 'Foto ID nino(fondo blanco)',
       fr: 'Photo ID garcon(fond blanc)',
-      de: 'Jungen-ID-Foto(weisser Hintergrund)',
+      de: 'Jungen-ID-Foto(weißer Hintergrund)',
       ja: '男の子証明写真(白)',
     },
     localized_category_labels: {
@@ -344,7 +344,7 @@ export const PHOTO_TOOL_STYLE_CONFIGS = [
       en: 'Girl ID Photo(White)',
       es: 'Foto ID nina(fondo blanco)',
       fr: 'Photo ID fille(fond blanc)',
-      de: 'Madchen-ID-Foto(weisser Hintergrund)',
+      de: 'Mädchen-ID-Foto(weißer Hintergrund)',
       ja: '女の子証明写真(白)',
     },
     localized_category_labels: {

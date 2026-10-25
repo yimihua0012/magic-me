@@ -69,11 +69,11 @@ const pageContent: Record<Locale, {
   es: {
     eyebrow: "Foto tipo carnet gratis",
     title: "Recortar y preparar fotos tipo carnet para imprimir",
-    description: "Sube una foto local, elige un tamano habitual, ajusta el recorte y descarga una hoja imprimible para CV, examenes, credenciales, tarjetas de estudiante o tramites no oficiales.",
+    description: "Sube una foto local, elige un tamaño habitual, ajusta el recorte y descarga una hoja imprimible para CV, examenes, credenciales, tarjetas de estudiante o tramites no oficiales.",
     generate: "Crear foto ID y PNG",
     sourceDescription: "Sube PNG, JPG o WebP. Para cambiar el color de fondo necesitas un PNG con transparencia.",
     upload: "Subir foto local",
-    empty: "Sube una foto para empezar a recortar, revisar fondo y preparar impresion.",
+    empty: "Sube una foto para empezar a recortar, revisar fondo y preparar impresión.",
     loading: "Cargando herramienta...",
   },
   fr: {
@@ -89,7 +89,7 @@ const pageContent: Record<Locale, {
   de: {
     eyebrow: "Kostenloses Ausweisfoto-Tool",
     title: "Ausweisfoto zuschneiden und Druckbogen vorbereiten",
-    description: "Lade ein lokales Foto hoch, waehle ein gaengiges Format, passe den Ausschnitt an und speichere einen Druckbogen fuer Lebenslauf, Pruefung, Mitarbeiterausweis oder private Unterlagen.",
+    description: "Lade ein lokales Foto hoch, wähle ein gaengiges Format, passe den Ausschnitt an und speichere einen Druckbogen für Lebenslauf, Prüfung, Mitarbeiterausweis oder private Unterlagen.",
     generate: "Passfoto und PNG erstellen",
     sourceDescription: "PNG, JPG oder WebP hochladen. Hintergrundfarben funktionieren nur mit transparentem PNG.",
     upload: "Lokales Foto hochladen",
@@ -175,7 +175,7 @@ const seoContent: Record<Locale, SeoContent> = {
     useTitle: "Para usos cotidianos, no oficiales",
     useItems: [
       "CV, formularios, examenes, credenciales de empresa, tarjetas de estudiante y copias para imprimir.",
-      "Carga local gratis, recorte, vista previa y descarga de hoja sin iniciar sesion.",
+      "Carga local gratis, recorte, vista previa y descarga de hoja sin iniciar sesión.",
       "El cambio de fondo funciona mejor cuando la foto ya es un PNG transparente.",
     ],
     sizeTitle: "Formatos frecuentes en un solo lugar",
@@ -186,7 +186,7 @@ const seoContent: Record<Locale, SeoContent> = {
     printTitle: "Listo para llevar a imprimir",
     printItems: [
       "Descarga una foto individual o una hoja con varias copias.",
-      "El layout mantiene margenes y separacion para que sea mas facil imprimir a tamano real.",
+      "El layout mantiene margenes y separacion para que sea mas fácil imprimir a tamaño real.",
     ],
     warningTitle: "No lo uses como garantia para pasaporte o visa",
     warningText: "Esta herramienta esta pensada para usos cotidianos. Para documentos oficiales, revisa siempre las reglas actuales de la autoridad correspondiente.",
@@ -234,33 +234,33 @@ const seoContent: Record<Locale, SeoContent> = {
     ],
   },
   de: {
-    useTitle: "Fuer alltaegliche, nicht amtliche Fotos",
+    useTitle: "Für alltägliche, nicht amtliche Fotos",
     useItems: [
-      "Lebenslauf, Bewerbungen, Pruefungen, Mitarbeiterausweise, Studentenkarten und private Ausdrucke.",
+      "Lebenslauf, Bewerbungen, Prüfungen, Mitarbeiterausweise, Studentenkarten und private Ausdrucke.",
       "Lokaler Upload, Zuschnitt, Vorschau und Druckbogen ohne Anmeldung.",
-      "Hintergrundfarben sind fuer transparente PNG Portraits gedacht.",
+      "Hintergrundfarben sind für transparente PNG Portraits gedacht.",
     ],
-    sizeTitle: "Haeufige Formate schnell waehlen",
+    sizeTitle: "Häufige Formate schnell wählen",
     sizeItems: [
-      "Unterstuetzt 1 Zoll, 2 Zoll, 2 x 2 Zoll, 35 x 45 mm, 3 x 4 cm und weitere Standardgroessen.",
-      "Druckbogen fuer 4 x 6, 5 x 7, A4, Letter und gaengige Papierformate.",
+      "Unterstützt 1 Zoll, 2 Zoll, 2 x 2 Zoll, 35 x 45 mm, 3 x 4 cm und weitere Standardgrößen.",
+      "Druckbogen für 4 x 6, 5 x 7, A4, Letter und gängige Papierformate.",
     ],
-    printTitle: "Praktisch fuer Fotoausdrucke",
+    printTitle: "Praktisch für Fotoausdrucke",
     printItems: [
       "Einzelnes JPG oder Druckbogen mit mehreren Kopien herunterladen.",
-      "Rand und Abstand bleiben stabil, damit Drucken in Originalgroesse einfacher ist.",
+      "Rand und Abstand bleiben stabil, damit Drucken in Originalgröße einfacher ist.",
     ],
-    warningTitle: "Keine Garantie fuer Pass oder Visum",
-    warningText: "Das Tool ist fuer alltaegliche Zwecke gedacht. Fuer amtliche Dokumente gelten immer die aktuellen Vorgaben der jeweiligen Behoerde.",
-    faqTitle: "Haeufige Fragen",
+    warningTitle: "Keine Garantie für Pass oder Visum",
+    warningText: "Das Tool ist für alltägliche Zwecke gedacht. Für amtliche Dokumente gelten immer die aktuellen Vorgaben der jeweiligen Behörde.",
+    faqTitle: "Häufige Fragen",
     faqs: [
       {
-        question: "Kann ich den Hintergrund aendern?",
-        answer: "Ja, wenn das ausgewaehlte Bild ein transparentes PNG ist. JPG Bilder lassen sich zuschneiden und drucken, aber der Hintergrund wird nicht ersetzt.",
+        question: "Kann ich den Hintergrund ändern?",
+        answer: "Ja, wenn das ausgewählte Bild ein transparentes PNG ist. JPG Bilder lassen sich zuschneiden und drucken, aber der Hintergrund wird nicht ersetzt.",
       },
       {
         question: "Kann ich mehrere Kopien drucken?",
-        answer: "Ja. Waehle ein Papierformat und lade den Druckbogen als JPG herunter.",
+        answer: "Ja. Wähle ein Papierformat und lade den Druckbogen als JPG herunter.",
       },
     ],
   },

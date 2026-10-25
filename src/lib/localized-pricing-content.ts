@@ -121,15 +121,15 @@ export const localizedPricingContent: Record<Exclude<Locale, 'en'>, LocalizedPri
     ],
   },
   de: {
-    title: 'Preise fur den KI-Headshot-Generator',
+    title: 'Preise für den KI-Headshot-Generator',
     description:
-      'Kaufe Credits einmalig und erstelle realistische professionelle Headshots fur LinkedIn, Lebenslauf und Business-Profile. Vergleiche die Pakete vor dem Upload und wahle nach der Anzahl der gewunschten Stile.',
+      'Kaufe Credits einmalig und erstelle realistische professionelle Headshots für LinkedIn, Lebenslauf und Business-Profile. Vergleiche die Pakete vor dem Upload und wahle nach der Anzahl der gewunschten Stile.',
     mostPopular: 'Am beliebtesten',
     perPurchase: 'Einmalzahlung',
     headshots: 'Headshots',
     validityTemplate: '{days} Tage gultig',
     choosePlanTemplate: '{planName} wahlen',
-    checkoutUnavailable: 'Zahlung fur diese Wahrung ist noch nicht verfugbar',
+    checkoutUnavailable: 'Zahlung für diese Wahrung ist noch nicht verfugbar',
     validityRule: 'Die Gültigkeit beginnt mit der ersten Generierung, nicht mit dem Kaufdatum.',
     highlights: {
       resolution: 'Auflosung 1024x1024',
@@ -292,57 +292,57 @@ Object.assign(localizedPricingContent, {
     ...localizedPricingContent.es,
     title: 'Precios claros para crear retratos IA profesionales',
     description:
-      'Compara paquetes de creditos para fotos profesionales con IA: LinkedIn, CV, web personal, perfiles creativos y equipos.',
-    validityRule: 'Los creditos se mantienen activos durante el periodo indicado en cada paquete para que puedas probar estilos, revisar resultados y descargar las mejores versiones.',
+      'Compara paquetes de créditos para fotos profesionales con IA: LinkedIn, CV, web personal, perfiles creativos y equipos.',
+    validityRule: 'Los créditos se mantienen activos durante el periodo indicado en cada paquete para que puedas probar estilos, revisar resultados y descargar las mejores versiones.',
     highlights: {
       ...localizedPricingContent.es.highlights,
       resolution: 'Descargas listas para perfil, web y documentos digitales',
       downloads: 'Puedes guardar tus resultados favoritos y comparar variantes',
       commercial: 'Uso comercial incluido para marca personal y perfiles de trabajo',
       priority: 'Procesamiento priorizado en los paquetes superiores',
-      emailSupport: 'Soporte por email para compras y generacion',
+      emailSupport: 'Soporte por email para compras y generación',
       dedicatedSupport: 'Ayuda mas directa para equipos o volumen alto',
     },
-    faqTitle: 'Preguntas frecuentes sobre precios y creditos',
+    faqTitle: 'Preguntas frecuentes sobre precios y créditos',
     faq: [
       {
         question: 'Que paquete conviene si solo necesito una foto profesional?',
         answer:
-          'Para una actualizacion puntual de LinkedIn, CV o perfil de empresa, suele bastar un paquete pequeno. Si quieres comparar fondos, ropa y estilos, un paquete mayor deja mas margen para elegir.',
+          'Para una actualizacion puntual de LinkedIn, CV o perfil de empresa, suele bastar un paquete pequeño. Si quieres comparar fondos, ropa y estilos, un paquete mayor deja mas margen para elegir.',
       },
       {
         question: 'Puedo usar las fotos generadas en mi web o redes profesionales?',
         answer:
-          'Si, los paquetes estan pensados para perfiles profesionales, marca personal, paginas de equipo y redes sociales. Revisa siempre que el resultado final represente bien tu imagen antes de publicarlo.',
+          'Si, los paquetes estan pensados para perfiles profesionales, marca personal, páginas de equipo y redes sociales. Revisa siempre que el resultado final represente bien tu imagen antes de publicarlo.',
       },
     ],
   },
   de: {
     ...localizedPricingContent.de,
-    title: 'Preise fur professionelle KI-Portrats ohne Abo-Druck',
+    title: 'Preise für professionelle KI-Porträts ohne Abo-Druck',
     description:
-      'Vergleiche Credit-Pakete fuer professionelle KI Fotos: LinkedIn, Bewerbung, Teamseite, Portfolio und kreative Profile.',
+      'Vergleiche Credit-Pakete für professionelle KI Fotos: LinkedIn, Bewerbung, Teamseite, Portfolio und kreative Profile.',
     validityRule: 'Credits bleiben im angegebenen Zeitraum aktiv, damit du Styles testen, Ergebnisse vergleichen und die besten Bilder in Ruhe herunterladen kannst.',
     highlights: {
       ...localizedPricingContent.de.highlights,
-      resolution: 'Downloads fur Profile, Websites und digitale Unterlagen',
+      resolution: 'Downloads für Profile, Websites und digitale Unterlagen',
       downloads: 'Mehrere Varianten speichern und direkt vergleichen',
-      commercial: 'Kommerzielle Nutzung fur Personal Branding und Arbeitsprofile',
-      priority: 'Schnellere Verarbeitung bei groesseren Paketen',
-      emailSupport: 'E-Mail-Support fur Zahlung und Erstellung',
-      dedicatedSupport: 'Direktere Unterstuetzung fur Teams und groessere Mengen',
+      commercial: 'Kommerzielle Nutzung für Personal Branding und Arbeitsprofile',
+      priority: 'Schnellere Verarbeitung bei größeren Paketen',
+      emailSupport: 'E-Mail-Support für Zahlung und Erstellung',
+      dedicatedSupport: 'Direktere Unterstuetzung für Teams und groessere Mengen',
     },
     faqTitle: 'Fragen zu Preisen, Credits und Nutzung',
     faq: [
       {
-        question: 'Welches Paket reicht fur ein einzelnes professionelles Profilbild?',
+        question: 'Welches Paket reicht für ein einzelnes professionelles Profilbild?',
         answer:
-          'Fuer eine einfache Aktualisierung von LinkedIn, Bewerbung oder Firmenprofil reicht oft ein kleines Paket. Wenn du mehrere Outfits, Hintergruende oder Looks vergleichen willst, ist mehr Spielraum sinnvoll.',
+          'Für eine einfache Aktualisierung von LinkedIn, Bewerbung oder Firmenprofil reicht oft ein kleines Paket. Wenn du mehrere Outfits, Hintergründe oder Looks vergleichen willst, ist mehr Spielraum sinnvoll.',
       },
       {
         question: 'Darf ich die erstellten Bilder beruflich verwenden?',
         answer:
-          'Ja, die Pakete sind fur berufliche Profile, persoenliche Marken, Teamseiten und Social Media gedacht. Pruefe das finale Bild vor der Veroeffentlichung, damit Ausdruck und Stil zu dir passen.',
+          'Ja, die Pakete sind für berufliche Profile, persönliche Marken, Teamseiten und Social Media gedacht. Prüfe das finale Bild vor der Veröffentlichung, damit Ausdruck und Stil zu dir passen.',
       },
     ],
   },
