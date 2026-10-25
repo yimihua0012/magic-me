@@ -48,6 +48,8 @@ CREATE TABLE IF NOT EXISTS credit_packages (
     
     -- 套餐信息
     plan_type TEXT NOT NULL CHECK (plan_type IN ('basic', 'pro', 'premium')),
+    kind TEXT NOT NULL DEFAULT 'purchase'
+        CHECK (kind IN ('purchase', 'trial', 'trial_duplicate')),
     total_credits INTEGER NOT NULL,
     remaining_credits INTEGER NOT NULL,
     
@@ -79,6 +81,9 @@ CREATE TABLE IF NOT EXISTS credit_packages (
 CREATE INDEX idx_credit_packages_user_id ON credit_packages(user_id);
 CREATE INDEX idx_credit_packages_status ON credit_packages(status);
 CREATE INDEX idx_credit_packages_expires_at ON credit_packages(expires_at);
+CREATE UNIQUE INDEX idx_credit_packages_one_trial_per_user
+    ON credit_packages(user_id)
+    WHERE kind = 'trial';
 CREATE UNIQUE INDEX idx_credit_packages_stripe_payment_id_unique
     ON credit_packages(stripe_payment_id)
     WHERE stripe_payment_id IS NOT NULL;

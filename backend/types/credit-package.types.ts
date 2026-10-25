@@ -3,7 +3,7 @@ import type { PlanType } from './generation.types'
 
 export type CreditPackageStatus = 'inactive' | 'active' | 'expired' | 'depleted'
 
-export type CreditPackageKind = 'purchase' | 'trial'
+export type CreditPackageKind = 'purchase' | 'trial' | 'trial_duplicate'
 
 export interface CreditPackage {
   id: string

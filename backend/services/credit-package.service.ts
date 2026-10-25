@@ -185,16 +185,14 @@ export class CreditPackageService {
    * - 与购买包共用同一套 FIFO 扣减逻辑
    */
   static async createTrialPackage(userId: string, credits = 2, validityDays = 7): Promise<CreditPackage> {
-    const { data: existing, error: queryError } = await supabaseAdmin
-      .from('credit_packages')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('kind', 'trial')
-      .limit(1)
-      .maybeSingle()
+    const { data: existing, error: queryError } = await this.findTrialPackage(userId)
 
-    if (!queryError && existing) {
-      return existing as CreditPackage
+    if (queryError) {
+      throw queryError
+    }
+
+    if (existing) {
+      return existing
     }
 
     const packageData: Partial<CreditPackage> = {
@@ -217,16 +215,14 @@ export class CreditPackageService {
       .single()
 
     if (error) {
-      const { data: retryExisting, error: retryError } = await supabaseAdmin
-        .from('credit_packages')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('kind', 'trial')
-        .limit(1)
-        .maybeSingle()
+      const { data: retryExisting, error: retryError } = await this.findTrialPackage(userId)
 
-      if (!retryError && retryExisting) {
-        return retryExisting as CreditPackage
+      if (retryError) {
+        throw retryError
+      }
+
+      if (retryExisting) {
+        return retryExisting
       }
 
       throw error
@@ -255,6 +251,21 @@ export class CreditPackageService {
 
     console.log(`[CreditPackage] Granted trial package: ${created.id}, credits: ${credits}, validity: ${validityDays} days`)
     return created
+  }
+
+  private static async findTrialPackage(userId: string) {
+    const { data, error } = await supabaseAdmin
+      .from('credit_packages')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('kind', 'trial')
+      .limit(1)
+      .maybeSingle()
+
+    return {
+      data: data ? data as CreditPackage : null,
+      error,
+    }
   }
 
   private static paymentProviderForPackage(pkg: CreditPackage): { provider: string; paymentId?: string } {
